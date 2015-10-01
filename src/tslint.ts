@@ -56,9 +56,11 @@ let validator: SingleFileValidator = {
 			});
 		});
 	},
+
 	onFileEvents(changes: FileEvent[], requestor: IValidationRequestor): void {
 		requestor.all();
 	},
+
 	onConfigurationChange(_settings: Settings, requestor: IValidationRequestor): void {
 		settings = _settings;
 		if (settings.tslint) {
@@ -67,6 +69,7 @@ let validator: SingleFileValidator = {
 		}
 		requestor.all();
 	},
+	
 	validate: (document: IDocument): Diagnostic[] => {
 		try {
 			let uri = document.uri;
