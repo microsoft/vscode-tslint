@@ -1,5 +1,8 @@
 
 
+declare module Lint.Configuration {
+    function findConfiguration(configFile: string, inputFileLocation: string): any;
+}
 declare module Lint {
     interface LintResult {
         failureCount: number;

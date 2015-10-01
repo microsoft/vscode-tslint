@@ -18,11 +18,6 @@
 					"default": false,
 					"description": "Control whether tslint is enabled for TypeScript files or not."
 				},
-				"tslint.rules": {
-					"type": "object",
-					"default": {},
-					"description": "The tshint rules configuration."
-				},
 				"tslint.rulesDirectory": {
 					"type": "string",
 					"default": "customRules/",
