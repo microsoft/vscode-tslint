@@ -1,0 +1,45 @@
+{
+	"name": "tslint",
+	"version": "0.1.0",
+	"publisher": "vscode",
+	"engines": { "vscode": "*" },
+	"description": "TSlint Integration for Visual Studio Code",
+	"private": true,
+	"dependencies": {
+		"vscode-languageworker": "^0.1.12"
+	},
+	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "TSLint configuration",
+			"properties": {
+				"tslint.enable": {
+					"type": "boolean",
+					"default": false,
+					"description": "Control whether tslint is enabled for TypeScript files or not."
+				},
+				"tslint.rules": {
+					"type": "object",
+					"default": {},
+					"description": "The tshint rules configuration."
+				},
+				"tslint.rulesDirectory": {
+					"type": "string",
+					"default": "customRules/",
+					"description": "The path to custom rules."
+				},
+				"tslint.formatterDirectory": {
+					"type": "string",
+					"default": "customFormatters/",
+					"description": "The path to custom rules."
+				}
+			}
+		},
+		"languageWorker": {
+			"activate": ["onLanguage:typescript", "onLanguage:typescriptreact"],
+			"nodeModule": "lib/tslint.js",
+			"watchFiles": "**/tslint.json",
+			"settings": "tslint"
+		}
+	}
+}
