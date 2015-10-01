@@ -28,6 +28,11 @@ let options: Lint.ILinterOptions = {
 	formattersDirectory: undefined
 };
 
+let configCache = {
+	filePath: <string>null,
+	configuration: <any>null
+}
+
 function makeDiagnostic(problem: any): Diagnostic {
 	return {
 		message: problem.failure,
@@ -58,6 +63,7 @@ let validator: SingleFileValidator = {
 	},
 
 	onFileEvents(changes: FileEvent[], requestor: IValidationRequestor): void {
+		flushConfigCache();
 		requestor.all();
 	},
 
@@ -67,16 +73,17 @@ let validator: SingleFileValidator = {
 			rulesDirectory = settings.tslint.rulesDirectory;
 			formatterDirectory = settings.tslint.formatterDirectory;
 		}
+		flushConfigCache();
 		requestor.all();
 	},
-	
+
 	validate: (document: IDocument): Diagnostic[] => {
 		try {
 			let uri = document.uri;
 			let fsPath = Files.uriToFilePath(uri);
 			let contents = document.getText();
 
-			options.configuration = linter.findConfiguration(null, fsPath);
+			options.configuration = getConfiguration(fsPath);
 			let ll = new linter(fsPath, contents, options);
 			let result = ll.lint();
 
@@ -98,5 +105,23 @@ let validator: SingleFileValidator = {
 		}
 	}
 };
+
+function getConfiguration(filePath: string): any {
+	if (configCache.configuration && configCache.filePath === filePath) {
+		return configCache.configuration;
+	}
+	configCache = {
+		filePath: filePath,
+		configuration: linter.findConfiguration(null, filePath)
+	}
+	return configCache.configuration;
+}
+
+function flushConfigCache() {
+	configCache = {
+		filePath: null,
+		configuration: null
+	}
+}
 
 runSingleFileValidator(process.stdin, process.stdout, validator);
