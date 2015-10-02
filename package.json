@@ -2,7 +2,9 @@
 	"name": "tslint",
 	"version": "0.1.0",
 	"publisher": "vscode",
-	"engines": { "vscode": "*" },
+	"engines": {
+		"vscode": "*"
+	},
 	"description": "TSlint Integration for Visual Studio Code",
 	"private": true,
 	"dependencies": {
@@ -30,9 +32,22 @@
 				}
 			}
 		},
-		"languageWorker": {
-			"activate": ["onLanguage:typescript", "onLanguage:typescriptreact"],
-			"nodeModule": "lib/tslint.js",
+		"languageWorkers": {
+			"activate": [
+				"onLanguage:typescript",
+				"onLanguage:typescriptreact"
+			],
+			"executable": {
+				"run": {
+					"nodeModule": "lib/tslint.js"
+				},
+				"debug": {
+					"nodeModule": "lib/tslint.js",
+					"execArgv": [
+						"--debug-brk=5871"
+					]
+				}
+			},
 			"watchFiles": "**/tslint.json",
 			"settings": "tslint"
 		}
