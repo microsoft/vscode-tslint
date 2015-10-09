@@ -1,7 +1,7 @@
 {
 	"name": "tslint",
 	"version": "0.1.0",
-	"publisher": "vscode",
+	"publisher": "eg2",
 	"engines": {
 		"vscode": "*"
 	},
