@@ -1,2 +1,2 @@
 # vscode-tslint
-Example for TS Lint extension
+Integrates [tslint](https://github.com/palantir/tslint) into VS Code.
