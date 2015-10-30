@@ -3,8 +3,8 @@
 		"target": "ES5",
 		"module": "commonjs",
 		"moduleResolution": "node",
-		"noImplicitAny": true,
-		"outDir": "./lib"
+		"sourceMap": true,
+		"outDir": "../../tslint/server"
 	},
 	"exclude": [
 		"node_modules"

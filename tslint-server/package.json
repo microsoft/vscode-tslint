@@ -1,0 +1,19 @@
+{
+	"name": "tslint-server",
+	"version": "0.1.0",
+	"description": "TSLint Linter Server",
+	"engines": {
+		"node": "*"
+	},
+	"private": true,
+	"dependencies": {
+		"vscode-languageserver": "next"
+	},
+	"devDependencies": {
+		"typescript": "^1.6.2"
+	},
+	"scripts": {
+		"compile": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc -p ./src",
+		"watch": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc --watch -p ./src"
+	}
+}

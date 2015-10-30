@@ -5,20 +5,13 @@
 		{
 			"name": "Launch Extension",
 			"type": "extensionHost",
+			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
 			"stopOnEntry": false,
 			"sourceMaps": true,
-			"outDir": "out"
-		},
-		{
-			"name": "Attach",
-			"type": "node",
-			// TCP/IP address. Default is "localhost".
-			"address": "localhost",
-			// Port to attach to.
-			"port": 5871,
-			"sourceMaps": false
+			"outDir": "out",
+			"preLaunchTask": "npm"
 		}
 	]
 }

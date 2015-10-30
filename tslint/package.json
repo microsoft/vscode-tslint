@@ -1,0 +1,42 @@
+{
+	"name": "tslint",
+	"description": "tslint",
+	"version": "0.0.1",
+	"publisher": "vscode",
+	"engines": {
+		"vscode": "*"
+	},
+	"activationEvents": [
+		"onLanguage:typescript",
+		"onLanguage:typescriptreact"
+	],
+	"main": "./out/extension",
+	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "TSLint configuration",
+			"properties": {
+				"tslint.enable": {
+					"type": "boolean",
+					"default": false,
+					"description": "Control whether tslint is enabled for JavaScript files or not."
+				},
+				"tslint.options": {
+					"type": "object",
+					"default": {},
+					"description": "The tslint options object to provide args to the tslint command."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+	},
+	"devDependencies": {
+		"vscode": "next"
+	},
+	"dependencies": {
+		"vscode-languageclient": "next"
+	}
+}
