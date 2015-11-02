@@ -14,7 +14,7 @@ export function activate(subscriptions: Disposable[]) {
 	};
 
 	let clientOptions: LanguageClientOptions = {
-		languageSelector: ['typescript', 'typescriptreact'],
+		documentSelector: ['typescript', 'typescriptreact'],
 		synchronize: {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
