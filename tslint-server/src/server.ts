@@ -35,6 +35,7 @@ let configCache = {
 
 function makeDiagnostic(problem: any): server.Diagnostic {
 	return {
+		severity: server.Severity.Warning,
 		message: problem.failure,
 		start: {
 			line: problem.startPosition.line,
