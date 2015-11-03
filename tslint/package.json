@@ -18,7 +18,7 @@
 			"properties": {
 				"tslint.enable": {
 					"type": "boolean",
-					"default": false,
+					"default": true,
 					"description": "Control whether tslint is enabled for JavaScript files or not."
 				},
 				"tslint.options": {
