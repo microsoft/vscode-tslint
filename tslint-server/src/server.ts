@@ -35,15 +35,17 @@ let configCache = {
 
 function makeDiagnostic(problem: any): server.Diagnostic {
 	return {
-		severity: server.Severity.Warning,
+		severity: server.DiagnosticSeverity.Warning,
 		message: problem.failure,
-		start: {
-			line: problem.startPosition.line,
-			character: problem.startPosition.character
-		},
-		end: {
-			line: problem.endPosition.line,
-			character: problem.endPosition.character
+		range: {
+			start: {
+				line: problem.startPosition.line,
+				character: problem.startPosition.character
+			},
+			end: {
+				line: problem.endPosition.line,
+				character: problem.endPosition.character
+			},
 		},
 		code: problem.ruleName
 	};
@@ -102,7 +104,7 @@ let documents: server.TextDocuments = new server.TextDocuments();
 documents.listen(connection);
 
 connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
-	let rootFolder = params.rootFolder;
+	let rootFolder = params.rootPath;
 	return server.Files.resolveModule(rootFolder, 'tslint').then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
 		linter = value;
 		let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind } };

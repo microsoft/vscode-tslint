@@ -1,13 +1,13 @@
 {
 	"name": "tslint-server",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "TSLint Linter Server",
 	"engines": {
 		"node": "*"
 	},
 	"private": true,
 	"dependencies": {
-		"vscode-languageserver": "next"
+		"vscode-languageserver": "0.10.x"
 	},
 	"devDependencies": {
 		"typescript": "^1.6.2"

@@ -1,10 +1,21 @@
 {
 	"name": "tslint",
-	"description": "tslint",
+	"description": "Lint TypeScript files using tslint",
 	"version": "0.0.1",
-	"publisher": "vscode",
+	"publisher": "eg2",
+	"categories": [
+		"Languages",
+		"Linters"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Microsoft/vscode-tslint.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Microsoft/vscode-tslint/issues"
+	},
 	"engines": {
-		"vscode": "*"
+		"vscode": "0.10.x"
 	},
 	"activationEvents": [
 		"onLanguage:typescript",
@@ -34,9 +45,9 @@
 		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
 	},
 	"devDependencies": {
-		"vscode": "next"
+		"vscode": "0.10.x"
 	},
 	"dependencies": {
-		"vscode-languageclient": "next"
+		"vscode-languageclient": "0.10.x"
 	}
 }
