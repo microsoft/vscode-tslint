@@ -1,12 +1,14 @@
 {
 	"name": "tslint",
-	"description": "Lint TypeScript files using tslint",
-	"version": "0.0.1",
+	"description": "TSLint for Visual Studio Code",
+	"version": "0.3.0",
 	"publisher": "eg2",
-	"categories": [
-		"Languages",
-		"Linters"
-	],
+	"icon": "TSLint_icon.svg",
+	"galleryBanner": {
+		"color": "#5c2d91",
+		"theme": "dark"
+	},
+	"homepage": "https://github.com/Microsoft/vscode-tslint/blob/master/README.md",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Microsoft/vscode-tslint.git"
@@ -14,6 +16,10 @@
 	"bugs": {
 		"url": "https://github.com/Microsoft/vscode-tslint/issues"
 	},
+	"categories": [
+		"Languages",
+		"Linters"
+	],
 	"engines": {
 		"vscode": "0.10.x"
 	},
