@@ -1,4 +1,4 @@
-# vscode-eslint
+# vscode-tslint
 VSCode extension to support tslint
 
 ## Development setup
