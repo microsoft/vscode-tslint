@@ -8,25 +8,27 @@ import * as path from 'path';
 
 import * as server from 'vscode-languageserver';
 
+// Settings as defined in VS Code
 interface Settings {
 	tslint: {
 		enable: boolean;
 		rulesDirectory: string;
-		formatterDirectory: string
+		configFile: string;
 	}
 }
 
 let settings: Settings = null;
-let rulesDirectory: string = null;
-let formatterDirectory: string = null;
+
 let linter: any = null;
 
+// Options passed to tslint
 let options: Lint.ILinterOptions = {
 	formatter: "json",
 	configuration: {},
 	rulesDirectory: undefined,
 	formattersDirectory: undefined
 };
+let configFile: string = null;
 
 let configCache = {
 	filePath: <string>null,
@@ -51,13 +53,13 @@ function makeDiagnostic(problem: any): server.Diagnostic {
 	};
 }
 
-function getConfiguration(filePath: string): any {
+function getConfiguration(filePath: string, configFile: string): any {
 	if (configCache.configuration && configCache.filePath === filePath) {
 		return configCache.configuration;
 	}
 	configCache = {
 		filePath: filePath,
-		configuration: linter.findConfiguration(null, filePath)
+		configuration: linter.findConfiguration(configFile, filePath)
 	}
 	return configCache.configuration;
 }
@@ -123,7 +125,7 @@ function doValidate(connection: server.IConnection, document: server.ITextDocume
 		let fsPath = server.Files.uriToFilePath(uri);
 		let contents = document.getText();
 
-		options.configuration = getConfiguration(fsPath);
+		options.configuration = getConfiguration(fsPath, configFile);
 		let ll = new linter(fsPath, contents, options);
 		let result = ll.lint();
 
@@ -157,8 +159,8 @@ connection.onDidChangeConfiguration((params) => {
 	settings = params.settings;
 
 	if (settings.tslint) {
-		options.rulesDirectory = settings.tslint.rulesDirectory;
-		options.formatterDirectory = settings.tslint.formatterDirectory;
+		options.rulesDirectory = settings.tslint.rulesDirectory || null;
+		configFile = settings.tslint.configFile || null;
 	}
 	validateAllTextDocuments(connection, documents.all());
 });
