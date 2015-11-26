@@ -157,8 +157,8 @@ connection.onDidChangeConfiguration((params) => {
 	settings = params.settings;
 
 	if (settings.tslint) {
-		rulesDirectory = settings.tslint.rulesDirectory;
-		formatterDirectory = settings.tslint.formatterDirectory;
+		options.rulesDirectory = settings.tslint.rulesDirectory;
+		options.formatterDirectory = settings.tslint.formatterDirectory;
 	}
 	validateAllTextDocuments(connection, documents.all());
 });
