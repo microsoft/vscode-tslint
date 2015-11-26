@@ -112,7 +112,7 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 	}, (error) => {
 		return Promise.reject(
 			new server.ResponseError<server.InitializeError>(99,
-				'Failed to load tslint library. Please install tslint in your workspace folder using \'npm install tslint\' and then press Retry.',
+				'Failed to load tslint library. Please install tslint in your workspace folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.',
 				{ retry: true }));
 	});
 });
