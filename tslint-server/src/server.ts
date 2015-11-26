@@ -123,6 +123,9 @@ function doValidate(connection: server.IConnection, document: server.ITextDocume
 	try {
 		let uri = document.uri;
 		let fsPath = server.Files.uriToFilePath(uri);
+		if (!fsPath) { // don't lint inmemory documents
+			return;
+		}
 		let contents = document.getText();
 
 		options.configuration = getConfiguration(fsPath, configFile);
