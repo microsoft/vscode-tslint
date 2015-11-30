@@ -52,8 +52,10 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+		"vscode:prepublish": "cd ../tslint-server && npm run compile && cd ../tslint && tsc -p ./",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./"
+
 	},
 	"devDependencies": {
 		"vscode": "0.10.x",
