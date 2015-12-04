@@ -74,9 +74,9 @@ function flushConfigCache() {
 function getErrorMessage(err: any, document: server.ITextDocument): string {
 	let result: string = null;
 	if (typeof err.message === 'string' || err.message instanceof String) {
-		result = <string>err.message;
+		result = `vscode-tslint: ${<string>err.message}`;
 	} else {
-		result = `An unknown error occured while validating file: ${server.Files.uriToFilePath(document.uri) }`;
+		result = `vscode-tslint: An unknown error occured while validating file: ${server.Files.uriToFilePath(document.uri) }`;
 	}
 	return result;
 }
