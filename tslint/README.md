@@ -1,7 +1,10 @@
 # vscode-tslint
 Integrates [tslint](https://github.com/palantir/tslint) into VS Code.
 
+*The tslint integration requires at least version 3.1.1 of tslint.*
+
 Please refer to the tslint [documentation](https://github.com/palantir/tslint) for how to configure it.
+
 
 # Configuration options
 
