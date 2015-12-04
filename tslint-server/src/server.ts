@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import * as semver from 'semver';
 import * as server from 'vscode-languageserver';
 
 // Settings as defined in VS Code
@@ -14,12 +15,14 @@ interface Settings {
 		enable: boolean;
 		rulesDirectory: string;
 		configFile: string;
-	}
+	};
 }
 
 let settings: Settings = null;
 
-let linter: any = null;
+let linter: typeof Lint.Linter = null;
+
+const REQUIRED_TSLINT_VERSION = '3.1.1'; // when using TS 1.7
 
 // Options passed to tslint
 let options: Lint.ILinterOptions = {
@@ -33,7 +36,7 @@ let configFile: string = null;
 let configCache = {
 	filePath: <string>null,
 	configuration: <any>null
-}
+};
 
 function makeDiagnostic(problem: any): server.Diagnostic {
 	return {
@@ -60,7 +63,7 @@ function getConfiguration(filePath: string, configFile: string): any {
 	configCache = {
 		filePath: filePath,
 		configuration: linter.findConfiguration(configFile, filePath)
-	}
+	};
 	return configCache.configuration;
 }
 
@@ -68,7 +71,7 @@ function flushConfigCache() {
 	configCache = {
 		filePath: null,
 		configuration: null
-	}
+	};
 }
 
 function getErrorMessage(err: any, document: server.ITextDocument): string {
@@ -109,6 +112,13 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 	let rootFolder = params.rootPath;
 	return server.Files.resolveModule(rootFolder, 'tslint').then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
 		linter = value;
+		// This version check is only required when using TS 1.7
+		// if (semver.lt(linter.VERSION, REQUIRED_TSLINT_VERSION)) {
+		// 	let result: server.ResponseError<server.InitializeError> = new server.ResponseError<server.InitializeError>(98,
+		// 		`vscode-tslint requires at least tslint version ${REQUIRED_TSLINT_VERSION}. Please update your tslint version then press Retry.`,
+		// 		{ retry: true });
+		// 	return result;
+		// }
 		let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind } };
 		return result;
 	}, (error) => {

@@ -25,6 +25,7 @@ declare module Lint {
         lint(): LintResult;
         private getRelativePath(directory);
         private containsRule(rules, rule);
+		static findConfiguration(configFile: string, inputFileLocation: string): any;
     }
 }
 declare module "tslint" {
