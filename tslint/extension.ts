@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { workspace, Disposable, ExtensionContext } from 'vscode';
+import { workspace, ExtensionContext } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions } from 'vscode-languageclient';
 
 export function activate(context: ExtensionContext) {
@@ -19,7 +19,7 @@ export function activate(context: ExtensionContext) {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
 		}
-	}
+	};
 
 	let client = new LanguageClient('TS Linter', serverOptions, clientOptions);
 	context.subscriptions.push(new SettingMonitor(client, 'tslint.enable').start());
