@@ -12,3 +12,12 @@ Please refer to the tslint [documentation](https://github.com/palantir/tslint) f
 - `tslint.rulesDirectory` - an additional rules directory, for user-created rules.
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
 
+
+# Release Notes
+
+## 0.5.5
+- `tslint.json` is now validated using a JSON schema.
+- Diagnostic messages produced by tslint are now tagged with `tslint`.
+
+## 0.5.4
+- Added the `tslint.configFile` option.

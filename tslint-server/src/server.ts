@@ -3,10 +3,6 @@
  *--------------------------------------------------------*/
 'use strict';
 
-import * as fs from 'fs';
-import * as path from 'path';
-
-import * as semver from 'semver';
 import * as server from 'vscode-languageserver';
 
 // Settings as defined in VS Code
@@ -22,7 +18,9 @@ let settings: Settings = null;
 
 let linter: typeof Lint.Linter = null;
 
-const REQUIRED_TSLINT_VERSION = '3.1.1'; // when using TS 1.7
+let tslintNotFound =
+`Failed to load tslint library. Please install tslint in your workspace
+folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.`;
 
 // Options passed to tslint
 let options: Lint.ILinterOptions = {
@@ -52,17 +50,18 @@ function makeDiagnostic(problem: any): server.Diagnostic {
 				character: problem.endPosition.character
 			},
 		},
-		code: problem.ruleName
+		code: problem.ruleName,
+		source: 'tslint'
 	};
 }
 
-function getConfiguration(filePath: string, configFile: string): any {
+function getConfiguration(filePath: string, configFileName: string): any {
 	if (configCache.configuration && configCache.filePath === filePath) {
 		return configCache.configuration;
 	}
 	configCache = {
 		filePath: filePath,
-		configuration: linter.findConfiguration(configFile, filePath)
+		configuration: linter.findConfiguration(configFileName, filePath)
 	};
 	return configCache.configuration;
 }
@@ -110,26 +109,20 @@ documents.listen(connection);
 
 connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
 	let rootFolder = params.rootPath;
-	return server.Files.resolveModule(rootFolder, 'tslint').then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
+	return server.Files.resolveModule(rootFolder, 'tslint').
+		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
 		linter = value;
-		// This version check is only required when using TS 1.7
-		// if (semver.lt(linter.VERSION, REQUIRED_TSLINT_VERSION)) {
-		// 	let result: server.ResponseError<server.InitializeError> = new server.ResponseError<server.InitializeError>(98,
-		// 		`vscode-tslint requires at least tslint version ${REQUIRED_TSLINT_VERSION}. Please update your tslint version then press Retry.`,
-		// 		{ retry: true });
-		// 	return result;
-		// }
 		let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind } };
 		return result;
 	}, (error) => {
 		return Promise.reject(
 			new server.ResponseError<server.InitializeError>(99,
-				'Failed to load tslint library. Please install tslint in your workspace folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.',
+				tslintNotFound,
 				{ retry: true }));
 	});
 });
 
-function doValidate(connection: server.IConnection, document: server.ITextDocument): void {
+function doValidate(conn: server.IConnection, document: server.ITextDocument): void {
 	try {
 		let uri = document.uri;
 		let fsPath = server.Files.uriToFilePath(uri);
@@ -149,7 +142,7 @@ function doValidate(connection: server.IConnection, document: server.ITextDocume
 				diagnostics.push(makeDiagnostic(each));
 			});
 		}
-		connection.sendDiagnostics({ uri, diagnostics });
+		conn.sendDiagnostics({ uri, diagnostics });
 	} catch (err) {
 		let message: string = null;
 		if (typeof err.message === 'string' || err.message instanceof String) {

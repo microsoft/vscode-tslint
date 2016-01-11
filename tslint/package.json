@@ -1,7 +1,7 @@
 {
 	"name": "tslint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.4",
+	"version": "0.5.5",
 	"publisher": "eg2",
 	"icon": "TSLint_icon.svg",
 	"galleryBanner": {
@@ -68,6 +68,6 @@
 		"typescript": "^1.6.2"
 	},
 	"dependencies": {
-		"vscode-languageclient": "0.10.x"
+		"vscode-languageclient": "^1.1.0"
 	}
 }
