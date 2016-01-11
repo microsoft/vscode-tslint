@@ -10,6 +10,5 @@
 	},
 	"files.trimTrailingWhitespace": true,
 	"editor.insertSpaces": false,
-	"editor.tabSize": 4,
-	"tslint.enable": true
+	"editor.tabSize": 4
 }
