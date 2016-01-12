@@ -19,7 +19,7 @@ let settings: Settings = null;
 let linter: typeof Lint.Linter = null;
 
 let tslintNotFound =
-`Failed to load tslint library. Please install tslint in your workspace
+	`Failed to load tslint library. Please install tslint in your workspace
 folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.`;
 
 // Options passed to tslint
@@ -74,13 +74,12 @@ function flushConfigCache() {
 }
 
 function getErrorMessage(err: any, document: server.ITextDocument): string {
-	let result: string = null;
+	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
-		result = `vscode-tslint: ${<string>err.message}`;
-	} else {
-		result = `vscode-tslint: An unknown error occured while validating file: ${server.Files.uriToFilePath(document.uri) }`;
+		errorMessage = <string>err.message;
 	}
-	return result;
+	let message = `vscode-tslint: '${errorMessage}' while validating: ${document.uri} stacktrace: ${err.stack}`;
+	return message;
 }
 
 function validateAllTextDocuments(connection: server.IConnection, documents: server.ITextDocument[]): void {
@@ -111,46 +110,37 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 	let rootFolder = params.rootPath;
 	return server.Files.resolveModule(rootFolder, 'tslint').
 		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
-		linter = value;
-		let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind } };
-		return result;
-	}, (error) => {
-		return Promise.reject(
-			new server.ResponseError<server.InitializeError>(99,
-				tslintNotFound,
-				{ retry: true }));
-	});
+			linter = value;
+			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind } };
+			return result;
+		}, (error) => {
+			return Promise.reject(
+				new server.ResponseError<server.InitializeError>(99,
+					tslintNotFound,
+					{ retry: true }));
+		});
 });
 
 function doValidate(conn: server.IConnection, document: server.ITextDocument): void {
-	try {
-		let uri = document.uri;
-		let fsPath = server.Files.uriToFilePath(uri);
-		if (!fsPath) { // don't lint inmemory documents
-			return;
-		}
-		let contents = document.getText();
-
-		options.configuration = getConfiguration(fsPath, configFile);
-		let ll = new linter(fsPath, contents, options);
-		let result = ll.lint();
-
-		let diagnostics: server.Diagnostic[] = [];
-		if (result.failureCount > 0) {
-			let problems: any[] = JSON.parse(result.output);
-			problems.forEach(each => {
-				diagnostics.push(makeDiagnostic(each));
-			});
-		}
-		conn.sendDiagnostics({ uri, diagnostics });
-	} catch (err) {
-		let message: string = null;
-		if (typeof err.message === 'string' || err.message instanceof String) {
-			message = <string>err.message;
-			throw new Error(message);
-		}
-		throw err;
+	let uri = document.uri;
+	let fsPath = server.Files.uriToFilePath(uri);
+	if (!fsPath) { // tslint can only lint files on disk
+		//return;
 	}
+	let contents = document.getText();
+
+	options.configuration = getConfiguration(fsPath, configFile);
+	let ll = new linter(fsPath, contents, options);
+	let result = ll.lint();
+
+	let diagnostics: server.Diagnostic[] = [];
+	if (result.failureCount > 0) {
+		let problems: any[] = JSON.parse(result.output);
+		problems.forEach(each => {
+			diagnostics.push(makeDiagnostic(each));
+		});
+	}
+	conn.sendDiagnostics({ uri, diagnostics });
 }
 
 // A text document has changed. Validate the document.
