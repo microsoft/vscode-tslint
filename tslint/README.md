@@ -1,10 +1,14 @@
 # vscode-tslint
 Integrates [tslint](https://github.com/palantir/tslint) into VS Code.
 
-* When you are using TypeScript version 1.7 then the tslint integration requires at least version 3.1.1 of tslint.*
-
 Please refer to the tslint [documentation](https://github.com/palantir/tslint) for how to configure it.
 
+# Prerequisites
+The extension requires that tslint is installed either locally or globally.
+
+The recommended version of tslint is 3.2.1.
+
+When you are using TypeScript version 1.7 then at least version 3.1.1 is required.
 
 # Configuration options
 
