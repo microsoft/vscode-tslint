@@ -130,8 +130,14 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 	let contents = document.getText();
 
 	options.configuration = getConfiguration(fsPath, configFile);
-	let ll = new linter(fsPath, contents, options);
-	let result = ll.lint();
+
+	let result: Lint.LintResult;
+	try { // protect against tslint crashes
+		let tslint = new linter(fsPath, contents, options);
+		result = tslint.lint();
+	} catch (err) {
+		return; // TO DO log the tslint error
+	}
 
 	let diagnostics: server.Diagnostic[] = [];
 	if (result.failureCount > 0) {
