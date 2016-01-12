@@ -15,6 +15,9 @@ Please refer to the tslint [documentation](https://github.com/palantir/tslint) f
 
 # Release Notes
 
+## 0.5.8
+- protect against exceptions thrown by tslint.
+
 ## 0.5.5
 - `tslint.json` is now validated using a JSON schema.
 - Diagnostic messages produced by tslint are now tagged with `tslint`.
