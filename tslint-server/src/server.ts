@@ -125,7 +125,7 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 	let uri = document.uri;
 	let fsPath = server.Files.uriToFilePath(uri);
 	if (!fsPath) { // tslint can only lint files on disk
-		//return;
+		return;
 	}
 	let contents = document.getText();
 
