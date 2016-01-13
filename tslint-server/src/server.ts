@@ -78,8 +78,18 @@ function getErrorMessage(err: any, document: server.ITextDocument): string {
 	if (typeof err.message === 'string' || err.message instanceof String) {
 		errorMessage = <string>err.message;
 	}
-	let message = `vscode-tslint: '${errorMessage}' while validating: ${document.uri} stacktrace: ${err.stack}`;
+	let fsPath = server.Files.uriToFilePath(document.uri);
+	let message = `vscode-tslint: '${errorMessage}' while validating: ${fsPath} stacktrace: ${err.stack}`;
 	return message;
+}
+
+function showConfigurationFailure(conn: server.IConnection, err: any) {
+	let errorMessage = `unknown error`;
+	if (typeof err.message === 'string' || err.message instanceof String) {
+		errorMessage = <string>err.message;
+	}
+	let message = `vscode-tslint: Cannot read tslint configuration - '${errorMessage}'`;
+	conn.window.showInformationMessage(message);
 }
 
 function validateAllTextDocuments(connection: server.IConnection, documents: server.ITextDocument[]): void {
@@ -129,7 +139,12 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 	}
 	let contents = document.getText();
 
+	try {
 	options.configuration = getConfiguration(fsPath, configFile);
+	} catch (err) {
+		showConfigurationFailure(conn, err);
+		return;
+	}
 
 	let result: Lint.LintResult;
 	try { // protect against tslint crashes
