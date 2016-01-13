@@ -1,7 +1,7 @@
 {
 	"name": "tslint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.9",
+	"version": "0.5.10",
 	"publisher": "eg2",
 	"icon": "TSLint_icon.svg",
 	"galleryBanner": {
@@ -41,12 +41,12 @@
 				"tslint.rulesDirectory": {
 					"type": "string",
 					"description": "An additional rules directory",
-					"default": null
+					"default": ""
 				},
 				"tslint.configFile": {
 					"type": "string",
 					"description": "The path to the rules configuration file",
-					"default": null
+					"default": ""
 				}
 			}
 		},
