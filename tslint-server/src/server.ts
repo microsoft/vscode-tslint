@@ -151,7 +151,8 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 		let tslint = new linter(fsPath, contents, options);
 		result = tslint.lint();
 	} catch (err) {
-		return; // TO DO log the tslint error
+		// TO DO show an indication in the workbench
+		conn.console.error(getErrorMessage(err, document));
 	}
 
 	let diagnostics: server.Diagnostic[] = [];
