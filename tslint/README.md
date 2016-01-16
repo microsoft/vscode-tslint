@@ -19,8 +19,8 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 
 # Release Notes
 
-## 0.5.12
-- Handling an incorrect `tslint.json` configuration more gracefully.
+## 0.5.13
+- Handle the case where a user edits a `tslint.json` configuration file and it is in an intermediate inconsistent state gracefully.
 
 ## 0.5.8
 - protect against exceptions thrown by tslint.

@@ -140,7 +140,7 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 	let contents = document.getText();
 
 	try {
-	options.configuration = getConfiguration(fsPath, configFile);
+		options.configuration = getConfiguration(fsPath, configFile);
 	} catch (err) {
 		showConfigurationFailure(conn, err);
 		return;
@@ -171,6 +171,20 @@ documents.onDidChangeContent((event) => {
 	validateTextDocument(connection, event.document);
 });
 
+function tslintConfigurationValid(): boolean {
+	try {
+		documents.all().forEach((each) => {
+			let fsPath = server.Files.uriToFilePath(each.uri);
+			if (fsPath) {
+				getConfiguration(fsPath, configFile);
+			}
+		});
+	} catch (err) {
+		return false;
+	}
+	return true;
+}
+
 // The VS Code tslint settings have changed. Revalidate all documents.
 connection.onDidChangeConfiguration((params) => {
 	flushConfigCache();
@@ -183,10 +197,12 @@ connection.onDidChangeConfiguration((params) => {
 	validateAllTextDocuments(connection, documents.all());
 });
 
-// The watched tslint.json has changed. Revalidate all documents.
+// The watched tslint.json has changed. Revalidate all documents, IF the configuration is valid.
 connection.onDidChangeWatchedFiles((params) => {
 	flushConfigCache();
-	validateAllTextDocuments(connection, documents.all());
+	if (tslintConfigurationValid()) {
+		validateAllTextDocuments(connection, documents.all());
+	}
 });
 
 connection.listen();

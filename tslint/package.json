@@ -1,7 +1,7 @@
 {
 	"name": "tslint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.12",
+	"version": "0.5.13",
 	"publisher": "eg2",
 	"icon": "TSLint_icon.svg",
 	"galleryBanner": {
