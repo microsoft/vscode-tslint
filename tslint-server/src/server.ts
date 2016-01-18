@@ -4,6 +4,7 @@
 'use strict';
 
 import * as server from 'vscode-languageserver';
+import * as fs from 'fs';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -30,6 +31,7 @@ let options: Lint.ILinterOptions = {
 	formattersDirectory: undefined
 };
 let configFile: string = null;
+let configFileWatcher: fs.FSWatcher = null;
 
 let configCache = {
 	filePath: <string>null,
@@ -114,6 +116,7 @@ function validateTextDocument(connection: server.IConnection, document: server.I
 
 let connection: server.IConnection = server.createConnection(process.stdin, process.stdout);
 let documents: server.TextDocuments = new server.TextDocuments();
+
 documents.listen(connection);
 
 connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
@@ -192,7 +195,24 @@ connection.onDidChangeConfiguration((params) => {
 
 	if (settings.tslint) {
 		options.rulesDirectory = settings.tslint.rulesDirectory || null;
-		configFile = settings.tslint.configFile || null;
+		let newConfigFile = settings.tslint.configFile || null;
+		if (configFile !== newConfigFile) {
+			if (configFileWatcher) {
+				configFileWatcher.close();
+				configFileWatcher = null;
+			}
+			if (!fs.existsSync(newConfigFile)) {
+				connection.window.showWarningMessage(`The file ${newConfigFile} refered to by 'tslint.configFile' does not exist`);
+				configFile = null;
+				return;
+			}
+			configFile = newConfigFile;
+			if (configFile) {
+				configFileWatcher = fs.watch(configFile, { persistent: false }, (event, fileName) => {
+					validateAllTextDocuments(connection, documents.all());
+				});
+			}
+		}
 	}
 	validateAllTextDocuments(connection, documents.all());
 });
