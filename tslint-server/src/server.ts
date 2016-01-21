@@ -156,6 +156,7 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 	} catch (err) {
 		// TO DO show an indication in the workbench
 		conn.console.error(getErrorMessage(err, document));
+		return;
 	}
 
 	let diagnostics: server.Diagnostic[] = [];
