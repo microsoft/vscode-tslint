@@ -47,6 +47,13 @@
 					"type": "string",
 					"description": "The path to the rules configuration file",
 					"default": ""
+				},
+				"tslint.exclude": {
+					"type": ["string", "array"],
+					"items": {
+						"type": "string"
+					},
+					"description": "Configure glob patterns of file paths to exclude from linting"
 				}
 			}
 		},
