@@ -48,6 +48,11 @@
 					"description": "The path to the rules configuration file",
 					"default": ""
 				},
+				"tslint.ignoreDefinitionFiles": {
+					"type": "boolean",
+					"default": true,
+					"description": "Control if TypeScript definition files should be ignored"
+				},
 				"tslint.exclude": {
 					"type": ["string", "array"],
 					"items": {

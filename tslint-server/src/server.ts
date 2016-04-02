@@ -13,6 +13,7 @@ interface Settings {
 		enable: boolean;
 		rulesDirectory: string;
 		configFile: string;
+		ignoreDefinitionFiles: boolean;
 		exclude: string | string[];
 	};
 }
@@ -148,16 +149,22 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): s
 		return diagnostics;
 	}
 
-	if (settings && settings.tslint && settings.tslint.exclude) {
-		if (Array.isArray(settings.tslint.exclude)) {
-			for (var pattern of settings.tslint.exclude) {
-				if (minimatch(fsPath, pattern)) {
-					return diagnostics;
-				}
+	if (settings && settings.tslint) {
+		if (settings.tslint.ignoreDefinitionFiles) {
+			if (minimatch(fsPath, "**/*.d.ts")) {
+				return diagnostics;
 			}
 		}
-		else {
-			if (minimatch(fsPath, <string>settings.tslint.exclude)) {
+
+		if (settings.tslint.exclude) {
+			if (Array.isArray(settings.tslint.exclude)) {
+				for (var pattern of settings.tslint.exclude) {
+					if (minimatch(fsPath, pattern)) {
+						return diagnostics;
+					}
+				}
+			}
+			else if (minimatch(fsPath, <string>settings.tslint.exclude)) {
 				return diagnostics;
 			}
 		}
