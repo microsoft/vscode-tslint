@@ -3,6 +3,7 @@
  *--------------------------------------------------------*/
 'use strict';
 
+import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 
@@ -10,8 +11,13 @@ import * as fs from 'fs';
 interface Settings {
 	tslint: {
 		enable: boolean;
-		rulesDirectory: string;
+		rulesDirectory: string | string[];
 		configFile: string;
+<<<<<<< HEAD
+=======
+		ignoreDefinitionFiles: boolean;
+		exclude: string | string[];
+>>>>>>> Spacetech-master
 		validateWithDefaultConfig: boolean;
 	};
 }
@@ -112,7 +118,9 @@ function validateAllTextDocuments(connection: server.IConnection, documents: ser
 
 function validateTextDocument(connection: server.IConnection, document: server.ITextDocument): void {
 	try {
-		doValidate(connection, document);
+		let uri = document.uri;
+		let diagnostics = doValidate(connection, document);
+		connection.sendDiagnostics({ uri, diagnostics });
 	} catch (err) {
 		connection.window.showErrorMessage(getErrorMessage(err, document));
 	}
@@ -138,19 +146,31 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 		});
 });
 
-function doValidate(conn: server.IConnection, document: server.ITextDocument): void {
+function doValidate(conn: server.IConnection, document: server.ITextDocument): server.Diagnostic[] {
 	let uri = document.uri;
+	let diagnostics: server.Diagnostic[] = [];
+
 	let fsPath = server.Files.uriToFilePath(uri);
-	if (!fsPath) { // tslint can only lint files on disk
-		return;
+	if (!fsPath) {
+		// tslint can only lint files on disk
+		return diagnostics;
 	}
+
+	if (fileIsExcluded(fsPath)) {
+		return diagnostics;
+	}
+
 	let contents = document.getText();
 
 	try {
 		options.configuration = getConfiguration(fsPath, configFile);
 	} catch (err) {
 		showConfigurationFailure(conn, err);
-		return;
+		return diagnostics;
+	}
+
+	if (settings && settings.tslint && settings.tslint.validateWithDefaultConfig === false && configCache.isDefaultConfig) {
+		return diagnostics;
 	}
 
 	if (configCache.isDefaultConfig && settings.tslint.validateWithDefaultConfig === false) {
@@ -164,17 +184,43 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 	} catch (err) {
 		// TO DO show an indication in the workbench
 		conn.console.error(getErrorMessage(err, document));
-		return;
+		return diagnostics;
 	}
 
-	let diagnostics: server.Diagnostic[] = [];
 	if (result.failureCount > 0) {
 		let problems: any[] = JSON.parse(result.output);
 		problems.forEach(each => {
 			diagnostics.push(makeDiagnostic(each));
 		});
 	}
-	conn.sendDiagnostics({ uri, diagnostics });
+	return diagnostics;
+}
+
+function fileIsExcluded(path: string): boolean {
+	function testForExclusionPattern(path: string, pattern: string): boolean {
+		return minimatch(path, pattern)
+	}
+
+	if (settings && settings.tslint) {
+		if (settings.tslint.ignoreDefinitionFiles) {
+			if (minimatch(path, "**/*.d.ts")) {
+				return true;
+			}
+		}
+
+		if (settings.tslint.exclude) {
+			if (Array.isArray(settings.tslint.exclude)) {
+				for (var pattern of settings.tslint.exclude) {
+					if (testForExclusionPattern(path, pattern)) {
+						return true;
+					}
+				}
+			}
+			else if (testForExclusionPattern(path, <string>settings.tslint.exclude)) {
+				return true;
+			}
+		}
+	}
 }
 
 // A text document has changed. Validate the document.

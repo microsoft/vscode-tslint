@@ -14,7 +14,7 @@ declare module Lint {
         configuration: any;
         formatter: string;
         formattersDirectory: string;
-        rulesDirectory: string;
+        rulesDirectory: string | string[];
     }
     class Linter {
         static VERSION: string;
