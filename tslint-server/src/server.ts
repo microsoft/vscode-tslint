@@ -11,7 +11,7 @@ import * as fs from 'fs';
 interface Settings {
 	tslint: {
 		enable: boolean;
-		rulesDirectory: string;
+		rulesDirectory: string | string[];
 		configFile: string;
 		ignoreDefinitionFiles: boolean;
 		exclude: string | string[];
@@ -153,25 +153,8 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): s
 		return diagnostics;
 	}
 
-	if (settings && settings.tslint) {
-		if (settings.tslint.ignoreDefinitionFiles) {
-			if (minimatch(fsPath, "**/*.d.ts")) {
-				return diagnostics;
-			}
-		}
-
-		if (settings.tslint.exclude) {
-			if (Array.isArray(settings.tslint.exclude)) {
-				for (var pattern of settings.tslint.exclude) {
-					if (minimatch(fsPath, pattern)) {
-						return diagnostics;
-					}
-				}
-			}
-			else if (minimatch(fsPath, <string>settings.tslint.exclude)) {
-				return diagnostics;
-			}
-		}
+	if (fileIsExcluded(fsPath)) {
+		return diagnostics;
 	}
 
 	let contents = document.getText();
@@ -183,8 +166,8 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): s
 		return diagnostics;
 	}
 
-	if (configCache.isDefaultConfig && settings.tslint.validateWithDefaultConfig === false) {
-		return;
+	if (settings && settings.tslint && settings.tslint.validateWithDefaultConfig === false && configCache.isDefaultConfig) {
+		return diagnostics;
 	}
 
 	let result: Lint.LintResult;
@@ -203,8 +186,34 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): s
 			diagnostics.push(makeDiagnostic(each));
 		});
 	}
-
 	return diagnostics;
+}
+
+function fileIsExcluded(path: string): boolean {
+	function testForExclusionPattern(path: string, pattern: string): boolean {
+		return minimatch(path, pattern)
+	}
+
+	if (settings && settings.tslint) {
+		if (settings.tslint.ignoreDefinitionFiles) {
+			if (minimatch(path, "**/*.d.ts")) {
+				return true;
+			}
+		}
+
+		if (settings.tslint.exclude) {
+			if (Array.isArray(settings.tslint.exclude)) {
+				for (var pattern of settings.tslint.exclude) {
+					if (testForExclusionPattern(path, pattern)) {
+						return true;
+					}
+				}
+			}
+			else if (testForExclusionPattern(path, <string>settings.tslint.exclude)) {
+				return true;
+			}
+		}
+	}
 }
 
 // A text document has changed. Validate the document.

@@ -1,7 +1,7 @@
 {
 	"name": "tslint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.16",
+	"version": "0.5.17",
 	"publisher": "eg2",
 	"icon": "TSLint_icon.svg",
 	"galleryBanner": {
@@ -39,7 +39,10 @@
 					"description": "Control whether tslint is enabled for TypeScript files or not."
 				},
 				"tslint.rulesDirectory": {
-					"type": "string",
+					"type": ["string", "array"],
+					"items": {
+						"type": "string"
+					},
 					"description": "An additional rules directory",
 					"default": ""
 				},
