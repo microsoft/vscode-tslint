@@ -17,9 +17,11 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting.
-
+- `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
 
 # Release Notes
+## 0.5.16
+- Added the setting `tslint.validateWithDefaultConfig`. It enables to configure that no tslint validation is run when the default tslint configuration settings would be used.
 
 ## 0.5.15
 - Watch for changes in the tslint.json when the file is located outside of the workspace.

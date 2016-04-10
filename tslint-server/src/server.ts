@@ -15,6 +15,7 @@ interface Settings {
 		configFile: string;
 		ignoreDefinitionFiles: boolean;
 		exclude: string | string[];
+		validateWithDefaultConfig: boolean;
 	};
 }
 
@@ -38,7 +39,8 @@ let configFileWatcher: fs.FSWatcher = null;
 
 let configCache = {
 	filePath: <string>null,
-	configuration: <any>null
+	configuration: <any>null,
+	isDefaultConfig: false
 };
 
 function makeDiagnostic(problem: any): server.Diagnostic {
@@ -66,6 +68,7 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	}
 	configCache = {
 		filePath: filePath,
+		isDefaultConfig: linter.findConfigurationPath(configFileName, filePath) === undefined,
 		configuration: linter.findConfiguration(configFileName, filePath)
 	};
 	return configCache.configuration;
@@ -74,7 +77,8 @@ function getConfiguration(filePath: string, configFileName: string): any {
 function flushConfigCache() {
 	configCache = {
 		filePath: null,
-		configuration: null
+		configuration: null,
+		isDefaultConfig: false
 	};
 }
 
@@ -177,6 +181,10 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): s
 	} catch (err) {
 		showConfigurationFailure(conn, err);
 		return diagnostics;
+	}
+
+	if (configCache.isDefaultConfig && settings.tslint.validateWithDefaultConfig === false) {
+		return;
 	}
 
 	let result: Lint.LintResult;
