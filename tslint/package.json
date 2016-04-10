@@ -1,7 +1,7 @@
 {
 	"name": "tslint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.15",
+	"version": "0.5.16",
 	"publisher": "eg2",
 	"icon": "TSLint_icon.svg",
 	"galleryBanner": {
@@ -42,6 +42,11 @@
 					"type": "string",
 					"description": "An additional rules directory",
 					"default": ""
+				},
+				"tslint.validateWithDefaultConfig": {
+					"type": "boolean",
+					"description": "Validate a file when there is only a default tslint configuration is found",
+					"default": false
 				},
 				"tslint.configFile": {
 					"type": "string",

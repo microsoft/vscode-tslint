@@ -12,6 +12,7 @@ interface Settings {
 		enable: boolean;
 		rulesDirectory: string;
 		configFile: string;
+		validateWithDefaultConfig: boolean;
 	};
 }
 
@@ -35,7 +36,8 @@ let configFileWatcher: fs.FSWatcher = null;
 
 let configCache = {
 	filePath: <string>null,
-	configuration: <any>null
+	configuration: <any>null,
+	isDefaultConfig: false
 };
 
 function makeDiagnostic(problem: any): server.Diagnostic {
@@ -63,6 +65,7 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	}
 	configCache = {
 		filePath: filePath,
+		isDefaultConfig: linter.findConfigurationPath(configFileName, filePath) === undefined,
 		configuration: linter.findConfiguration(configFileName, filePath)
 	};
 	return configCache.configuration;
@@ -71,7 +74,8 @@ function getConfiguration(filePath: string, configFileName: string): any {
 function flushConfigCache() {
 	configCache = {
 		filePath: null,
-		configuration: null
+		configuration: null,
+		isDefaultConfig: false
 	};
 }
 
@@ -146,6 +150,10 @@ function doValidate(conn: server.IConnection, document: server.ITextDocument): v
 		options.configuration = getConfiguration(fsPath, configFile);
 	} catch (err) {
 		showConfigurationFailure(conn, err);
+		return;
+	}
+
+	if (configCache.isDefaultConfig && settings.tslint.validateWithDefaultConfig === false) {
 		return;
 	}
 
