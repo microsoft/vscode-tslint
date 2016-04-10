@@ -13,11 +13,8 @@ interface Settings {
 		enable: boolean;
 		rulesDirectory: string | string[];
 		configFile: string;
-<<<<<<< HEAD
-=======
 		ignoreDefinitionFiles: boolean;
 		exclude: string | string[];
->>>>>>> Spacetech-master
 		validateWithDefaultConfig: boolean;
 	};
 }
