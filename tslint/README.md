@@ -21,7 +21,7 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 
 
 # Release Notes
-## 0.5.16
+## 0.5.20
 - Added the setting `tslint.validateWithDefaultConfig`. It enables to configure that no tslint validation is run when the default tslint configuration settings would be used.
 
 # Release Notes
