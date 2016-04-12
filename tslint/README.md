@@ -28,8 +28,6 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 ## 0.5.17
 - Added setting `tslint.validateWithDefaultConfig`.
 - Added setting `tslint.ignoreDefinitionFiles`.
-- Added setting `tslint.ignoreDefinitionFiles`.
->>>>>>> Spacetech-master
 
 ## 0.5.15
 - Watch for changes in the tslint.json when the file is located outside of the workspace.
