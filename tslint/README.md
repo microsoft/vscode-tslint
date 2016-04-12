@@ -15,7 +15,6 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 - `tslint.enable` - enable/disable tslint.
 - `tslint.rulesDirectory` - an additional rules directory, for user-created rules.
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
-- `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting.
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
