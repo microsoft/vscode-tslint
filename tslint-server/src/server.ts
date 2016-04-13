@@ -66,9 +66,14 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	if (configCache.configuration && configCache.filePath === filePath) {
 		return configCache.configuration;
 	}
+
+	let isDefaultConfig = false;
+	if (linter.findConfigurationPath) {
+		isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined
+	}
 	configCache = {
 		filePath: filePath,
-		isDefaultConfig: linter.findConfigurationPath(configFileName, filePath) === undefined,
+		isDefaultConfig: isDefaultConfig,
 		configuration: linter.findConfiguration(configFileName, filePath)
 	};
 	return configCache.configuration;
