@@ -276,6 +276,17 @@ connection.onDidChangeConfiguration((params) => {
 
 // The watched tslint.json has changed. Revalidate all documents, IF the configuration is valid.
 connection.onDidChangeWatchedFiles((params) => {
+	// Tslint 3.7 started to load configuration files using 'require' and they are now
+	// cached in the node module cache. To ensure that the extension uses
+	// the latest configuration file we remove the config file from the module cache.
+	params.changes.forEach(element => {
+		let configFilePath = server.Files.uriToFilePath(element.uri);
+		let cached = require.cache[configFilePath];
+		if (cached) {
+			delete require.cache[configFilePath];
+		}
+	});
+
 	flushConfigCache();
 	if (tslintConfigurationValid()) {
 		validateAllTextDocuments(connection, documents.all());
