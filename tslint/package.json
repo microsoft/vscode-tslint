@@ -1,14 +1,16 @@
 {
 	"name": "tslint",
+	"displayName": "TSLint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.15",
+	"version": "0.5.22",
+	"author": "Microsoft Corporation",
+	"license": "MIT",
 	"publisher": "eg2",
 	"icon": "TSLint_icon.svg",
 	"galleryBanner": {
 		"color": "#5c2d91",
 		"theme": "dark"
 	},
-	"homepage": "https://github.com/Microsoft/vscode-tslint/blob/master/README.md",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Microsoft/vscode-tslint.git"
@@ -39,14 +41,34 @@
 					"description": "Control whether tslint is enabled for TypeScript files or not."
 				},
 				"tslint.rulesDirectory": {
-					"type": "string",
+					"type": ["string", "array"],
+					"items": {
+						"type": "string"
+					},
 					"description": "An additional rules directory",
 					"default": ""
+				},
+				"tslint.validateWithDefaultConfig": {
+					"type": "boolean",
+					"description": "Validate a file when there is only a default tslint configuration is found",
+					"default": false
 				},
 				"tslint.configFile": {
 					"type": "string",
 					"description": "The path to the rules configuration file",
 					"default": ""
+				},
+				"tslint.ignoreDefinitionFiles": {
+					"type": "boolean",
+					"default": true,
+					"description": "Control if TypeScript definition files should be ignored"
+				},
+				"tslint.exclude": {
+					"type": ["string", "array"],
+					"items": {
+						"type": "string"
+					},
+					"description": "Configure glob patterns of file paths to exclude from linting"
 				}
 			}
 		},
