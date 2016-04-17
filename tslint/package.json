@@ -82,7 +82,9 @@
 	"scripts": {
 		"vscode:prepublish": "cd ../tslint-server && npm run compile && cd ../tslint && tsc -p ./",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./"
+		"watch": "tsc -watch -p ./",
+		"update-vscode": "node ./node_modules/vscode/bin/install",
+		"postinstall": "node ./node_modules/vscode/bin/install"
 
 	},
 	"devDependencies": {
