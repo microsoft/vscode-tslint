@@ -1,6 +1,6 @@
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions } from 'vscode-languageclient';
+import { workspace, window, commands, ExtensionContext } from 'vscode';
+import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code } from 'vscode-languageclient';
 
 export function activate(context: ExtensionContext) {
 
@@ -10,7 +10,7 @@ export function activate(context: ExtensionContext) {
 	let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
 	let serverOptions: ServerOptions = {
 		run: { module: serverModulePath },
-		debug: { module: serverModulePath, options: debugOptions}
+		debug: { module: serverModulePath, options: debugOptions }
 	};
 
 	let clientOptions: LanguageClientOptions = {
@@ -22,5 +22,30 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let client = new LanguageClient('TS Linter', serverOptions, clientOptions);
-	context.subscriptions.push(new SettingMonitor(client, 'tslint.enable').start());
+
+	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
+		let textEditor = window.activeTextEditor;
+		if (textEditor && textEditor.document.uri.toString() === uri) {
+			if (textEditor.document.version !== documentVersion) {
+				window.showInformationMessage(`ESLint fixes are outdated and can't be applied to the document.`);
+			}
+			textEditor.edit(mutator => {
+				for (let edit of edits) {
+					mutator.replace(Protocol2Code.asRange(edit.range), edit.newText);
+				}
+			}).then((success) => {
+				if (!success) {
+					window.showErrorMessage('Failed to apply ESLint fixes to the document. Please consider opening an issue with steps to reproduce.');
+				}
+			});
+		}
+	}
+
+	context.subscriptions.push(
+		new SettingMonitor(client, 'tslint.enable').start(),
+		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
+		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
+		commands.registerCommand('tslint.applyAllFixes', applyTextEdits)
+	);
+
 }
