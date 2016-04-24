@@ -125,21 +125,8 @@ function makeDiagnostic(problem: TSLintProblem): server.Diagnostic {
 let codeActions: Map<Map<AutoFix>> = Object.create(null);
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: TSLintProblem): void {
 
-	let afix = autofix.tsLintAutoFixes.filter(autoFix => autoFix.tsLintCode === problem.ruleName);
+	let afix = autofix.tsLintAutoFixes.filter(autoFix => autoFix.tsLintMessage === problem.failure);
 	if (afix.length > 0) {
-
-		// if ( problem.ruleName === "no-trailing-whitespace"){
-		// 	// TODO does not make sense the range here, should be line, character not numbers...
-		// problem.fix = {
-		// 	range: [problem.startPosition, problem.endPosition],
-		// 	text: afix[0].fix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
-		// };
-		// problem.ruleId = problem.ruleName;
-		// }
-		// isThereAnAutoFix available?
-		// if (!problem.fix || !problem.ruleId) {
-		// 	return;
-		// }
 
 		// createAnAutoFixEntryInTheCodeActions
 		let uri = document.uri;
@@ -148,6 +135,13 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 			edits = Object.create(null);
 			codeActions[uri] = edits;
 		}
+
+		/** temporary variable for debugging purpose
+		 * it's not possible to use console.log to trace the autofx rules.
+		 * so uncomment the following variable put a break point on the line and check in/out of autofix rules
+		*/
+		// let debugCodeBefore = document.getText().slice(problem.startPosition.position, problem.endPosition.position);
+		// let debugCodeAfter = afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
 
 		edits[computeKey(diagnostic)] = {
 			label: `Fix this ${problem.ruleName} problem`,
