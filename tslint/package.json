@@ -2,7 +2,7 @@
 	"name": "tslint",
 	"displayName": "TSLint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.22",
+	"version": "0.5.23",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"publisher": "eg2",
@@ -87,9 +87,9 @@
 	},
 	"devDependencies": {
 		"vscode": "0.10.x",
-		"typescript": "^1.6.2"
+		"typescript": "^1.8.2"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^1.1.0"
+		"vscode-languageclient": "^2.0.0"
 	}
 }

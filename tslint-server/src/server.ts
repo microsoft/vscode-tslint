@@ -87,7 +87,7 @@ function flushConfigCache() {
 	};
 }
 
-function getErrorMessage(err: any, document: server.ITextDocument): string {
+function getErrorMessage(err: any, document: server.TextDocument): string {
 	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
 		errorMessage = <string>err.message;
@@ -106,7 +106,7 @@ function showConfigurationFailure(conn: server.IConnection, err: any) {
 	conn.window.showInformationMessage(message);
 }
 
-function validateAllTextDocuments(connection: server.IConnection, documents: server.ITextDocument[]): void {
+function validateAllTextDocuments(connection: server.IConnection, documents: server.TextDocument[]): void {
 	let tracker = new server.ErrorMessageTracker();
 	documents.forEach(document => {
 		try {
@@ -118,7 +118,7 @@ function validateAllTextDocuments(connection: server.IConnection, documents: ser
 	tracker.sendErrors(connection);
 }
 
-function validateTextDocument(connection: server.IConnection, document: server.ITextDocument): void {
+function validateTextDocument(connection: server.IConnection, document: server.TextDocument): void {
 	try {
 		let uri = document.uri;
 		let diagnostics = doValidate(connection, document);
@@ -148,7 +148,7 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 		});
 });
 
-function doValidate(conn: server.IConnection, document: server.ITextDocument): server.Diagnostic[] {
+function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
 	let uri = document.uri;
 	let diagnostics: server.Diagnostic[] = [];
 

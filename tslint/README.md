@@ -21,8 +21,11 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 
 
 # Release Notes
+## 0.5.23
+- Updated to version 2.0 of the vscode language protocol.
+
 ## 0.5.21
-- Added the setting `tslint.validateWithDefaultConfig`. 
+- Added the setting `tslint.validateWithDefaultConfig`.
 
 # Release Notes
 ## 0.5.17
