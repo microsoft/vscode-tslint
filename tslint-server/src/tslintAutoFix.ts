@@ -20,13 +20,13 @@ autoFix = {
 	// runCodeAction: function (document: server.TextDocument, diagnostic: server.Diagnostic): any {
 	// fix: function (codeBefore: string, diagnostic: server.Diagnostic): any {
 	fix: function (codeBefore: string): string {
-		console.log("tsLint helper missing whitespace");
+		// console.log("tsLint helper missing whitespace");
 		// server.TextDocuments .create()
 		// let codeBefore = document.getText(diagnostic.range);
 		let codeAfter = " " + codeBefore;
 		// let edit = new server.WorkspaceEdit() WorkspaceEdit();
 		// edit.replace(document.uri, diagnostic.range, codeAfter);
-		console.log("Before:>", codeBefore, "< after:>", codeAfter, "<");
+		// console.log("Before:>", codeBefore, "< after:>", codeAfter, "<");
 		// return server.workspace.applyEdit(edit);
 		return codeAfter;
 	}
@@ -40,7 +40,7 @@ autoFix = {
 	// runCodeAction: function (document: server.TextDocument, diagnostic: server.Diagnostic): any {
 	// fix: function (codeBefore: string, diagnostic: server.Diagnostic): any {
 	fix: function (codeBefore: string): string {
-		console.log("tsLint helper missing semicolon");
+		// console.log("tsLint helper missing semicolon");
 		// let codeBefore = document.getText(diagnostic.range);
 		let codeAfter = codeBefore + ";";
 		// let edit = new server.WorkspaceEdit();
@@ -60,7 +60,7 @@ autoFix = {
 	// runCodeAction: function (document: server.TextDocument, diagnostic: server.Diagnostic): any {
 	// fix: function (codeBefore: string, diagnostic: server.Diagnostic): any {
 	fix: function (codeBefore: string): string {
-		console.log("tsLint helper replace ' by \"");
+		// console.log("tsLint helper replace ' by \"");
 		// let codeBefore = document.getText(diagnostic.range);
 		let codeAfter = "\"" + codeBefore.slice(1, codeBefore.length - 1) + "\"";
 		// let edit = new server.WorkspaceEdit();
@@ -79,7 +79,7 @@ autoFix = {
 	// runCodeAction: function (document: server.TextDocument, diagnostic: server.Diagnostic): any {
 	// fix: function (codeBefore: string, diagnostic: server.Diagnostic): any {
 	fix: function (codeBefore: string): string {
-		console.log("tsLint helper trim whitespace");
+		// console.log("tsLint helper trim whitespace");
 		// let codeBefore = document.getText(diagnostic.range);
 		let codeAfter = "";
 		// let edit = new server.WorkspaceEdit();
