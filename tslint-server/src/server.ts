@@ -6,7 +6,7 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
-import * as autofix from './tslintAutoFix.ts';
+import * as autofix from './tslintAutoFix';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -291,8 +291,9 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	}
 
 	if (result.failureCount > 0) {
-		let problems: any[] = JSON.parse(result.output);
-		problems.forEach(problem => {
+		let lintProblems: any[] = JSON.parse(result.output);
+		// TODO remove lint problem when there is an TS error
+		lintProblems.forEach(problem => {
 			// console.log("doValidate:", problem);
 			// TODO the action should compiled in the same function than makeDiagnostic
 			let diagnostic = makeDiagnostic(problem);
