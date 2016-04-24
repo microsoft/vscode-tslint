@@ -144,9 +144,9 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 		// let debugCodeAfter = afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
 
 		edits[computeKey(diagnostic)] = {
-			label: `Fix this ${problem.ruleName} problem`,
+			label: `Fix this "${problem.failure}" tslint failure?`,
 			documentVersion: document.version,
-			ruleId: problem.ruleName,
+			ruleId: problem.failure,
 			edit: {
 				range: [problem.startPosition, problem.endPosition],
 				text: afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
@@ -286,14 +286,9 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 
 	if (result.failureCount > 0) {
 		let lintProblems: any[] = JSON.parse(result.output);
-		// TODO remove lint problem when there is an TS error
 		lintProblems.forEach(problem => {
-			// console.log("doValidate:", problem);
-			// TODO the action should compiled in the same function than makeDiagnostic
 			let diagnostic = makeDiagnostic(problem);
 			diagnostics.push(diagnostic);
-			// TODO in eslint there is a check on if problem exists
-			// recordCodeAction(document, diagnostic, problem);
 			recordCodeAction(document, diagnostic, problem);
 		});
 	}
@@ -397,16 +392,12 @@ connection.onDidChangeWatchedFiles((params) => {
 connection.onCodeAction((params) => {
 	let result: server.Command[] = [];
 	let uri = params.textDocument.uri;
-	// let textDocument = documents.get(uri);
 	let edits = codeActions[uri];
 	let documentVersion: number = -1;
 	let ruleId: string;
 	function createTextEdit(editInfo: AutoFix): server.TextEdit {
 		return server.TextEdit.replace(
 			server.Range.create(
-				// textDocument.positionAt(editInfo.edit.range[0]),
-				// textDocument.positionAt(editInfo.edit.range[1])),
-				// TODO to confirm different than eslint
 				editInfo.edit.range[0],
 				editInfo.edit.range[1]),
 			editInfo.edit.text || '');
@@ -428,8 +419,7 @@ connection.onCodeAction((params) => {
 			let all: AutoFix[] = [];
 			let fixes: AutoFix[] = Object.keys(edits).map(key => edits[key]);
 
-			// TODO order the fixes for? overlap?
-			//
+			// TODO from eslint: why? order the fixes for? overlap?
 			// fixes = fixes.sort((a, b) => {
 			// 	let d = a.edit.range[0] - b.edit.range[0];
 			// 	if (d !== 0) {
@@ -473,12 +463,13 @@ connection.onCodeAction((params) => {
 			if (same.length > 1) {
 				result.push(
 					server.Command.create(
-						`Fix all ${ruleId} problems`,
+						`Fix all "${same[0].ruleId}" tslint failures?`,
 						'tslint.applySameFixes',
 						uri,
 						documentVersion, same.map(createTextEdit)));
 			}
 
+			// TODO from eslint: why?
 			// if several type of same auto fixable problem => propose to fix all
 			// if (all.length > 1) {
 			// 	result.push(
