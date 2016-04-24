@@ -1,4 +1,6 @@
-# vscode-tslint
+# vscode-tslint  
+![Marketplace Version](http://vsmarketplacebadge.apphb.com/version/eg2.tslint.svg)![Installs](http://vsmarketplacebadge.apphb.com/installs/eg2.tslint.svg)
+
 VSCode extension to support tslint
 
 ## Development setup
