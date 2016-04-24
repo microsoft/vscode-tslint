@@ -6,7 +6,12 @@ export interface TsLintAutoFix {
 }
 export let tsLintAutoFixes: TsLintAutoFix[] = [];
 
-
+/**
+ * AutoFix rules are all in this file
+ * each autoFix should support the interface TsLintAutoFix and added in this.tsLintAutoFixes
+ *
+ * the key to map tsLint problem and autofix rules is => tsLintMessage
+ */
 let autoFix: TsLintAutoFix;
 autoFix = {
 	tsLintCode: "one-line",
@@ -58,7 +63,6 @@ autoFix = {
 	autoFixMessage: "Replace 4 spaces by 1 tab",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "	";
-		// console.log( `indent: before[${codeBefore}]-[${codeAfter}]` );
 		return codeAfter;
 	}
 };
@@ -70,7 +74,17 @@ autoFix = {
 	autoFixMessage: "Replace 1 tab by 4 spaces",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "    ";
-		// console.log( `indent: before[${codeBefore}]-[${codeAfter}]` );
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
+	tsLintCode: "eofline",
+	tsLintMessage: "file should end with a newline",
+	autoFixMessage: "add new line",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = "\n";
 		return codeAfter;
 	}
 };
