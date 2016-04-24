@@ -53,11 +53,24 @@ autoFix = {
 this.tsLintAutoFixes.push(autoFix);
 
 autoFix = {
-	tsLintCode: "no-trailing-whitespace",
-	tsLintMessage: "trailing whitespace",
-	autoFixMessage: "Trim whitespace",
+	tsLintCode: "indent",
+	tsLintMessage: "tab indentation expected",
+	autoFixMessage: "Replace 4 spaces by 1 tab",
 	autoFix: (codeBefore: string): string => {
-		let codeAfter = "";
+		let codeAfter = "	";
+		// console.log( `indent: before[${codeBefore}]-[${codeAfter}]` );
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
+	tsLintCode: "indent",
+	tsLintMessage: "space indentation expected",
+	autoFixMessage: "Replace 1 tab by 4 spaces",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = "    ";
+		// console.log( `indent: before[${codeBefore}]-[${codeAfter}]` );
 		return codeAfter;
 	}
 };
