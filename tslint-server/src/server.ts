@@ -155,7 +155,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 			ruleId: problem.ruleName,
 			edit: {
 				range: [problem.startPosition, problem.endPosition],
-				text: afix[0].fix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
+				text: afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
 			}
 		};
 	}
@@ -400,7 +400,6 @@ connection.onDidChangeWatchedFiles((params) => {
 	}
 });
 
-
 connection.onCodeAction((params) => {
 	let result: server.Command[] = [];
 	let uri = params.textDocument.uri;
@@ -428,7 +427,6 @@ connection.onCodeAction((params) => {
 				result.push(server.Command.create(editInfo.label, 'tslint.applySingleFix', uri, documentVersion, [
 					createTextEdit(editInfo)
 				]));
-
 			}
 		}
 		if (result.length > 0) {
@@ -487,16 +485,16 @@ connection.onCodeAction((params) => {
 						documentVersion, same.map(createTextEdit)));
 			}
 
-			// if several type of auto fixable problem => propose to fix all
-			if (all.length > 1) {
-				result.push(
-					server.Command.create(
-						`Fix all auto-fixable problems`,
-						'tslint.applyAllFixes',
-						uri,
-						documentVersion,
-						all.map(createTextEdit)));
-			}
+			// if several type of same auto fixable problem => propose to fix all
+			// if (all.length > 1) {
+			// 	result.push(
+			// 		server.Command.create(
+			// 			`Fix all auto-fixable problems`,
+			// 			'tslint.applyAllFixes',
+			// 			uri,
+			// 			documentVersion,
+			// 			all.map(createTextEdit)));
+			// }
 		}
 	}
 	return result;
