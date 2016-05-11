@@ -6,9 +6,10 @@ Please refer to the tslint [documentation](https://github.com/palantir/tslint) f
 # Prerequisites
 The extension requires that tslint is installed either locally or globally.
 
-The recommended version of tslint is 3.2.1.
+>Tip: if you get the error that "failed to load tslint", but you have tslint installed locally,
+then try to install tslint and its typescript dependency globally using `npm install -g tslint typescript`.
 
-When you are using TypeScript version 1.7 then at least version 3.1.1 is required.
+The recommended version of tslint is 3.2.1.
 
 # Configuration options
 
@@ -18,7 +19,6 @@ When you are using TypeScript version 1.7 then at least version 3.1.1 is require
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting.
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
-
 
 # Release Notes
 ## 0.5.23
