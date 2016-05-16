@@ -23,6 +23,6 @@ export function activate(context: ExtensionContext) {
 		}
 	};
 
-	let client = new LanguageClient('TS Linter', serverOptions, clientOptions);
+	let client = new LanguageClient('tslint', serverOptions, clientOptions);
 	context.subscriptions.push(new SettingMonitor(client, 'tslint.enable').start());
 }
