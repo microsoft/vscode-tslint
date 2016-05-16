@@ -23,7 +23,7 @@
 		"Linters"
 	],
 	"engines": {
-		"vscode": "0.10.x"
+		"vscode": "^0.10.7"
 	},
 	"activationEvents": [
 		"onLanguage:typescript",
@@ -80,13 +80,14 @@
         ]
 	},
 	"scripts": {
+		"postinstall": "node ./node_modules/vscode/bin/install",
 		"vscode:prepublish": "cd ../tslint-server && npm run compile && cd ../tslint && tsc -p ./",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./"
 
 	},
 	"devDependencies": {
-		"vscode": "0.10.x",
+		"vscode": "^0.11.x",
 		"typescript": "^1.8.2"
 	},
 	"dependencies": {
