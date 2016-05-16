@@ -23,7 +23,7 @@ export function activate(context: ExtensionContext) {
 		}
 	};
 
-	let client = new LanguageClient('TS Linter', serverOptions, clientOptions);
+	let client = new LanguageClient('tslint', serverOptions, clientOptions);
 
 	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
 		let textEditor = window.activeTextEditor;
@@ -49,5 +49,4 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
 		commands.registerCommand('tslint.applyAllFixes', applyTextEdits)
 	);
-
 }
