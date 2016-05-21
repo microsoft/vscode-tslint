@@ -6,6 +6,7 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
+import { Delayer } from './delayer'
 
 // Settings as defined in VS Code
 interface Settings {
@@ -22,6 +23,8 @@ interface Settings {
 let settings: Settings = null;
 
 let linter: typeof Lint.Linter = null;
+
+let validationDelayer: { [uri: string]: Delayer<void>; } = {};
 
 let tslintNotFound =
 	`Failed to load tslint library. Please install tslint in your workspace
@@ -227,9 +230,21 @@ function fileIsExcluded(path: string): boolean {
 
 // A text document has changed. Validate the document.
 documents.onDidChangeContent((event) => {
-	// the contents of a text document has changed
-	validateTextDocument(connection, event.document);
+	// the contents of a text document has changed, trigger a delayed validation
+	triggerValidateDocument(event.document);
 });
+
+function triggerValidateDocument(document: server.TextDocument) {
+	let d = validationDelayer[document.uri];
+	if (!d) {
+		d = new Delayer<void>(200);
+		validationDelayer[document.uri] = d;
+	}
+	d.trigger(() => {
+		validateTextDocument(connection, document);
+		delete validationDelayer[document.uri]
+	});
+}
 
 function tslintConfigurationValid(): boolean {
 	try {
