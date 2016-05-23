@@ -82,7 +82,7 @@ let settings: Settings = null;
 
 let linter: typeof Lint.Linter = null;
 
-let validationDelayer: { [uri: string]: Delayer<void>; } = {};
+let validationDelayer: Map<Delayer<void>> = Object.create(null); // key is the URI of the document
 
 let tslintNotFound =
 	`Failed to load tslint library. Please install tslint in your workspace
@@ -130,8 +130,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 
 	let afix = autofix.tsLintAutoFixes.filter(autoFix => autoFix.tsLintMessage === problem.failure);
 	if (afix.length > 0) {
-
-		// createAnAutoFixEntryInTheCodeActions
+		// create an autoFixEntry for the document in the codeActions
 		let uri = document.uri;
 		let edits: Map<AutoFix> = codeActions[uri];
 		if (!edits) {
