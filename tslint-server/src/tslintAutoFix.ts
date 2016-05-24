@@ -47,6 +47,17 @@ autoFix = {
 this.tsLintAutoFixes.push(autoFix);
 
 autoFix = {
+	tsLintCode: "quotemark",
+	tsLintMessage: "\" should be '",
+	autoFixMessage: "Replace \" by ' ",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = "'" + codeBefore.slice(1, codeBefore.length - 1) + "'";
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
 	tsLintCode: "no-trailing-whitespace",
 	tsLintMessage: "trailing whitespace",
 	autoFixMessage: "Trim whitespace",
