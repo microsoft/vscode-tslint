@@ -21,6 +21,9 @@ The recommended version of tslint is 3.2.1.
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
 
 # Release Notes
+## 0.5.25
+- Add support for quick fixing some warnings.
+
 ## 0.5.23
 - Updated to version 2.0 of the vscode language protocol.
 
