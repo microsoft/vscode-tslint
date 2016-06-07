@@ -2,7 +2,7 @@
 	"name": "tslint",
 	"displayName": "TSLint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.25",
+	"version": "0.5.26",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"publisher": "eg2",
@@ -70,11 +70,6 @@
 						"type": "string"
 					},
 					"description": "Configure glob patterns of file paths to exclude from linting"
-				},
-				"tslint.enableAutofixOnSave": {
-					"type": "boolean",
-					"default": true,
-					"description": "Control whether tslint errors are auto-fixed when a file is saved."
 				}
 			}
 		},
@@ -83,22 +78,14 @@
                 "fileMatch": "tslint.json",
                 "url": "http://json.schemastore.org/tslint"
             }
-        ],
-		"commands": [
-			{
-				"command": "tslint.executeAutofix",
-				"title": "Execute Autofix",
-				"category": "TSLint"
-			}
-		]
+        ]
 	},
 	"scripts": {
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"vscode:prepublish": "cd ../tslint-server && npm run compile && cd ../tslint && tsc -p ./",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"update-vscode": "node ./node_modules/vscode/bin/install",
-		"postinstall": "node ./node_modules/vscode/bin/install"
+		"update-vscode": "node ./node_modules/vscode/bin/install"
 	},
 	"devDependencies": {
 		"vscode": "^0.11.x",
