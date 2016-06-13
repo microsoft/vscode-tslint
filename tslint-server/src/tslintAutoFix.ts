@@ -73,7 +73,8 @@ autoFix = {
 	tsLintMessage: "tab indentation expected",
 	autoFixMessage: "Replace 4 spaces by 1 tab",
 	autoFix: (codeBefore: string): string => {
-		let codeAfter = "	";
+		let howManySpaces = codeBefore.length;
+		let codeAfter = Array(Math.round(howManySpaces / 4) + 1).join(" ");
 		return codeAfter;
 	}
 };
@@ -84,7 +85,8 @@ autoFix = {
 	tsLintMessage: "space indentation expected",
 	autoFixMessage: "Replace 1 tab by 4 spaces",
 	autoFix: (codeBefore: string): string => {
-		let codeAfter = "    ";
+		let howManyTabs = codeBefore.length;
+		let codeAfter = Array(howManyTabs + 1).join("	");
 		return codeAfter;
 	}
 };
