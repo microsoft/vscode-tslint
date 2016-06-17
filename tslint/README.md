@@ -1,7 +1,7 @@
 # vscode-tslint
-Integrates [tslint](https://github.com/palantir/tslint) into VS Code.
+Integrates the [tslint](https://github.com/palantir/tslint) linter for the TypeScript language into VS Code.
 
-Please refer to the tslint [documentation](https://github.com/palantir/tslint) for how to configure it.
+Please refer to the tslint [documentation](https://github.com/palantir/tslint) for how to configure the linting rules.
 
 # Prerequisites
 The extension requires that tslint is installed either locally or globally.
