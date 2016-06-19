@@ -448,7 +448,7 @@ connection.onCodeAction((params) => {
 			// 	return a.edit.range[1] - b.edit.range[1];
 			// });
 
-			// TODO check if there are fixes overlaps
+			// check if there are fixes overlaps
 			function overlaps(lastEdit: AutoFix, newEdit: AutoFix): boolean {
 				return !!lastEdit && lastEdit.edit.range[1] > newEdit.edit.range[0];
 			}
@@ -460,7 +460,6 @@ connection.onCodeAction((params) => {
 				return array[length - 1];
 			}
 
-			// TODO group the edit?
 			for (let editInfo of fixes) {
 				if (documentVersion === -1) {
 					documentVersion = editInfo.documentVersion;
@@ -482,18 +481,17 @@ connection.onCodeAction((params) => {
 						uri,
 						documentVersion, same.map(createTextEdit)));
 			}
-
-			// TODO from eslint: why?
-			// if several type of same auto fixable problem => propose to fix all
-			// if (all.length > 1) {
-			// 	result.push(
-			// 		server.Command.create(
-			// 			`Fix all auto-fixable problems`,
-			// 			'tslint.applyAllFixes',
-			// 			uri,
-			// 			documentVersion,
-			// 			all.map(createTextEdit)));
-			// }
+			
+			// propose to fix all
+			if (all.length > 1) {
+				result.push(
+					server.Command.create(
+						`Fix all auto-fixable problems`,
+						'tslint.applyAllFixes',
+						uri,
+						documentVersion,
+						all.map(createTextEdit)));
+			}
 		}
 	}
 	return result;
