@@ -36,6 +36,17 @@ autoFix = {
 this.tsLintAutoFixes.push(autoFix);
 
 autoFix = {
+	tsLintCode: "trailing-comma",
+	tsLintMessage: "missing trailing comma",
+	autoFixMessage: "Add trailing comma",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = codeBefore + ",";
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
 	tsLintCode: "quotemark",
 	tsLintMessage: "' should be \"",
 	autoFixMessage: "Replace ' by \" ",
