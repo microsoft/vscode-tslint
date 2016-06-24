@@ -25,6 +25,7 @@ The recommended version of tslint is 3.2.1.
 The extension supports some quick fixing of warnings. For warnings which support a quick fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either clicking the light bulp or by executing the `Quick Fix` command. The following quick fixes are currently supported:
 - missing whitespace
 - missing semicolon
+- missing trailing comma
 - ' should be "
 - " sould be '
 - trailing whitespace
