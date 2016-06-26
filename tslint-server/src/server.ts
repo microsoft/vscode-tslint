@@ -128,7 +128,7 @@ function makeDiagnostic(problem: TSLintProblem): server.Diagnostic {
 let codeActions: Map<Map<AutoFix>> = Object.create(null);
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: TSLintProblem): void {
 
-	let afix = autofix.tsLintAutoFixes.filter(autoFix => autoFix.tsLintMessage === problem.failure);
+	let afix = autofix.tsLintAutoFixes.filter(autoFix => autoFix.tsLintMessage.toLowerCase() === problem.failure.toLocaleLowerCase());
 	if (afix.length > 0) {
 		// create an autoFixEntry for the document in the codeActions
 		let uri = document.uri;
@@ -481,7 +481,7 @@ connection.onCodeAction((params) => {
 						uri,
 						documentVersion, same.map(createTextEdit)));
 			}
-			
+
 			// propose to fix all
 			if (all.length > 1) {
 				result.push(
