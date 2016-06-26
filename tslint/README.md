@@ -29,6 +29,7 @@ The extension supports some quick fixing of warnings. For warnings which support
 - " sould be '
 - trailing whitespace
 - file should end with a newline
+- forbidden 'var' keyword
 
 # Release Notes
 ## 0.5.25

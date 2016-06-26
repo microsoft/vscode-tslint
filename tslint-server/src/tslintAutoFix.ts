@@ -102,3 +102,14 @@ autoFix = {
 	}
 };
 this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
+	tsLintCode: "no-var-keyword",
+	tsLintMessage: "forbidden 'var' keyword, use 'let' or 'const' instead",
+	autoFixMessage: "Replace var by let",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = "let";
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
