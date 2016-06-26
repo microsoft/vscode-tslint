@@ -33,6 +33,9 @@ The extension supports some quick fixing of warnings. For warnings which support
 - forbidden 'var' keyword
 
 # Release Notes
+## 0.5.30
+- More quick fixes.
+
 ## 0.5.25
 - Add support for quick fixing some warnings.
 
