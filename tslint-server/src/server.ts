@@ -329,6 +329,11 @@ documents.onDidChangeContent((event) => {
 	triggerValidateDocument(event.document);
 });
 
+// A text document was closed. Clear the diagnostics .
+documents.onDidClose((event) => {
+	connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+});
+
 function triggerValidateDocument(document: server.TextDocument) {
 	let d = validationDelayer[document.uri];
 	if (!d) {
