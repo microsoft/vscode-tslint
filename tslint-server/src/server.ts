@@ -236,10 +236,21 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
 			return result;
 		}, (error) => {
+			// We only want to show the tslint load failed error, when the workspace is configured for tslint.
+			// However, only tslint knows whether a config file exists, but since we cannot load it we cannot ask it.
+			// For now we hard code a common case and only show the error in this case.
+			if (fs.existsSync('tslint.json')) {
+				return Promise.reject(
+					new server.ResponseError<server.InitializeError>(99,
+						tslintNotFound,
+						{ retry: true }));
+			}
+			// Respond that initialization failed silently, without prompting the user.
+			connection.console.log('vscode-tslint: could not load tslint');
 			return Promise.reject(
 				new server.ResponseError<server.InitializeError>(99,
-					tslintNotFound,
-					{ retry: true }));
+					null, // do not show an error message
+					{ retry: false }));
 		});
 });
 

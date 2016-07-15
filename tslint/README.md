@@ -33,6 +33,9 @@ The extension supports some quick fixing of warnings. For warnings which support
 - forbidden 'var' keyword
 
 # Release Notes
+## 0.5.33
+- Only prompt for installing tslint, when the workspace root includes a `tslint.json` file.
+
 ## 0.5.32
 - Clear errors when document is closed.
 
