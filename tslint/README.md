@@ -9,11 +9,10 @@ The extension requires that tslint is installed either locally or globally.
 >Tip: if you get the error that "failed to load tslint", but you have tslint installed locally,
 then try to install tslint and its typescript dependency globally using `npm install -g tslint typescript`.
 
-The recommended version of tslint is 3.2.1.
-
 # Configuration options
 
 - `tslint.enable` - enable/disable tslint.
+- `tslint.run` - run the linter `onSave` or `onType`, default is `onType`.
 - `tslint.rulesDirectory` - an additional rules directory, for user-created rules.
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
@@ -33,6 +32,9 @@ The extension supports some quick fixing of warnings. For warnings which support
 - forbidden 'var' keyword
 
 # Release Notes
+## 0.5.34
+- Add a setting to lint on save only.
+
 ## 0.5.33
 - Only prompt for installing tslint, when the workspace root includes a `tslint.json` file.
 
