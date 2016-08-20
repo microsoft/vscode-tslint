@@ -18,6 +18,7 @@ interface Settings {
 		ignoreDefinitionFiles: boolean;
 		exclude: string | string[];
 		validateWithDefaultConfig: boolean;
+		run: 'onSave' | 'onType';
 	};
 }
 
@@ -337,7 +338,24 @@ function fileIsExcluded(path: string): boolean {
 // A text document has changed. Validate the document.
 documents.onDidChangeContent((event) => {
 	// the contents of a text document has changed, trigger a delayed validation
-	triggerValidateDocument(event.document);
+	if (settings.tslint.run === 'onType') {
+		triggerValidateDocument(event.document);
+	} else if (settings.tslint.run === 'onSave') {
+		// Clear the linting state so we don't show stale linting state
+		connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+	}
+});
+
+documents.onDidOpen((event) => {
+	if (settings.tslint.run === 'onSave') {
+		triggerValidateDocument(event.document);
+	}
+})
+
+documents.onDidSave((event) => {
+	if (settings.tslint.run === 'onSave') {
+		triggerValidateDocument(event.document);
+	}
 });
 
 // A text document was closed. Clear the diagnostics .

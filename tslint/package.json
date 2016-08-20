@@ -70,6 +70,12 @@
 						"type": "string"
 					},
 					"description": "Configure glob patterns of file paths to exclude from linting"
+				},
+				"tslint.run": {
+					"type": "string",
+					"enum": ["onSave", "onType"],
+					"default": "onType",
+					"description": "Whether the linter is run on save (onSave) or on type (onType)"
 				}
 			}
 		},
