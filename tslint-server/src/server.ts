@@ -433,13 +433,13 @@ connection.onCodeAction((params) => {
 	let edits = codeActions[uri];
 	let documentVersion: number = -1;
 	let ruleId: string;
-	function createTextEdit(editInfo: AutoFix): server.TextEdit {
-		return server.TextEdit.replace(
-			server.Range.create(
-				editInfo.edit.range[0],
-				editInfo.edit.range[1]),
-			editInfo.edit.text || '');
-	}
+	// function createTextEdit(editInfo: AutoFix): server.TextEdit {
+	// 	return server.TextEdit.replace(
+	// 		server.Range.create(
+	// 			editInfo.edit.range[0],
+	// 			editInfo.edit.range[1]),
+	// 		editInfo.edit.text || '');
+	// }
 	if (edits) {
 		for (let diagnostic of params.context.diagnostics) {
 			let key = computeKey(diagnostic);
@@ -520,4 +520,53 @@ connection.onCodeAction((params) => {
 	}
 	return result;
 });
+
+function createTextEdit(editInfo: AutoFix): server.TextEdit {
+	return server.TextEdit.replace(
+		server.Range.create( editInfo.edit.range[0], editInfo.edit.range[1]),
+		editInfo.edit.text || '');
+}
+interface AllFixesParams {
+	textDocument: server.TextDocumentIdentifier;
+}
+
+interface AllFixesResult {
+	documentVersion: number,
+	edits: server.TextEdit[]
+}
+
+namespace AllFixesRequest {
+	export const type: server.RequestType<server.CodeActionParams, AllFixesResult, void> = { get method() { return 'textDocument/tslint/allFixes'; } };
+}
+
+connection.onRequest(AllFixesRequest.type, (params) => {
+	let result: AllFixesResult = null;
+	let uri = params.textDocument.uri;
+	let edits = codeActions[uri];
+	let documentVersion: number = -1;
+
+	// retrive document version
+	let fixes: AutoFix[] = Object.keys(edits).map(key => edits[key]);
+	for (let fix of fixes) {
+		if (documentVersion === -1) {
+			documentVersion = fix.documentVersion;
+			break;
+		}
+	}
+
+	// convert autoFix in textEdits
+	// let textEdits: server.TextEdit[] = fixes.map((fix) => {
+	// 	let range  = server.Range.create(fix.edit.range[0], fix.edit.range[1]);
+	// 	return server.TextEdit.replace( range , fix.edit.text);
+	// });
+
+	let textEdits: server.TextEdit[] = fixes.map(createTextEdit);
+
+	result = {
+		documentVersion: documentVersion,
+		edits: textEdits
+	}
+	return result;
+});
+
 connection.listen();
