@@ -21,7 +21,11 @@ then try to install tslint and its typescript dependency globally using `npm ins
 
 # Quick fixes
 
-The extension supports some quick fixing of warnings. For warnings which support a quick fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either clicking the light bulp or by executing the `Quick Fix` command. The following quick fixes are currently supported:
+The extension supports some quick fixing of warnings. For warnings which support a quick fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either: 
+* clicking the light bulp appearing or by executing the `Quick Fix`, when the mouse is over the errornous code 
+* or using the shortcut `Alt+m`
+
+The following quick fixes are currently supported:
 - missing whitespace
 - missing semicolon
 - missing trailing comma
@@ -30,8 +34,13 @@ The extension supports some quick fixing of warnings. For warnings which support
 - trailing whitespace
 - file should end with a newline
 - forbidden 'var' keyword
+- == should be ===
+- Comment must start with a space
 
 # Release Notes
+## 0.5.35
+- AutoFixAll accessible via shortcut 'Alt+m'
+
 ## 0.5.34
 - Add a setting to lint on save only.
 
@@ -53,7 +62,6 @@ The extension supports some quick fixing of warnings. For warnings which support
 ## 0.5.21
 - Added the setting `tslint.validateWithDefaultConfig`.
 
-# Release Notes
 ## 0.5.17
 - Added setting `tslint.validateWithDefaultConfig`.
 - Added setting `tslint.ignoreDefinitionFiles`.
