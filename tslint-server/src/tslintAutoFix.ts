@@ -134,3 +134,25 @@ autoFix = {
 	}
 };
 this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
+	tsLintCode: "triple-equals",
+	tsLintMessage: "== should be ===",
+	autoFixMessage: "Replace == by ===",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = "===";
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
+
+autoFix = {
+	tsLintCode: "comment-format",
+	tsLintMessage: "Comment must start with a space",
+	autoFixMessage: "Add a space ",
+	autoFix: (codeBefore: string): string => {
+		let codeAfter = " " + codeBefore;
+		return codeAfter;
+	}
+};
+this.tsLintAutoFixes.push(autoFix);
