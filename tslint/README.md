@@ -26,7 +26,7 @@ The extension supports some quick fixing of warnings. For warnings which support
 - missing semicolon
 - missing trailing comma
 - ' should be "
-- " sould be '
+- " should be '
 - trailing whitespace
 - file should end with a newline
 - forbidden 'var' keyword
