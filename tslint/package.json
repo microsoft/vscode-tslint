@@ -32,12 +32,6 @@
 	],
 	"main": "./out/extension",
 	"contributes": {
-		 "keybindings": [
-            {
-                "command": "tslint.fixAllProblems",
-                "key": "Alt+m"
-            }
-        ],
 		"configuration": {
 			"type": "object",
 			"title": "TSLint configuration",
@@ -85,6 +79,13 @@
 				}
 			}
 		},
+		"commands": [
+			{
+				"title": "Fix all auto-fixable problems",
+				"category": "TSLint",
+				"command": "tslint.fixAllProblems"
+			}
+		],
         "jsonValidation": [
             {
                 "fileMatch": "tslint.json",

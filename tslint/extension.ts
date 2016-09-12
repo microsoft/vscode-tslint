@@ -44,7 +44,7 @@ export function activate(context: ExtensionContext) {
 		let textEditor = window.activeTextEditor;
 		if (textEditor && textEditor.document.uri.toString() === uri) {
 			if (textEditor.document.version !== documentVersion) {
-				window.showInformationMessage(`ESLint fixes are outdated and can't be applied to the document.`);
+				window.showInformationMessage(`TSLint fixes are outdated and can't be applied to the document.`);
 			}
 			textEditor.edit(mutator => {
 				for (let edit of edits) {
@@ -52,7 +52,7 @@ export function activate(context: ExtensionContext) {
 				}
 			}).then((success) => {
 				if (!success) {
-					window.showErrorMessage('Failed to apply ESLint fixes to the document. Please consider opening an issue with steps to reproduce.');
+					window.showErrorMessage('Failed to apply TSLint fixes to the document. Please consider opening an issue with steps to reproduce.');
 				}
 			});
 		}
@@ -78,6 +78,6 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
 		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
-		commands.registerCommand('tslint.fixAllProblems',fixAllProblems)
+		commands.registerCommand('tslint.fixAllProblems', fixAllProblems)
 	);
 }

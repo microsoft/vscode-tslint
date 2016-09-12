@@ -11,8 +11,7 @@
 			// Port to attach to.
 			"port": 6004,
 			"sourceMaps": true,
-			"outDir": "${workspaceRoot}/../tslint/server",
-			"preLaunchTask": "compile"
+			"outDir": "${workspaceRoot}/../tslint/server"
 		}
 	]
 }

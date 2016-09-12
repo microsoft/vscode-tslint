@@ -1,23 +1,13 @@
+// See https://go.microsoft.com/fwlink/?LinkId=733558
+// for the documentation about the tasks.json format
+
+// A task runner that calls a custom npm script that compiles the extension.
 {
-	// See https://go.microsoft.com/fwlink/?LinkId=733558
-	// for the documentation about the tasks.json format
 	"version": "0.1.0",
 	"command": "npm",
 	"isShellCommand": true,
-	"showOutput": "always",
-	"suppressTaskName": true,
-	"tasks": [
-		{
-			"taskName": "install",
-			"args": ["install"]
-		},
-		{
-			"taskName": "update",
-			"args": ["update"]
-		},
-		{
-			"taskName": "compile",
-			"args": ["run", "compile"]
-		}
-	]
+	"showOutput": "silent",
+	"args": ["run", "compile"],
+	"isWatching": true,
+	"problemMatcher": "$tsc-watch"
 }
