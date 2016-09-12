@@ -1,6 +1,20 @@
 import * as path from 'path';
 import { workspace, window, commands, ExtensionContext } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code, RequestType, TextDocumentIdentifier } from 'vscode-languageclient';
+
+
+interface AllFixesParams {
+	textDocument: TextDocumentIdentifier;
+}
+
+interface AllFixesResult {
+	documentVersion: number,
+	edits: TextEdit[]
+}
+
+namespace AllFixesRequest {
+	export const type: RequestType<AllFixesParams, AllFixesResult, void> = { get method() { return 'textDocument/tslint/allFixes'; } };
+}
 
 export function activate(context: ExtensionContext) {
 
@@ -44,10 +58,26 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
+	function fixAllProblems() {
+		let textEditor = window.activeTextEditor;
+		if (!textEditor) {
+			return;
+		}
+		let uri: string = textEditor.document.uri.toString();
+		client.sendRequest(AllFixesRequest.type, { textDocument: { uri }}).then((result) => {
+			if (result) {
+				applyTextEdits(uri, result.documentVersion, result.edits);
+			}
+		}, (error) => {
+			window.showErrorMessage('Failed to apply TSLint fixes to the document. Please consider opening an issue with steps to reproduce.');
+		});
+	}
+
 	context.subscriptions.push(
 		new SettingMonitor(client, 'tslint.enable').start(),
 		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
-		commands.registerCommand('tslint.applyAllFixes', applyTextEdits)
+		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
+		commands.registerCommand('tslint.fixAllProblems',fixAllProblems)
 	);
 }

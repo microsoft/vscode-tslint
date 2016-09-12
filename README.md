@@ -1,4 +1,4 @@
-# vscode-tslint  
+# vscode-tslint
 ![Marketplace Version](http://vsmarketplacebadge.apphb.com/version/eg2.tslint.svg "Current Version") ![Market Place Installs](http://vsmarketplacebadge.apphb.com/installs/eg2.tslint.svg "Number of Installs")
 
 VSCode extension to support tslint
@@ -16,5 +16,4 @@ VSCode extension to support tslint
 - open VS Code on `tslint`
 - run F5 to build and debug the extension
 
-
-
+> If you want to debug server and extension at the same time; 1st debug extension and then start server debugging

@@ -32,6 +32,12 @@
 	],
 	"main": "./out/extension",
 	"contributes": {
+		 "keybindings": [
+            {
+                "command": "tslint.fixAllProblems",
+                "key": "Alt+m"
+            }
+        ],
 		"configuration": {
 			"type": "object",
 			"title": "TSLint configuration",
