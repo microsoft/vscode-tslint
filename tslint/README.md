@@ -23,7 +23,7 @@ then try to install tslint and its typescript dependency globally using `npm ins
 
 The extension supports some quick fixing of warnings. For warnings which support a quick fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either: 
 * clicking the light bulp appearing or by executing the `Quick Fix`, when the mouse is over the errornous code 
-* or using the shortcut `Alt+m`
+* or using the command `Fix all auto-fixable problems`.
 
 The following quick fixes are currently supported:
 - missing whitespace
@@ -39,7 +39,7 @@ The following quick fixes are currently supported:
 
 # Release Notes
 ## 0.5.35
-- AutoFixAll accessible via shortcut 'Alt+m'
+- Added a command `Fix all auto-fixable problems`.
 
 ## 0.5.34
 - Add a setting to lint on save only.
