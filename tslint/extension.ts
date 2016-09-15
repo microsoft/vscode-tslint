@@ -34,7 +34,8 @@ export function activate(context: ExtensionContext) {
 		synchronize: {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
-		}
+		},
+		diagnosticCollectionName: 'tslint'
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
