@@ -49,55 +49,46 @@ Here is an example. Create a gulp task using `gulp-tslint` that generates a repo
 with a problem matcher. In your `gulpfile.js` define a task like the one below, with a custom problem reporter:
 
 ```js
-function reportFailures(failures) {
-	failures.forEach(failure => {
-		const name = failure.name || failure.fileName;
-		const position = failure.startPosition;
-		const line = position.lineAndCharacter ? position.lineAndCharacter.line : position.line;
-		const character = position.lineAndCharacter ? position.lineAndCharacter.character : position.character;
-
-		console.error(`${ name }:${ line + 1}:${ character + 1 }:${ failure.failure }`);
-	});
-}
-
+'use strict';
+const gulp = require('gulp');
+const gulp_tslint = require('gulp-tslint');
+//...
 gulp.task('tslint', () => {
-	const options = { summarizeFailureOutput: true };
-
-	return gulp.src(all, { base: '.' })
-		.pipe(filter(tslintFilter))
-		.pipe(gulptslint.report(reportFailures, options));
+    return gulp.src(['**/*.ts', '!**/*.d.ts', '!node_modules/**'])
+      .pipe(gulp_tslint())
+      .pipe(gulp_tslint.report());
 });
 ```
 
 Next define a Task which runs the gulp task with a problem matcher that extracts the tslint errors into warnings.
 
 ```json
-{
-	"taskName": "tslint",
-	"args": [],
-	"problemMatcher": {
-		"owner": "tslint",
-		"fileLocation": [
-			"relative",
-			"${workspaceRoot}"
-		],
-		"severity": "warning",
-		"pattern": {
-			"regexp": "(.*):(\\d+):(\\d+):(.*)$",
-			"file": 1,
-			"line": 2,
-			"column": 3,
-			"message": 4
+"tasks": [
+	{
+		"taskName": "tslint",
+		"args": [],
+		"problemMatcher": {
+			"owner": "tslint",
+			"fileLocation": [
+				"relative",
+				"${workspaceRoot}"
+			],
+			"severity": "warning",
+			"pattern": {
+				"regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
+				"file": 1,
+				"line": 2,
+				"column": 3,
+				"message": 4
+			}
 		}
 	}
-}
+]
 ```
-What is important is that you set the `owner` attribute to `tslint`. Then the warnings extracted by the
-problem matcher go into the same collection as the warnings produced by this extension. In this way you will not see
-duplicates.
+>Notice: you must set the `owner` attribute to `tslint`. Then the warnings extracted by the problem matcher go into the same collection
+as the warnings produced by this extension. In this way you will not see duplicates.
 
-Finally, when you then run the `tslint` tasks you will see the warning
-produced by the gulp task in the `Problems` panel.
+Finally, when you then run the `tslint` task you will see the warning produced by the gulp task in the `Problems` panel.
 
 # Release Notes
 
