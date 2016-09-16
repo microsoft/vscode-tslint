@@ -7,7 +7,7 @@ import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 import * as autofix from './tslintAutoFix';
-import { Delayer } from './delayer'
+import { Delayer } from './delayer';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -361,7 +361,7 @@ function triggerValidateDocument(document: server.TextDocument) {
 	}
 	d.trigger(() => {
 		validateTextDocument(connection, document);
-		delete validationDelayer[document.uri]
+		delete validationDelayer[document.uri];
 	});
 }
 
@@ -531,8 +531,8 @@ interface AllFixesParams {
 }
 
 interface AllFixesResult {
-	documentVersion: number,
-	edits: server.TextEdit[]
+	documentVersion: number;
+	edits: server.TextEdit[];
 }
 
 namespace AllFixesRequest {
@@ -565,7 +565,7 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 	result = {
 		documentVersion: documentVersion,
 		edits: textEdits
-	}
+	};
 	return result;
 });
 

@@ -8,8 +8,8 @@ interface AllFixesParams {
 }
 
 interface AllFixesResult {
-	documentVersion: number,
-	edits: TextEdit[]
+	documentVersion: number;
+	edits: TextEdit[];
 }
 
 namespace AllFixesRequest {
