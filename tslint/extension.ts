@@ -1,10 +1,25 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import { workspace, window, commands, ExtensionContext } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError
 } from 'vscode-languageclient';
 
+const tslintConfig: string = [
+'{',
+'	"rules": {',
+'		"no-unused-expression": true,',
+'		"no-duplicate-variable": true,',
+'		"no-duplicate-key": true,',
+'		"no-unused-variable": true,',
+'		"curly": true,',
+'		"class-name": true,',
+'		"semicolon": ["always"],',
+'		"triple-equals": true',
+'	}',
+'}'
+].join(process.platform === 'win32' ? '\r\n' : '\n');
 
 interface AllFixesParams {
 	textDocument: TextDocumentIdentifier;
@@ -115,11 +130,26 @@ export function activate(context: ExtensionContext) {
 		});
 	}
 
+	function createDefaultConfiguration(): void {
+		if (!workspace.rootPath) {
+			window.showErrorMessage('A TSLint configuration file can only be generated if VS Code is opened on a folder.');
+		}
+		let tslintConfigFile = path.join(workspace.rootPath, 'tslint.json');
+
+		if (fs.existsSync(tslintConfigFile)) {
+			window.showInformationMessage('A TSLint configuration file already exists.');
+		} else {
+			fs.writeFileSync(tslintConfigFile, tslintConfig, { encoding: 'utf8' });
+		}
+	}
+
 	context.subscriptions.push(
 		new SettingMonitor(client, 'tslint.enable').start(),
 		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
 		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
-		commands.registerCommand('tslint.fixAllProblems', fixAllProblems)
+		commands.registerCommand('tslint.fixAllProblems', fixAllProblems),
+		commands.registerCommand('tslint.createConfig', createDefaultConfiguration),
+		commands.registerCommand('tslint.showOutputChannel', () => { client.outputChannel.show(); })
 	);
 }

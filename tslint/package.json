@@ -98,6 +98,16 @@
 				"title": "Fix all auto-fixable problems",
 				"category": "TSLint",
 				"command": "tslint.fixAllProblems"
+			},
+			{
+				"title": "Create a 'tslint.json' file",
+				"category": "TSLint",
+				"command": "tslint.createConfig"
+			},
+			{
+				"title": "Show output",
+				"category": "TSLint",
+				"command": "tslint.showOutputChannel"
 			}
 		],
 		"jsonValidation": [
