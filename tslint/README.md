@@ -18,6 +18,7 @@ then try to install tslint and its typescript dependency globally using `npm ins
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting.
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
+- `tslint.nodePath` - use this setting load tslint from a different location than the current workspace or the globally installed npm modules`.
 
 # Quick fixes
 
@@ -91,6 +92,8 @@ as the warnings produced by this extension. In this way you will not see duplica
 Finally, when you then run the `tslint` task you will see the warning produced by the gulp task in the `Problems` panel.
 
 # Release Notes
+## 0.5.39
+- Add `tslint.nodePath` setting, which enables to load tslint from a different location than the current workspace or the globally installed npm modules`.
 
 ## 0.5.38
 - Warnings are now created into a diagnostic collection `tslint` this improves the integration

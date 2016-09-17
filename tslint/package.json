@@ -42,7 +42,10 @@
 					"description": "Control whether tslint is enabled for TypeScript files or not."
 				},
 				"tslint.rulesDirectory": {
-					"type": ["string", "array"],
+					"type": [
+						"string",
+						"array"
+					],
 					"items": {
 						"type": "string"
 					},
@@ -65,7 +68,10 @@
 					"description": "Control if TypeScript definition files should be ignored"
 				},
 				"tslint.exclude": {
-					"type": ["string", "array"],
+					"type": [
+						"string",
+						"array"
+					],
 					"items": {
 						"type": "string"
 					},
@@ -73,9 +79,17 @@
 				},
 				"tslint.run": {
 					"type": "string",
-					"enum": ["onSave", "onType"],
+					"enum": [
+						"onSave",
+						"onType"
+					],
 					"default": "onType",
 					"description": "Run the linter on save (onSave) or on type (onType)"
+				},
+				"tslint.nodePath": {
+					"type": "string",
+					"default": null,
+					"description": "A path added to NODE_PATH when resolving the tslint module."
 				}
 			}
 		},
@@ -86,12 +100,12 @@
 				"command": "tslint.fixAllProblems"
 			}
 		],
-        "jsonValidation": [
-            {
-                "fileMatch": "tslint.json",
-                "url": "http://json.schemastore.org/tslint"
-            }
-        ]
+		"jsonValidation": [
+			{
+				"fileMatch": "tslint.json",
+				"url": "http://json.schemastore.org/tslint"
+			}
+		]
 	},
 	"scripts": {
 		"postinstall": "node ./node_modules/vscode/bin/install",

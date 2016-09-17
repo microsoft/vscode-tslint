@@ -39,6 +39,12 @@ export function activate(context: ExtensionContext) {
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
 		},
 		diagnosticCollectionName: 'tslint',
+		initializationOptions: () => {
+			let configuration = workspace.getConfiguration('tslint');
+			return {
+				nodePath: configuration ? configuration.get('nodePath', undefined) : undefined
+			};
+		},
 		initializationFailedHandler: (error) => {
 			if (error instanceof ResponseError) {
 				let responseError = (error as ResponseError<InitializeError>);

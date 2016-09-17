@@ -229,9 +229,18 @@ let documents: server.TextDocuments = new server.TextDocuments();
 
 documents.listen(connection);
 
+function trace(message: string, verbose?: string): void {
+	connection.tracer.log(message, verbose);
+}
+
 connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
 	let rootFolder = params.rootPath;
-	return server.Files.resolveModule(rootFolder, 'tslint').
+	let initOptions: {
+		nodePath: string;
+	} = params.initializationOptions;
+	let nodePath = initOptions ? (initOptions.nodePath ? initOptions.nodePath : undefined) : undefined;
+
+	return server.Files.resolveModule2(rootFolder, 'tslint', nodePath, trace).
 		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
 			linter = value;
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
@@ -247,9 +256,8 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 						{ retry: true }));
 			}
 			// Respond that initialization failed silently, without prompting the user.
-			connection.console.log('vscode-tslint: could not load tslint');
 			return Promise.reject(
-				new server.ResponseError<server.InitializeError>(99,
+				new server.ResponseError<server.InitializeError>(100,
 					null, // do not show an error message
 					{ retry: false }));
 		});
