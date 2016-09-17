@@ -1,6 +1,9 @@
 import * as path from 'path';
 import { workspace, window, commands, ExtensionContext } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code, RequestType, TextDocumentIdentifier } from 'vscode-languageclient';
+import {
+	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code,
+	RequestType, TextDocumentIdentifier, ResponseError, InitializeError
+} from 'vscode-languageclient';
 
 
 interface AllFixesParams {
@@ -8,8 +11,8 @@ interface AllFixesParams {
 }
 
 interface AllFixesResult {
-	documentVersion: number;
-	edits: TextEdit[];
+	documentVersion: number,
+	edits: TextEdit[]
 }
 
 namespace AllFixesRequest {
@@ -22,7 +25,7 @@ export function activate(context: ExtensionContext) {
 	// the output folder.
 	let serverModulePath = path.join(__dirname, '..', 'server', 'server.js');
 	// break on start options
-	// let debugOptions = { execArgv: ["--nolazy", "--debug=6004", "--debug-brk"] };
+	//let debugOptions = { execArgv: ["--nolazy", "--debug=6004", "--debug-brk"] };
 	let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
 	let serverOptions: ServerOptions = {
 		run: { module: serverModulePath },
@@ -35,7 +38,39 @@ export function activate(context: ExtensionContext) {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
 		},
-		diagnosticCollectionName: 'tslint'
+		diagnosticCollectionName: 'tslint',
+		initializationFailedHandler: (error) => {
+			if (error instanceof ResponseError) {
+				let responseError = (error as ResponseError<InitializeError>);
+				if (responseError.code === 99) {
+					if (workspace.rootPath) {
+						client.info([
+							'Failed to load the TSLint library.',
+							'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
+							'You need to reopen the workspace after installing tslint.',
+						].join('\n'));
+					} else {
+						client.info([
+							'Failed to load the TSLint library.',
+							'To use TSLint for single TypeScript files install tslint globally using \'npm install -g tslint\'.',
+							'You need to reopen VS Code after installing tslint.',
+						].join('\n'));
+					}
+					// actively inform the user in the output channel
+					client.outputChannel.show();
+				} else if (responseError.code === 100) {
+					// inform the user but do not show the output channel
+					client.info([
+						'Failed to load the TSLint library.',
+						'Ignoring the failure since there is no \'tslint.json\' file at the root of this workspace.',
+					].join('\n'));
+				}
+			} else {
+				client.error('Server initialization failed.', error);
+				client.outputChannel.show();
+			}
+			return false;
+		},
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
@@ -65,7 +100,7 @@ export function activate(context: ExtensionContext) {
 			return;
 		}
 		let uri: string = textEditor.document.uri.toString();
-		client.sendRequest(AllFixesRequest.type, { textDocument: { uri }}).then((result) => {
+		client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then((result) => {
 			if (result) {
 				applyTextEdits(uri, result.documentVersion, result.edits);
 			}
