@@ -79,6 +79,20 @@ export interface TSLintReport {
 	results: TSLintDocumentReport[];
 }
 
+enum Status {
+	ok = 1,
+	warn = 2,
+	error = 3
+}
+
+interface StatusParams {
+	state: Status;
+}
+
+namespace StatusNotification {
+	export const type: server.NotificationType<StatusParams> = { get method() { return 'tslint/status'; } };
+}
+
 let settings: Settings = null;
 
 let linter: typeof Lint.Linter = null;
@@ -193,12 +207,16 @@ function getErrorMessage(err: any, document: server.TextDocument): string {
 	return message;
 }
 
-function showConfigurationFailure(conn: server.IConnection, err: any) {
+function getConfigurationFailureMessage(err: any): string {
 	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
 		errorMessage = <string>err.message;
 	}
-	let message = `vscode-tslint: Cannot read tslint configuration - '${errorMessage}'`;
+	return `vscode-tslint: Cannot read tslint configuration - '${errorMessage}'`;
+
+}
+function showConfigurationFailure(conn: server.IConnection, err: any) {
+	let message = getConfigurationFailureMessage(err);
 	conn.window.showInformationMessage(message);
 }
 
@@ -284,6 +302,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	try {
 		options.configuration = getConfiguration(fsPath, configFile);
 	} catch (err) {
+		// this should not happen since we guard against incorrect configurations
 		showConfigurationFailure(conn, err);
 		return diagnostics;
 	}
@@ -302,7 +321,8 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		result = tslint.lint();
 	} catch (err) {
 		// TO DO show an indication in the workbench
-		conn.console.error(getErrorMessage(err, document));
+		conn.console.info(getErrorMessage(err, document));
+		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		return diagnostics;
 	}
 
@@ -314,6 +334,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 			recordCodeAction(document, diagnostic, problem);
 		});
 	}
+	connection.sendNotification(StatusNotification.type, { state: Status.ok });
 	return diagnostics;
 }
 
@@ -382,6 +403,8 @@ function tslintConfigurationValid(): boolean {
 			}
 		});
 	} catch (err) {
+		connection.console.info(getConfigurationFailureMessage(err));
+		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		return false;
 	}
 	return true;

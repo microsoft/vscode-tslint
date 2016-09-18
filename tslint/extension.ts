@@ -1,24 +1,24 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, ExtensionContext } from 'vscode';
+import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code,
-	RequestType, TextDocumentIdentifier, ResponseError, InitializeError
+	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType
 } from 'vscode-languageclient';
 
 const tslintConfig: string = [
-'{',
-'	"rules": {',
-'		"no-unused-expression": true,',
-'		"no-duplicate-variable": true,',
-'		"no-duplicate-key": true,',
-'		"no-unused-variable": true,',
-'		"curly": true,',
-'		"class-name": true,',
-'		"semicolon": ["always"],',
-'		"triple-equals": true',
-'	}',
-'}'
+	'{',
+	'	"rules": {',
+	'		"no-unused-expression": true,',
+	'		"no-duplicate-variable": true,',
+	'		"no-duplicate-key": true,',
+	'		"no-unused-variable": true,',
+	'		"curly": true,',
+	'		"class-name": true,',
+	'		"semicolon": ["always"],',
+	'		"triple-equals": true',
+	'	}',
+	'}'
 ].join(process.platform === 'win32' ? '\r\n' : '\n');
 
 interface AllFixesParams {
@@ -34,7 +34,80 @@ namespace AllFixesRequest {
 	export const type: RequestType<AllFixesParams, AllFixesResult, void> = { get method() { return 'textDocument/tslint/allFixes'; } };
 }
 
+enum Status {
+	ok = 1,
+	warn = 2,
+	error = 3
+}
+
+interface StatusParams {
+	state: Status;
+}
+
+namespace StatusNotification {
+	export const type: NotificationType<StatusParams> = { get method() { return 'tslint/status'; } };
+}
+
 export function activate(context: ExtensionContext) {
+
+	let statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 0);
+	let tslintStatus: Status = Status.ok;
+	let serverRunning: boolean = false;
+
+	statusBarItem.text = 'TSLint';
+	statusBarItem.command = 'tslint.showOutputChannel';
+
+	function showStatusBarItem(show: boolean): void {
+		if (show) {
+			statusBarItem.show();
+		} else {
+			statusBarItem.hide();
+		}
+	}
+
+	function updateStatus(status: Status) {
+		switch (status) {
+			case Status.ok:
+				statusBarItem.color = undefined;
+				break;
+			case Status.warn:
+				statusBarItem.color = 'yellow';
+				break;
+			case Status.error:
+				statusBarItem.color = 'yellow'; // darkred doesn't work
+				break;
+		}
+		tslintStatus = status;
+		udpateStatusBarVisibility(window.activeTextEditor);
+	}
+
+	function udpateStatusBarVisibility(editor: TextEditor): void {
+		//statusBarItem.text = tslintStatus === Status.ok ? 'TSLint' : 'TSLint!';
+
+		switch (tslintStatus) {
+			case Status.ok:
+				statusBarItem.text = 'TSLint';
+				break;
+			case Status.warn:
+				statusBarItem.text = 'TSLint: Warning';
+				break;
+			case Status.error:
+				statusBarItem.text = 'TSLint: Error';
+				break;
+
+		}
+		showStatusBarItem(
+			serverRunning &&
+			(
+				tslintStatus !== Status.ok ||
+				(editor && (editor.document.languageId === 'typescript' || editor.document.languageId === 'typescriptreact'))
+			)
+		);
+	}
+
+	window.onDidChangeActiveTextEditor(udpateStatusBarVisibility);
+	udpateStatusBarVisibility(window.activeTextEditor);
+
 
 	// We need to go one level up since an extension compile the js code into
 	// the output folder.
@@ -96,6 +169,25 @@ export function activate(context: ExtensionContext) {
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
 
+	const running = 'Linter is running.';
+	const stopped = 'Linter has stopped.';
+
+	client.onDidChangeState((event) => {
+		if (event.newState === ClientState.Running) {
+			client.info(running);
+			statusBarItem.tooltip = running;
+			serverRunning = true;
+		} else {
+			client.info(stopped);
+			statusBarItem.tooltip = stopped;
+			serverRunning = false;
+		}
+		udpateStatusBarVisibility(window.activeTextEditor);
+	});
+
+	client.onNotification(StatusNotification.type, (params) => {
+		updateStatus(params.state);
+	});
 
 	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
 		let textEditor = window.activeTextEditor;
@@ -150,6 +242,7 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
 		commands.registerCommand('tslint.fixAllProblems', fixAllProblems),
 		commands.registerCommand('tslint.createConfig', createDefaultConfiguration),
-		commands.registerCommand('tslint.showOutputChannel', () => { client.outputChannel.show(); })
+		commands.registerCommand('tslint.showOutputChannel', () => { client.outputChannel.show(); }),
+		statusBarItem
 	);
 }
