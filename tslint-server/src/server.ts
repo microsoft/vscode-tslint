@@ -7,7 +7,7 @@ import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 import * as autofix from './tslintAutoFix';
-import { Delayer } from './delayer'
+import { Delayer } from './delayer';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -77,6 +77,20 @@ export interface TSLintReport {
 	errorCount: number;
 	warningCount: number;
 	results: TSLintDocumentReport[];
+}
+
+enum Status {
+	ok = 1,
+	warn = 2,
+	error = 3
+}
+
+interface StatusParams {
+	state: Status;
+}
+
+namespace StatusNotification {
+	export const type: server.NotificationType<StatusParams> = { get method() { return 'tslint/status'; } };
 }
 
 let settings: Settings = null;
@@ -193,12 +207,16 @@ function getErrorMessage(err: any, document: server.TextDocument): string {
 	return message;
 }
 
-function showConfigurationFailure(conn: server.IConnection, err: any) {
+function getConfigurationFailureMessage(err: any): string {
 	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
 		errorMessage = <string>err.message;
 	}
-	let message = `vscode-tslint: Cannot read tslint configuration - '${errorMessage}'`;
+	return `vscode-tslint: Cannot read tslint configuration - '${errorMessage}'`;
+
+}
+function showConfigurationFailure(conn: server.IConnection, err: any) {
+	let message = getConfigurationFailureMessage(err);
 	conn.window.showInformationMessage(message);
 }
 
@@ -229,9 +247,18 @@ let documents: server.TextDocuments = new server.TextDocuments();
 
 documents.listen(connection);
 
+function trace(message: string, verbose?: string): void {
+	connection.tracer.log(message, verbose);
+}
+
 connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
 	let rootFolder = params.rootPath;
-	return server.Files.resolveModule(rootFolder, 'tslint').
+	let initOptions: {
+		nodePath: string;
+	} = params.initializationOptions;
+	let nodePath = initOptions ? (initOptions.nodePath ? initOptions.nodePath : undefined) : undefined;
+
+	return server.Files.resolveModule2(rootFolder, 'tslint', nodePath, trace).
 		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
 			linter = value;
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
@@ -247,9 +274,8 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 						{ retry: true }));
 			}
 			// Respond that initialization failed silently, without prompting the user.
-			connection.console.log('vscode-tslint: could not load tslint');
 			return Promise.reject(
-				new server.ResponseError<server.InitializeError>(99,
+				new server.ResponseError<server.InitializeError>(100,
 					null, // do not show an error message
 					{ retry: false }));
 		});
@@ -276,6 +302,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	try {
 		options.configuration = getConfiguration(fsPath, configFile);
 	} catch (err) {
+		// this should not happen since we guard against incorrect configurations
 		showConfigurationFailure(conn, err);
 		return diagnostics;
 	}
@@ -294,7 +321,8 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		result = tslint.lint();
 	} catch (err) {
 		// TO DO show an indication in the workbench
-		conn.console.error(getErrorMessage(err, document));
+		conn.console.info(getErrorMessage(err, document));
+		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		return diagnostics;
 	}
 
@@ -306,6 +334,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 			recordCodeAction(document, diagnostic, problem);
 		});
 	}
+	connection.sendNotification(StatusNotification.type, { state: Status.ok });
 	return diagnostics;
 }
 
@@ -361,7 +390,7 @@ function triggerValidateDocument(document: server.TextDocument) {
 	}
 	d.trigger(() => {
 		validateTextDocument(connection, document);
-		delete validationDelayer[document.uri]
+		delete validationDelayer[document.uri];
 	});
 }
 
@@ -374,6 +403,8 @@ function tslintConfigurationValid(): boolean {
 			}
 		});
 	} catch (err) {
+		connection.console.info(getConfigurationFailureMessage(err));
+		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		return false;
 	}
 	return true;
@@ -531,8 +562,8 @@ interface AllFixesParams {
 }
 
 interface AllFixesResult {
-	documentVersion: number,
-	edits: server.TextEdit[]
+	documentVersion: number;
+	edits: server.TextEdit[];
 }
 
 namespace AllFixesRequest {
@@ -565,7 +596,7 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 	result = {
 		documentVersion: documentVersion,
 		edits: textEdits
-	}
+	};
 	return result;
 });
 
