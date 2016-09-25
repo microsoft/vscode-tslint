@@ -6,7 +6,7 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
-import * as autofix from './tslintAutoFix';
+import * as vscFixLib from './vscFix';
 import { Delayer } from './delayer';
 
 // Settings as defined in VS Code
@@ -57,8 +57,21 @@ export interface AutoFix {
 	edit: TSLintAutofixEdit;
 }
 
+// tslint enhancement to provide text replacement (= AutoFix ;-))
+export interface TSLintFix{
+	innerReplacements: TSLintFixReplacement[];
+	innerRuleName:string;
+}
+
+export interface TSLintFixReplacement{
+	innerLength: number;
+	innerStart: number;
+	innerText: string;
+}
+
+
 export interface TSLintProblem {
-	fix?: TSLintAutofixEdit;
+	fix?: TSLintFix;
 	failure: string;
 	startPosition: TSLintPosition;
 	endPosition: TSLintPosition;
@@ -141,10 +154,47 @@ function makeDiagnostic(problem: TSLintProblem): server.Diagnostic {
 }
 
 let codeActions: Map<Map<AutoFix>> = Object.create(null);
-function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: TSLintProblem): void {
 
-	let afix = autofix.tsLintAutoFixes.filter(autoFix => autoFix.tsLintMessage.toLowerCase() === problem.failure.toLocaleLowerCase());
-	if (afix.length > 0) {
+/**
+ * convert problem in diagnostic
+ * add fix if availble fom vsc or tsl
+ * in order to support migration (while not all users move to last version of tslint) and exceptional cases (where IDE information may needed) the rule is:
+ *  - tsl fix as to be applier versys vsc fix
+ *  - a part when vscFix.overrideTslFix = true
+ *
+ * !! this algo does not support several fixes provided by tslint engine. Only the first element of the innerReplacements array is used
+ * !! let's improve when the case will be raised
+ */
+function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: TSLintProblem): void {
+	let fixText: string = null;
+	let fixStart: TSLintPosition;
+	let fixEnd: TSLintPosition;
+
+	// console.log("----------***************************", problem);
+
+	// check tsl fix
+	if (!!problem.fix){
+		fixText = problem.fix.innerReplacements[0].innerText;
+		// fixStart = problem.fix.innerReplacements[0].innerStart;
+		// fixEnd = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
+		fixStart = problem.startPosition;
+		fixEnd = problem.endPosition;
+	}
+
+	//check vsc fix
+	let vscFix = vscFixLib.vscFixes.filter(fix => fix.tsLintMessage.toLowerCase() === problem.failure.toLocaleLowerCase());
+	if ( (vscFix.length > 0) ) {
+		// not tslFix or vscFix.override
+		if ((!problem.fix) || ( vscFix[0].overrideTSLintFix)){
+			fixText = vscFix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
+			fixStart = problem.startPosition;
+			fixEnd = problem.endPosition;
+		}
+	}
+
+	if ( fixText !== null) {
+		// fix is defined
+
 		// create an autoFixEntry for the document in the codeActions
 		let uri = document.uri;
 		let edits: Map<AutoFix> = codeActions[uri];
@@ -165,8 +215,9 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 			documentVersion: document.version,
 			ruleId: problem.failure,
 			edit: {
-				range: [problem.startPosition, problem.endPosition],
-				text: afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
+				range: [fixStart, fixEnd],
+				//text: vscFix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
+				text: fixText
 			}
 		};
 	}

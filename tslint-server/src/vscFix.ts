@@ -1,10 +1,9 @@
-export interface TsLintAutoFix {
-	tsLintCode: string;
+export interface VSCFix {
 	tsLintMessage: string;
-	autoFixMessage: string;
 	autoFix(codeBefore: string): string;
+	overrideTSLintFix: boolean; //This for cases where tslint does not have all information, i.e.: tabulation/space replacement should be linked to the configguration of IDE
 }
-export let tsLintAutoFixes: TsLintAutoFix[] = [];
+export let vscFixes: VSCFix[] = [];
 
 /**
  * AutoFix rules are all in this file
@@ -12,147 +11,134 @@ export let tsLintAutoFixes: TsLintAutoFix[] = [];
  *
  * the key to map tsLint problem and autofix rules is => tsLintMessage
  */
-let autoFix: TsLintAutoFix;
-autoFix = {
-	tsLintCode: "one-line",
+let vscFix: VSCFix;
+vscFix = {
 	tsLintMessage: "missing whitespace",
-	autoFixMessage: "Add a whitespace",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = " " + codeBefore;
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "semicolon",
+vscFix = {
 	tsLintMessage: "Missing semicolon",
-	autoFixMessage: "Add semicolon",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = codeBefore + ";";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "trailing-comma",
+vscFix = {
 	tsLintMessage: "missing trailing comma",
-	autoFixMessage: "Add trailing comma",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = codeBefore + ",";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "quotemark",
+vscFix = {
 	tsLintMessage: "' should be \"",
-	autoFixMessage: "Replace ' by \" ",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "\"" + codeBefore.slice(1, codeBefore.length - 1) + "\"";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "quotemark",
+vscFix = {
 	tsLintMessage: "\" should be '",
-	autoFixMessage: "Replace \" by ' ",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "'" + codeBefore.slice(1, codeBefore.length - 1) + "'";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "no-trailing-whitespace",
+vscFix = {
 	tsLintMessage: "trailing whitespace",
-	autoFixMessage: "Trim whitespace",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "indent",
+vscFix = {
 	tsLintMessage: "tab indentation expected",
-	autoFixMessage: "Replace 4 spaces by 1 tab",
 	autoFix: (codeBefore: string): string => {
 		let howManySpaces = codeBefore.length;
 		let codeAfter = Array(Math.round(howManySpaces / 4) + 1).join(" ");
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "indent",
+vscFix = {
 	tsLintMessage: "space indentation expected",
-	autoFixMessage: "Replace 1 tab by 4 spaces",
 	autoFix: (codeBefore: string): string => {
 		let howManyTabs = codeBefore.length;
 		let codeAfter = Array(howManyTabs + 1).join("	");
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "no-var-keyword",
+vscFix = {
 	tsLintMessage: "Forbidden 'var' keyword, use 'let' or 'const' instead",
-	autoFixMessage: "Replace var by let",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "let";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
-autoFix = {
-	tsLintCode: "eofline",
+this.vscFixes.push(vscFix);
+vscFix = {
 	tsLintMessage: "file should end with a newline",
-	autoFixMessage: "add new line",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "\n";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "no-var-keyword",
+vscFix = {
 	tsLintMessage: "Forbidden 'var' keyword, use 'let' or 'const' instead",
-	autoFixMessage: "Replace var by let",
 	autoFix: (codeBefore: string): string => {
-		let codeAfter = "let"
-		return codeAfter
-	}
+		let codeAfter = "let";
+		return codeAfter;
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "triple-equals",
+vscFix = {
 	tsLintMessage: "== should be ===",
-	autoFixMessage: "Replace == by ===",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "===";
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
 
-autoFix = {
-	tsLintCode: "comment-format",
+vscFix = {
 	tsLintMessage: "Comment must start with a space",
-	autoFixMessage: "Add a space ",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = " " + codeBefore;
 		return codeAfter;
-	}
+	},
+	overrideTSLintFix: false
 };
-this.tsLintAutoFixes.push(autoFix);
+this.vscFixes.push(vscFix);
