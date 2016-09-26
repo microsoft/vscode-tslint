@@ -120,9 +120,12 @@ let configCache = {
 };
 
 function makeDiagnostic(problem: TSLintProblem): server.Diagnostic {
+	let message = (problem.ruleName !== null)
+		? `${problem.failure} (${problem.ruleName})`
+		: `${problem.failure}`;
 	let diagnostic: server.Diagnostic = {
 		severity: server.DiagnosticSeverity.Warning,
-		message: problem.failure,
+		message: message,
 		range: {
 			start: {
 				line: problem.startPosition.line,
