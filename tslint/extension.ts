@@ -151,7 +151,7 @@ export function activate(context: ExtensionContext) {
 						].join('\n'));
 					}
 					// actively inform the user in the output channel
-					client.outputChannel.show();
+					client.outputChannel.show(true);
 				} else if (responseError.code === 100) {
 					// inform the user but do not show the output channel
 					client.info([
@@ -161,7 +161,7 @@ export function activate(context: ExtensionContext) {
 				}
 			} else {
 				client.error('Server initialization failed.', error);
-				client.outputChannel.show();
+				client.outputChannel.show(true);
 			}
 			return false;
 		},
