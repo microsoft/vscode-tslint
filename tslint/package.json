@@ -2,7 +2,7 @@
 	"name": "tslint",
 	"displayName": "TSLint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.5.39",
+	"version": "0.5.40",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"publisher": "eg2",
@@ -28,7 +28,9 @@
 	"activationEvents": [
 		"onLanguage:typescript",
 		"onLanguage:typescriptreact",
-		"onCommand:tslint.executeAutofix"
+		"onCommand:tslint.fixAllProblems",
+		"onCommand:tslint.createConfig",
+		"onCommand:tslint.showOutputChannel"
 	],
 	"main": "./out/extension",
 	"contributes": {

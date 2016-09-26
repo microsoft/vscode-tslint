@@ -554,7 +554,7 @@ connection.onCodeAction((params) => {
 
 function createTextEdit(editInfo: AutoFix): server.TextEdit {
 	return server.TextEdit.replace(
-		server.Range.create( editInfo.edit.range[0], editInfo.edit.range[1]),
+		server.Range.create(editInfo.edit.range[0], editInfo.edit.range[1]),
 		editInfo.edit.text || '');
 }
 interface AllFixesParams {
@@ -575,6 +575,10 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 	let uri = params.textDocument.uri;
 	let edits = codeActions[uri];
 	let documentVersion: number = -1;
+
+	if (!edits) {
+		return null;
+	}
 
 	// retrive document version
 	let fixes: AutoFix[] = Object.keys(edits).map(key => edits[key]);
