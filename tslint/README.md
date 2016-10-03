@@ -46,8 +46,8 @@ the warnings in the `Problems` panel, then you can:
 - define a VS Code [task](https://code.visualstudio.com/docs/editor/tasks) with a [problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
 that extracts VS Code warnings from the tslint output.
 
-Here is an example. Create a gulp task using `gulp-tslint` that generates a report in a particular format that you can then match
-with a problem matcher. In your `gulpfile.js` define a task like the one below, with a custom problem reporter:
+Here is an example. Create a gulp task using `gulp-tslint` that generates a report that you can then match
+by a VS Code Task's problem matcher. In your `gulpfile.js` define a task like the one below:
 
 ```js
 'use strict';
