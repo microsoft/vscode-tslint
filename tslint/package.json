@@ -127,8 +127,10 @@
 		"update-vscode": "node ./node_modules/vscode/bin/install"
 	},
 	"devDependencies": {
-		"vscode": "^0.11.x",
-		"typescript": "^1.8.2"
+		"typescript": "^2.0.3",
+		"vscode": "^1.0.0", 
+		"@types/node": "^6.0.40",
+		"@types/mocha": "^2.2.32"
 	},
 	"dependencies": {
 		"vscode-languageclient": "^2.0.0"
