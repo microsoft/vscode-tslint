@@ -6,6 +6,9 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
+
+import * as tslint from 'tslint/lib/lint';
+
 import * as autofix from './tslintAutoFix';
 import { Delayer } from './delayer';
 
@@ -95,7 +98,7 @@ namespace StatusNotification {
 
 let settings: Settings = null;
 
-let linter: typeof Lint.Linter = null;
+let linter: typeof tslint.Linter = null;
 
 let validationDelayer: Map<Delayer<void>> = Object.create(null); // key is the URI of the document
 
@@ -104,7 +107,7 @@ let tslintNotFound =
 folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.`;
 
 // Options passed to tslint
-let options: Lint.ILinterOptions = {
+let options: tslint.ILinterOptions = {
 	formatter: "json",
 	configuration: {},
 	rulesDirectory: undefined,
@@ -318,7 +321,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		return;
 	}
 
-	let result: Lint.LintResult;
+	let result: tslint.LintResult;
 	try { // protect against tslint crashes
 		let tslint = new linter(fsPath, contents, options);
 		result = tslint.lint();
@@ -506,18 +509,6 @@ connection.onCodeAction((params) => {
 			// 	return a.edit.range[1] - b.edit.range[1];
 			// });
 
-			// check if there are fixes overlaps
-			function overlaps(lastEdit: AutoFix, newEdit: AutoFix): boolean {
-				return !!lastEdit && lastEdit.edit.range[1] > newEdit.edit.range[0];
-			}
-			function getLastEdit(array: AutoFix[]): AutoFix {
-				let length = array.length;
-				if (length === 0) {
-					return undefined;
-				}
-				return array[length - 1];
-			}
-
 			for (let editInfo of fixes) {
 				if (documentVersion === -1) {
 					documentVersion = editInfo.documentVersion;
@@ -554,6 +545,19 @@ connection.onCodeAction((params) => {
 	}
 	return result;
 });
+
+// check if there are fixes overlaps
+function overlaps(lastEdit: AutoFix, newEdit: AutoFix): boolean {
+	return !!lastEdit && lastEdit.edit.range[1] > newEdit.edit.range[0];
+}
+
+function getLastEdit(array: AutoFix[]): AutoFix {
+	let length = array.length;
+	if (length === 0) {
+		return undefined;
+	}
+	return array[length - 1];
+}
 
 function createTextEdit(editInfo: AutoFix): server.TextEdit {
 	return server.TextEdit.replace(

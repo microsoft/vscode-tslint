@@ -12,7 +12,8 @@
 		"semver": "^5.1.0"
 	},
 	"devDependencies": {
-		"typescript": "^1.8.9"
+		"typescript": "^1.8.9",
+		"tslint": "^3.15.1"
 	},
 	"scripts": {
 		"compile": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc -p ./src",
