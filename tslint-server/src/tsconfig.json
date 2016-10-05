@@ -1,10 +1,14 @@
 {
 	"compilerOptions": {
-		"target": "ES5",
+		"target": "es6",
 		"module": "commonjs",
 		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
 		"sourceMap": true,
-		"outDir": "../../tslint/server"
+		"outDir": "../../tslint/server",
+		"lib": [
+			"es6"
+		]
 	},
 	"exclude": [
 		"node_modules"

@@ -7,6 +7,10 @@ import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 import * as autofix from './tslintAutoFix';
+//import * as Lint from 'tslint';
+//import tsLinter from 'tslint';
+import * as tslint from 'tslint/lib/lint';
+
 import { Delayer } from './delayer';
 
 // Settings as defined in VS Code
@@ -95,7 +99,7 @@ namespace StatusNotification {
 
 let settings: Settings = null;
 
-let linter: typeof Lint.Linter = null;
+let linter: typeof tslint.Linter = null;
 
 let validationDelayer: Map<Delayer<void>> = Object.create(null); // key is the URI of the document
 
@@ -104,7 +108,7 @@ let tslintNotFound =
 folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.`;
 
 // Options passed to tslint
-let options: Lint.ILinterOptions = {
+let options: tslint.ILinterOptions = {
 	formatter: "json",
 	configuration: {},
 	rulesDirectory: undefined,
@@ -318,7 +322,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		return;
 	}
 
-	let result: Lint.LintResult;
+	let result: tslint.LintResult;
 	try { // protect against tslint crashes
 		let tslint = new linter(fsPath, contents, options);
 		result = tslint.lint();
