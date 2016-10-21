@@ -10,6 +10,10 @@ import * as fs from 'fs';
 import * as tslint from 'tslint/lib/lint';
 
 import * as autofix from './tslintAutoFix';
+//import * as Lint from 'tslint';
+//import tsLinter from 'tslint';
+import * as tslint from 'tslint/lib/lint';
+
 import { Delayer } from './delayer';
 
 // Settings as defined in VS Code
