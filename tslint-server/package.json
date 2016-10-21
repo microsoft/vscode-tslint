@@ -1,5 +1,5 @@
 {
-  <<<<<<<HEAD"name": "tslint-server",
+  "name": "tslint-server",
   "version": "0.2.0",
   "description": "TSLint Linter Server",
   "engines": {
@@ -8,38 +8,18 @@
   "private": true,
   "dependencies": {
     "minimatch": "^3.0.0",
-    "vscode-languageserver": "^2.0.0",
+    "vscode-languageserver": "^2.5.0",
     "semver": "^5.1.0"
   },
   "devDependencies": {
-    "typescript": "^1.8.9",
+    "@types/minimatch": "^2.0.29",
+    "@types/node": "^6.0.41",
+    "@types/semver": "^5.3.30",
+    "typescript": "^2.0.3",
     "tslint": "^3.15.1"
   },
   "scripts": {
     "compile": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc -p ./src",
     "watch": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc --watch -p ./src"
   }
-}======="name": "tslint-server",
-"version": "0.2.0",
-"description": "TSLint Linter Server",
-"engines": {
-  "node": "*"
-},
-"private": true,
-"dependencies": {
-  "minimatch": "^3.0.0",
-  "vscode-languageserver": "^2.0.0",
-  "semver": "^5.1.0"
-},
-"devDependencies": {
-  "@types/minimatch": "^2.0.29",
-  "@types/node": "^6.0.41",
-  "@types/semver": "^5.3.30",
-  "typescript": "^2.0.3",
-  "tslint": "^3.15.1"
-},
-"scripts": {
-  "compile": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc -p ./src",
-  "watch": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc --watch -p ./src"
-}
 }
