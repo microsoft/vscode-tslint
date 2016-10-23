@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor } from 'vscode';
+import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType
@@ -48,6 +48,9 @@ namespace StatusNotification {
 	export const type: NotificationType<StatusParams> = { get method() { return 'tslint/status'; } };
 }
 
+let willSaveTextDocument: Disposable;
+let configurationChangedListener: Disposable;
+
 export function activate(context: ExtensionContext) {
 
 	let statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 0);
@@ -81,6 +84,10 @@ export function activate(context: ExtensionContext) {
 		udpateStatusBarVisibility(window.activeTextEditor);
 	}
 
+	function isTypeScriptDocument(languageId) {
+		return languageId === 'typescript' || languageId === 'typescriptreact';
+	}
+
 	function udpateStatusBarVisibility(editor: TextEditor): void {
 		//statusBarItem.text = tslintStatus === Status.ok ? 'TSLint' : 'TSLint!';
 
@@ -100,14 +107,13 @@ export function activate(context: ExtensionContext) {
 			serverRunning &&
 			(
 				tslintStatus !== Status.ok ||
-				(editor && (editor.document.languageId === 'typescript' || editor.document.languageId === 'typescriptreact'))
+				(editor && (isTypeScriptDocument(editor.document.languageId)))
 			)
 		);
 	}
 
 	window.onDidChangeActiveTextEditor(udpateStatusBarVisibility);
 	udpateStatusBarVisibility(window.activeTextEditor);
-
 
 	// We need to go one level up since an extension compile the js code into
 	// the output folder.
@@ -235,8 +241,39 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
+	function configurationChanged() {
+		let config = workspace.getConfiguration('tslint');
+		let autoFix = config.get('autoFixOnSave', false);
+		if (autoFix && !willSaveTextDocument) {
+			willSaveTextDocument = workspace.onWillSaveTextDocument((event) => {
+				let document = event.document;
+				// only auto fix when the document was not auto saved
+				if (!isTypeScriptDocument(document.languageId) || event.reason === TextDocumentSaveReason.AfterDelay) {
+					return;
+				}
+				const version = document.version;
+				event.waitUntil(
+					client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() } }).then((result) => {
+						if (result && version === result.documentVersion) {
+							return Protocol2Code.asTextEdits(result.edits);
+						} else {
+							return [];
+						}
+					})
+				);
+			});
+		} else if (!autoFix && willSaveTextDocument) {
+			willSaveTextDocument.dispose();
+			willSaveTextDocument = undefined;
+		}
+	}
+
+	configurationChangedListener = workspace.onDidChangeConfiguration(configurationChanged);
+	configurationChanged();
+
 	context.subscriptions.push(
 		new SettingMonitor(client, 'tslint.enable').start(),
+		configurationChangedListener,
 		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
 		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
@@ -245,4 +282,11 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('tslint.showOutputChannel', () => { client.outputChannel.show(); }),
 		statusBarItem
 	);
+}
+
+export function deactivate() {
+	if (willSaveTextDocument) {
+		willSaveTextDocument.dispose();
+		willSaveTextDocument = undefined;
+	}
 }

@@ -19,6 +19,7 @@ then try to install tslint and its typescript dependency globally using `npm ins
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting.
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
 - `tslint.nodePath` - use this setting load tslint from a different location than the current workspace or the globally installed npm modules`.
+- `tslint.autoFixOnSave` - fix auto fixable warnings when a file is saved. This option has not effect when using `files.autoSave` is set to `afterDelay`.
 
 # Quick fixes
 
