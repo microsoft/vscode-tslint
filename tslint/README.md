@@ -94,6 +94,9 @@ Finally, when you then run the `tslint` task you will see the warning produced b
 
 # Release Notes
 
+## 0.5.40
+- Add `tslint.autoFixOnSave` setting which enables fixing auto fixable warnings on file save.
+
 ## 0.5.39
 - The status of the TSLint linter is now shown in the status line.
 - Add `tslint.nodePath` setting, which enables to load tslint from a different location than the current workspace or the globally installed npm modules`.
