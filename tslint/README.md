@@ -96,6 +96,7 @@ Finally, when you then run the `tslint` task you will see the warning produced b
 
 ## 0.5.40
 - Add `tslint.autoFixOnSave` setting which enables fixing auto fixable warnings on file save.
+- Added support for auto fixes provided by the tslint library.
 
 ## 0.5.39
 - The status of the TSLint linter is now shown in the status line.
