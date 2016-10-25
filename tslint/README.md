@@ -21,9 +21,9 @@ then try to install tslint and its typescript dependency globally using `npm ins
 - `tslint.nodePath` - use this setting load tslint from a different location than the current workspace or the globally installed npm modules`.
 - `tslint.autoFixOnSave` - fix auto fixable warnings when a file is saved. This option has not effect when using `files.autoSave` is set to `afterDelay`.
 
-# Quick fixes
+# Auto fixing
 
-The extension supports some quick fixing of warnings. For warnings which support a quick fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
+The extension supports automatic fixing of warnings. For warnings which support an auto fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
 * clicking the light bulp appearing or by executing the `Quick Fix`, when the mouse is over the errornous code
 * or using the command `Fix all auto-fixable problems`.
 
