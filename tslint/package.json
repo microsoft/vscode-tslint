@@ -36,7 +36,7 @@
 	"contributes": {
 		"configuration": {
 			"type": "object",
-			"title": "TSLint configuration",
+			"title": "TSLint",
 			"properties": {
 				"tslint.enable": {
 					"type": "boolean",
