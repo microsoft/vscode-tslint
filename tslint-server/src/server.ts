@@ -204,7 +204,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 		// let debugCodeAfter = afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
 
 		edits[computeKey(diagnostic)] = {
-			label: `Fix this "${problem.failure}" tslint failure?`,
+			label: `Fix this "${problem.failure}" tslint warning?`,
 			documentVersion: document.version,
 			ruleId: problem.failure,
 			edit: {
@@ -563,7 +563,7 @@ connection.onCodeAction((params) => {
 			if (same.length > 1) {
 				result.push(
 					server.Command.create(
-						`Fix all "${same[0].ruleId}" tslint failures?`,
+						`Fix all "${same[0].ruleId}" tslint warnings?`,
 						'tslint.applySameFixes',
 						uri,
 						documentVersion, same.map(createTextEdit)));
