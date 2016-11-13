@@ -28,6 +28,7 @@
 	"activationEvents": [
 		"onLanguage:typescript",
 		"onLanguage:typescriptreact",
+		"onLanguage:javascript",
 		"onCommand:tslint.fixAllProblems",
 		"onCommand:tslint.createConfig",
 		"onCommand:tslint.showOutputChannel"
