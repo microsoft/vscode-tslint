@@ -85,7 +85,7 @@ export function activate(context: ExtensionContext) {
 	}
 
 	function isTypeScriptDocument(languageId) {
-		return languageId === 'typescript' || languageId === 'typescriptreact';
+		return languageId === 'typescript' || languageId === 'typescriptreact' || languageId === 'javascript';
 	}
 
 	function udpateStatusBarVisibility(editor: TextEditor): void {
@@ -127,7 +127,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: ['typescript', 'typescriptreact'],
+		documentSelector: ['typescript', 'typescriptreact', 'javascript'],
 		synchronize: {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
