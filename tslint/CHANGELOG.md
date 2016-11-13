@@ -1,4 +1,5 @@
 ## 0.5.41
+- Enable linting of `.js` files.
 - Extract the release notes into CHANGELOG.md
 
 ## 0.5.40
