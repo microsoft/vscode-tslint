@@ -10,6 +10,5 @@
 	},
 	"files.trimTrailingWhitespace": true,
 	"editor.insertSpaces": false,
-	"editor.tabSize": 4,
-	"typescript.check.workspaceVersion": false
+	"editor.tabSize": 4
 }
