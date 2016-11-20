@@ -99,6 +99,7 @@ namespace StatusNotification {
 let settings: Settings = null;
 
 let linter: typeof tslint.Linter = null;
+let linterConfiguration: typeof tslint.Configuration = null;
 
 let validationDelayer: Map<Delayer<void>> = Object.create(null); // key is the URI of the document
 
@@ -225,15 +226,14 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	}
 
 	let isDefaultConfig = false;
-	connection.window.showInformationMessage('get configuration ' + linter + ' '+tslint.Linter.findConfiguration + ' '+tslint.Linter.findConfigurationPath);
 
-	if (linter.findConfigurationPath) {
-		isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
+	if (linterConfiguration.findConfigurationPath) {
+		isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
 	}
 	configCache = {
 		filePath: filePath,
 		isDefaultConfig: isDefaultConfig,
-		configuration: linter.findConfiguration(configFileName, filePath)
+		configuration: linterConfiguration.findConfiguration(configFileName, filePath).results
 	};
 	return configCache.configuration;
 }
@@ -309,7 +309,8 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 
 	return server.Files.resolveModule2(rootFolder, 'tslint', nodePath, trace).
 		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
-			linter = value;
+			linter = value.Linter;
+			linterConfiguration = value.Configuration;
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
 			return result;
 		}, (error) => {
