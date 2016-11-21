@@ -6,6 +6,7 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
+import * as semver from 'semver'
 
 import * as vscFixLib from './vscFix';
 
@@ -111,14 +112,13 @@ folder using \'npm install tslint\' or \'npm install -g tslint\' and then press 
 let options: tslint.ILinterOptions = {
 	formatter: "json",
 	fix: false,
-	//	configuration: {},
 	rulesDirectory: undefined,
 	formattersDirectory: undefined
 };
 
 let configFile: string = null;
 let configFileWatcher: fs.FSWatcher = null;
-let configuration: tslint.Configuration.IConfigurationFile;
+let configuration: tslint.Configuration.IConfigurationFile = null;
 
 let configCache = {
 	filePath: <string>null,
@@ -312,6 +312,12 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 			linter = value.Linter;
 			linterConfiguration = value.Configuration;
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
+
+			if (!checkTsLintVersion(linter)) {
+				return new server.ResponseError<server.InitializeError>(101,
+					null,
+					{ retry: true });
+			}
 			return result;
 		}, (error) => {
 			// We only want to show the tslint load failed error, when the workspace is configured for tslint.
@@ -330,6 +336,15 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 					{ retry: false }));
 		});
 });
+
+function checkTsLintVersion(linter) {
+	let version = '1.0.0';
+	try {
+		version = linter.VERSION;
+	} catch (e) {
+	}
+	return !semver.lte(version, '4.0.0');
+}
 
 function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
 	let uri = document.uri;

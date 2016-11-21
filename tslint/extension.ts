@@ -164,6 +164,22 @@ export function activate(context: ExtensionContext) {
 						'Failed to load the TSLint library.',
 						'Ignoring the failure since there is no \'tslint.json\' file at the root of this workspace.',
 					].join('\n'));
+				} else if (responseError.code === 101) {
+					if (workspace.rootPath) {
+						client.error([
+							'The extension requires at least version 4.0.0 of tslint.',
+							'Please install the latest version of tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
+							'You need to reopen the workspace after installing tslint.',
+						].join('\n'));
+					} else {
+						client.error([
+							'The extension requires at least version 4.0.0 of tslint.',
+							'Please install the latest version of tslint globally using \'npm install -g tslint\'.',
+							'You need to reopen VS Code after installing tslint.',
+						].join('\n'));
+					}
+					// actively inform the user in the output channel
+					client.outputChannel.show(true);
 				}
 			} else {
 				client.error('Server initialization failed.', error);
