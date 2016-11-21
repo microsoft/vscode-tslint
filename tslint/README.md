@@ -23,8 +23,8 @@ then try to install tslint and its typescript dependency globally using `npm ins
 
 # Auto fixing
 
-The extension supports automatic fixing of warnings. For warnings which support an auto fix a light bulp is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
-* clicking the light bulp appearing or by executing the `Quick Fix`, when the mouse is over the errornous code
+The extension supports automatic fixing of warnings. For warnings which support an auto fix a light bulb is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
+* clicking the light bulb appearing or by executing the `Quick Fix`, when the mouse is over the errornous code
 * or using the command `Fix all auto-fixable problems`.
 
 The following quick fixes are currently supported:
