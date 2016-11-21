@@ -322,12 +322,14 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
 			linter = value.Linter;
 			linterConfiguration = value.Configuration;
-			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
 
 			isTsLint4 = checkTsLintVersion(linter);
+			//connection.window.showInformationMessage(isTsLint4 ? 'tslint4': 'tslint3');
+
 			if (!isTsLint4) {
 				linter = value;
 			}
+			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
 			return result;
 		}, (error) => {
 			// We only want to show the tslint load failed error, when the workspace is configured for tslint.
