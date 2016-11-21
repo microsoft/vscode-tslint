@@ -6,10 +6,11 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
+import * as semver from 'semver'
 
 import * as vscFixLib from './vscFix';
 
-import * as tslint from 'tslint/lib/lint';
+import * as tslint from 'tslint';
 
 import { Delayer } from './delayer';
 
@@ -99,6 +100,7 @@ namespace StatusNotification {
 let settings: Settings = null;
 
 let linter: typeof tslint.Linter = null;
+let linterConfiguration: typeof tslint.Configuration = null;
 
 let validationDelayer: Map<Delayer<void>> = Object.create(null); // key is the URI of the document
 
@@ -109,12 +111,15 @@ folder using \'npm install tslint\' or \'npm install -g tslint\' and then press 
 // Options passed to tslint
 let options: tslint.ILinterOptions = {
 	formatter: "json",
-	configuration: {},
+	fix: false,
 	rulesDirectory: undefined,
 	formattersDirectory: undefined
 };
+
 let configFile: string = null;
 let configFileWatcher: fs.FSWatcher = null;
+let configuration: tslint.Configuration.IConfigurationFile = null;
+let isTsLint4: boolean = true;
 
 let configCache = {
 	filePath: <string>null,
@@ -222,13 +227,24 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	}
 
 	let isDefaultConfig = false;
-	if (linter.findConfigurationPath) {
-		isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
+	let configuration;
+
+	if (isTsLint4) {
+		if (linterConfiguration.findConfigurationPath) {
+			isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
+		}
+		configuration = linterConfiguration.findConfiguration(configFileName, filePath).results;
+	} else {
+		// prior to tslint 4.0 the findconfiguration functions where attached to the linter function
+		if (linter.findConfigurationPath) {
+			isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
+		}
+		configuration = linter.findConfiguration(configFileName, filePath);
 	}
 	configCache = {
 		filePath: filePath,
 		isDefaultConfig: isDefaultConfig,
-		configuration: linter.findConfiguration(configFileName, filePath)
+		configuration: configuration
 	};
 	return configCache.configuration;
 }
@@ -304,8 +320,14 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 
 	return server.Files.resolveModule2(rootFolder, 'tslint', nodePath, trace).
 		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
-			linter = value;
+			linter = value.Linter;
+			linterConfiguration = value.Configuration;
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
+
+			isTsLint4 = checkTsLintVersion(linter);
+			if (!isTsLint4) {
+				linter = value;
+			}
 			return result;
 		}, (error) => {
 			// We only want to show the tslint load failed error, when the workspace is configured for tslint.
@@ -324,6 +346,15 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 					{ retry: false }));
 		});
 });
+
+function checkTsLintVersion(linter) {
+	let version = '1.0.0';
+	try {
+		version = linter.VERSION;
+	} catch (e) {
+	}
+	return !semver.lte(version, '4.0.0');
+}
 
 function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
 	let uri = document.uri;
@@ -344,7 +375,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	let contents = document.getText();
 
 	try {
-		options.configuration = getConfiguration(fsPath, configFile);
+		configuration = getConfiguration(fsPath, configFile);
 	} catch (err) {
 		// this should not happen since we guard against incorrect configurations
 		showConfigurationFailure(conn, err);
@@ -361,8 +392,15 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 
 	let result: tslint.LintResult;
 	try { // protect against tslint crashes
-		let tslint = new linter(fsPath, contents, options);
-		result = tslint.lint();
+		if (isTsLint4) {
+			let tslint = new linter(options);
+			tslint.lint(fsPath, contents, configuration);
+			result = tslint.getResult();
+		} else {
+			(<any>options).configuration = configuration;
+			let tslint = new (<any>linter)(fsPath, contents, options);
+			result = tslint.lint();
+		}
 	} catch (err) {
 		// TO DO show an indication in the workbench
 		conn.console.info(getErrorMessage(err, document));
