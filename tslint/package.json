@@ -29,6 +29,7 @@
 		"onLanguage:typescript",
 		"onLanguage:typescriptreact",
 		"onLanguage:javascript",
+		"onLanguage:javascriptreact",
 		"onCommand:tslint.fixAllProblems",
 		"onCommand:tslint.createConfig",
 		"onCommand:tslint.showOutputChannel"
