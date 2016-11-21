@@ -119,6 +119,7 @@ let options: tslint.ILinterOptions = {
 let configFile: string = null;
 let configFileWatcher: fs.FSWatcher = null;
 let configuration: tslint.Configuration.IConfigurationFile = null;
+let isTsLint4: boolean = true;
 
 let configCache = {
 	filePath: <string>null,
@@ -226,14 +227,24 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	}
 
 	let isDefaultConfig = false;
+	let configuration;
 
-	if (linterConfiguration.findConfigurationPath) {
-		isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
+	if (isTsLint4) {
+		if (linterConfiguration.findConfigurationPath) {
+			isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
+		}
+		configuration = linterConfiguration.findConfiguration(configFileName, filePath).results;
+	} else {
+		// prior to tslint 4.0 the findconfiguration functions where attached to the linter function
+		if (linter.findConfigurationPath) {
+			isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
+		}
+		configuration = linter.findConfiguration(configFileName, filePath);
 	}
 	configCache = {
 		filePath: filePath,
 		isDefaultConfig: isDefaultConfig,
-		configuration: linterConfiguration.findConfiguration(configFileName, filePath).results
+		configuration: configuration
 	};
 	return configCache.configuration;
 }
@@ -313,10 +324,9 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 			linterConfiguration = value.Configuration;
 			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
 
-			if (!checkTsLintVersion(linter)) {
-				return new server.ResponseError<server.InitializeError>(101,
-					null,
-					{ retry: true });
+			isTsLint4 = checkTsLintVersion(linter);
+			if (!isTsLint4) {
+				linter = value;
 			}
 			return result;
 		}, (error) => {
@@ -382,9 +392,15 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 
 	let result: tslint.LintResult;
 	try { // protect against tslint crashes
-		let tslint = new linter(options);
-		tslint.lint(fsPath, contents, configuration);
-		result = tslint.getResult();
+		if (isTsLint4) {
+			let tslint = new linter(options);
+			tslint.lint(fsPath, contents, configuration);
+			result = tslint.getResult();
+		} else {
+			(<any>options).configuration = configuration;
+			let tslint = new (<any>linter)(fsPath, contents, options);
+			result = tslint.lint();
+		}
 	} catch (err) {
 		// TO DO show an indication in the workbench
 		conn.console.info(getErrorMessage(err, document));
