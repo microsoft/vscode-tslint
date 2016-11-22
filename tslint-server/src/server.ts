@@ -306,7 +306,7 @@ function validateTextDocument(connection: server.IConnection, document: server.T
 	}
 }
 
-let connection: server.IConnection = server.createConnection(process.stdin, process.stdout);
+let connection: server.IConnection = server.createConnection(new server.IPCMessageReader(process), new server.IPCMessageWriter(process));
 let documents: server.TextDocuments = new server.TextDocuments();
 
 documents.listen(connection);

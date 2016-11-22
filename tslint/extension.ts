@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code,
-	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType
+	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
 } from 'vscode-languageclient';
 
 const tslintConfig: string = [
@@ -122,8 +122,8 @@ export function activate(context: ExtensionContext) {
 	//let debugOptions = { execArgv: ["--nolazy", "--debug=6004", "--debug-brk"] };
 	let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
 	let serverOptions: ServerOptions = {
-		run: { module: serverModulePath },
-		debug: { module: serverModulePath, options: debugOptions }
+		run: { module: serverModulePath, transport: TransportKind.ipc },
+		debug: { module: serverModulePath, transport: TransportKind.ipc, options: debugOptions }
 	};
 
 	let clientOptions: LanguageClientOptions = {
