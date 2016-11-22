@@ -233,7 +233,11 @@ function getConfiguration(filePath: string, configFileName: string): any {
 		if (linterConfiguration.findConfigurationPath) {
 			isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
 		}
-		configuration = linterConfiguration.findConfiguration(configFileName, filePath).results;
+		let configurationResult = linterConfiguration.findConfiguration(configFileName, filePath);
+		if (configurationResult.error) {
+			throw configurationResult.error;
+		}
+		configuration= configurationResult.results;
 	} else {
 		// prior to tslint 4.0 the findconfiguration functions where attached to the linter function
 		if (linter.findConfigurationPath) {
