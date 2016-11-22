@@ -323,8 +323,8 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 			linter = value.Linter;
 			linterConfiguration = value.Configuration;
 
-			isTsLint4 = checkTsLintVersion(linter);
-			//connection.window.showInformationMessage(isTsLint4 ? 'tslint4': 'tslint3');
+			isTsLint4 = isTsLintVersion4(linter);
+			// connection.window.showInformationMessage(isTsLint4 ? 'tslint4': 'tslint3');
 
 			if (!isTsLint4) {
 				linter = value;
@@ -349,13 +349,13 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 		});
 });
 
-function checkTsLintVersion(linter) {
+function isTsLintVersion4(linter) {
 	let version = '1.0.0';
 	try {
 		version = linter.VERSION;
 	} catch (e) {
 	}
-	return !semver.lte(version, '4.0.0');
+	return semver.gte(version, '4.0.0');
 }
 
 function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
