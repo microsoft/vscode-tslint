@@ -171,9 +171,8 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	let fixEnd: TSLintPosition;
 
 	// check tsl fix
-	if (!!problem.fix) {
 
-		console.log("Problem.fix:\n",problem.fix);
+	if (!!problem.fix && problem.fix.innerReplacements.length) {
 		fixText = problem.fix.innerReplacements[0].innerText;
 
 		// convert offset in position
