@@ -14,6 +14,8 @@ import * as tslint from 'tslint';
 
 import { Delayer } from './delayer';
 
+import * as util from 'util';
+
 // Settings as defined in VS Code
 interface Settings {
 	tslint: {
@@ -171,7 +173,9 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	// console.log("----------***************************", problem);
 
 	// check tsl fix
-	if (!!problem.fix) {
+	let ignoredFixes = ['ordered-imports'];
+
+	if (!!problem.fix && problem.fix.innerReplacements.length && ignoredFixes.indexOf(problem.fix.innerRuleName) === -1) {
 		fixText = problem.fix.innerReplacements[0].innerText;
 		// fixStart = problem.fix.innerReplacements[0].innerStart;
 		// fixEnd = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
