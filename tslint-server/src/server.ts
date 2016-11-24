@@ -406,10 +406,12 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 			let tslint = new linter(options);
 			tslint.lint(fsPath, contents, configuration);
 			result = tslint.getResult();
-		} else {
+		} else if (document.languageId !== "javascript" && document.languageId !== "javascriptreact") {
 			(<any>options).configuration = configuration;
 			let tslint = new (<any>linter)(fsPath, contents, options);
 			result = tslint.lint();
+		} else {
+			return diagnostics;
 		}
 	} catch (err) {
 		// TO DO show an indication in the workbench
