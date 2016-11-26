@@ -1,5 +1,8 @@
 {
     "rules": {
+        "array-type": [
+            true, "array-simple"
+        ], 
         "arrow-parens": true,
         "no-var-keyword": true,
         "no-unused-variable": [true, {"ignore-pattern": "^_"}],
