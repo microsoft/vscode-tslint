@@ -238,8 +238,11 @@ function getConfiguration(filePath: string, configFileName: string): any {
 			isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
 		}
 		let configurationResult = linterConfiguration.findConfiguration(configFileName, filePath);
-		if (configurationResult.error) {
-			throw configurationResult.error;
+
+		// between tslint 4.0.1 and tslint 4.0.2 the attribute 'error' has been removed from IConfigurationLoadResult
+		// in 4.0.2 findConfiguration throws an exception as in version ^3.0.0
+		if ((<any>configurationResult).error) {
+			throw (<any>configurationResult).error;
 		}
 		configuration= configurationResult.results;
 	} else {
