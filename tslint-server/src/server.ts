@@ -6,7 +6,7 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
-import * as semver from 'semver'
+import * as semver from 'semver';
 
 import * as vscFixLib from './vscFix';
 
@@ -170,17 +170,26 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	let fixStart: TSLintPosition;
 	let fixEnd: TSLintPosition;
 
-	// console.log("----------***************************", problem);
-
 	// check tsl fix
-	let ignoredFixes = ['ordered-imports'];
+	if (!!problem.fix) {
 
-	if (!!problem.fix && problem.fix.innerReplacements.length && ignoredFixes.indexOf(problem.fix.innerRuleName) === -1) {
+		console.log("Problem.fix:\n",problem.fix);
 		fixText = problem.fix.innerReplacements[0].innerText;
-		// fixStart = problem.fix.innerReplacements[0].innerStart;
-		// fixEnd = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
-		fixStart = problem.startPosition;
-		fixEnd = problem.endPosition;
+
+		// convert offset in position
+		fixStart =  Object.assign(
+			{},
+			document.positionAt(problem.fix.innerReplacements[0].innerStart),
+			{position: problem.fix.innerReplacements[0].innerStart}
+			);
+
+		const positionEnd = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
+		fixEnd = Object.assign(
+			{},
+			document.positionAt(positionEnd),
+			{position: positionEnd}
+			);
+		fixEnd.position = problem.fix.innerReplacements[0].innerStart+problem.fix.innerReplacements[0].innerLength;
 	}
 
 	//check vsc fix
