@@ -418,7 +418,9 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 			let tslint = new linter(options);
 			tslint.lint(fsPath, contents, configuration);
 			result = tslint.getResult();
-		} else if (document.languageId !== "javascript" && document.languageId !== "javascriptreact") {
+		}
+		// support for linting js files is only available in tslint > 4.0
+		else if (document.languageId !== "javascript" && document.languageId !== "javascriptreact") {
 			(<any>options).configuration = configuration;
 			let tslint = new (<any>linter)(fsPath, contents, options);
 			result = tslint.lint();
