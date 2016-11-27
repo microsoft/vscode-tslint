@@ -172,23 +172,24 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 
 	// check tsl fix
 
-	if (!!problem.fix && problem.fix.innerReplacements.length) {
+	// Limitation: can only apply auto fixes with a single edit
+	if (!!problem.fix && problem.fix.innerReplacements.length > 0 && problem.fix.innerReplacements.length <= 1) {
 		fixText = problem.fix.innerReplacements[0].innerText;
 
 		// convert offset in position
-		fixStart =  Object.assign(
+		fixStart = Object.assign(
 			{},
 			document.positionAt(problem.fix.innerReplacements[0].innerStart),
-			{position: problem.fix.innerReplacements[0].innerStart}
-			);
+			{ position: problem.fix.innerReplacements[0].innerStart }
+		);
 
 		const positionEnd = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
 		fixEnd = Object.assign(
 			{},
 			document.positionAt(positionEnd),
-			{position: positionEnd}
-			);
-		fixEnd.position = problem.fix.innerReplacements[0].innerStart+problem.fix.innerReplacements[0].innerLength;
+			{ position: positionEnd }
+		);
+		fixEnd.position = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
 	}
 
 	//check vsc fix
@@ -252,7 +253,7 @@ function getConfiguration(filePath: string, configFileName: string): any {
 		if ((<any>configurationResult).error) {
 			throw (<any>configurationResult).error;
 		}
-		configuration= configurationResult.results;
+		configuration = configurationResult.results;
 	} else {
 		// prior to tslint 4.0 the findconfiguration functions where attached to the linter function
 		if (linter.findConfigurationPath) {
