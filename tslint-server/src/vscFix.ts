@@ -23,26 +23,6 @@ vscFix = {
 this.vscFixes.push(vscFix);
 
 vscFix = {
-	tsLintMessage: "Missing semicolon",
-	autoFix: (codeBefore: string): string => {
-		let codeAfter = codeBefore + ";";
-		return codeAfter;
-	},
-	overrideTSLintFix: false
-};
-this.vscFixes.push(vscFix);
-
-vscFix = {
-	tsLintMessage: "missing trailing comma",
-	autoFix: (codeBefore: string): string => {
-		let codeAfter = codeBefore + ",";
-		return codeAfter;
-	},
-	overrideTSLintFix: false
-};
-this.vscFixes.push(vscFix);
-
-vscFix = {
 	tsLintMessage: "' should be \"",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "\"" + codeBefore.slice(1, codeBefore.length - 1) + "\"";
@@ -95,28 +75,9 @@ vscFix = {
 this.vscFixes.push(vscFix);
 
 vscFix = {
-	tsLintMessage: "Forbidden 'var' keyword, use 'let' or 'const' instead",
-	autoFix: (codeBefore: string): string => {
-		let codeAfter = "let";
-		return codeAfter;
-	},
-	overrideTSLintFix: false
-};
-this.vscFixes.push(vscFix);
-vscFix = {
 	tsLintMessage: "file should end with a newline",
 	autoFix: (codeBefore: string): string => {
 		let codeAfter = "\n";
-		return codeAfter;
-	},
-	overrideTSLintFix: false
-};
-this.vscFixes.push(vscFix);
-
-vscFix = {
-	tsLintMessage: "Forbidden 'var' keyword, use 'let' or 'const' instead",
-	autoFix: (codeBefore: string): string => {
-		let codeAfter = "let";
 		return codeAfter;
 	},
 	overrideTSLintFix: false
