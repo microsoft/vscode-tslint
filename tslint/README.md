@@ -77,7 +77,7 @@ Next define a Task which runs the gulp task with a problem matcher that extracts
 			],
 			"severity": "warning",
 			"pattern": {
-				"regexp": "^\\(\\S.*\\) (\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
+				"regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
 				"file": 1,
 				"line": 2,
 				"column": 3,
