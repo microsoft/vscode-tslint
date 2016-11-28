@@ -8,13 +8,11 @@ import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 import * as semver from 'semver';
 
-import * as vscFixLib from './vscFix';
+// import * as vscFixLib from './vscFix';
 
 import * as tslint from 'tslint';
 
 import { Delayer } from './delayer';
-
-import * as util from 'util';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -46,11 +44,6 @@ function computeKey(diagnostic: server.Diagnostic): string {
 	return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}`;
 }
 
-export interface TSLintPosition {
-	line: number;
-	character: number;
-	position: number;
-}
 
 export interface TSLintAutofixEdit {
 	range: [server.Position, server.Position];
@@ -62,27 +55,6 @@ export interface AutoFix {
 	documentVersion: number;
 	ruleId: string;
 	edit: TSLintAutofixEdit;
-}
-
-// tslint enhancement to provide text replacement
-export interface TSLintFix {
-	innerReplacements: TSLintFixReplacement[];
-	innerRuleName: string;
-}
-
-export interface TSLintFixReplacement {
-	innerLength: number;
-	innerStart: number;
-	innerText: string;
-}
-
-
-export interface TSLintProblem {
-	fix?: TSLintFix;
-	failure: string;
-	startPosition: TSLintPosition;
-	endPosition: TSLintPosition;
-	ruleName: string;
 }
 
 enum Status {
@@ -129,24 +101,24 @@ let configCache = {
 	isDefaultConfig: false
 };
 
-function makeDiagnostic(problem: TSLintProblem): server.Diagnostic {
-	let message = (problem.ruleName !== null)
-		? `${problem.failure} (${problem.ruleName})`
-		: `${problem.failure}`;
+function makeDiagnostic(problem: tslint.RuleFailure): server.Diagnostic {
+	let message = (problem.getRuleName() !== null)
+		? `${problem.getFailure()} (${problem.getRuleName()})`
+		: `${problem.getFailure()}`;
 	let diagnostic: server.Diagnostic = {
 		severity: server.DiagnosticSeverity.Warning,
 		message: message,
 		range: {
 			start: {
-				line: problem.startPosition.line,
-				character: problem.startPosition.character
+				line: problem.getStartPosition().getLineAndCharacter().line,
+				character: problem.getStartPosition().getLineAndCharacter().character
 			},
 			end: {
-				line: problem.endPosition.line,
-				character: problem.endPosition.character
+				line: problem.getEndPosition().getLineAndCharacter().line,
+				character: problem.getEndPosition().getLineAndCharacter().character
 			},
 		},
-		code: problem.ruleName,
+		code: problem.getRuleName(),
 		source: 'tslint'
 	};
 
@@ -165,47 +137,29 @@ let codeActions: Map<Map<AutoFix>> = Object.create(null);
  * !! this algo does not support several fixes provided by tslint engine. Only the first element of the innerReplacements array is used
  * !! let's improve when the case will be raised
  */
-function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: TSLintProblem): void {
-	let fixText: string = null;
-	let fixStart: TSLintPosition;
-	let fixEnd: TSLintPosition;
-
+function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: tslint.RuleFailure): void {
 	// check tsl fix
+	let fix = problem.getFix();
+	let replacement: tslint.Replacement = null;
 
 	// Limitation: can only apply auto fixes with a single edit
-	if (!!problem.fix && problem.fix.innerReplacements.length > 0 && problem.fix.innerReplacements.length <= 1) {
-		fixText = problem.fix.innerReplacements[0].innerText;
-
-		// convert offset in position
-		fixStart = Object.assign(
-			{},
-			document.positionAt(problem.fix.innerReplacements[0].innerStart),
-			{ position: problem.fix.innerReplacements[0].innerStart }
-		);
-
-		const positionEnd = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
-		fixEnd = Object.assign(
-			{},
-			document.positionAt(positionEnd),
-			{ position: positionEnd }
-		);
-		fixEnd.position = problem.fix.innerReplacements[0].innerStart + problem.fix.innerReplacements[0].innerLength;
+	if (fix && fix.replacements.length === 1) {
+		replacement = fix.replacements[0];
 	}
 
+	// disable the custom vsc fixes for now
 	//check vsc fix
-	let vscFix = vscFixLib.vscFixes.filter(fix => fix.tsLintMessage.toLowerCase() === problem.failure.toLocaleLowerCase());
-	if ((vscFix.length > 0)) {
-		// not tslFix or vscFix.override
-		if ((!problem.fix) || (vscFix[0].overrideTSLintFix)) {
-			fixText = vscFix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
-			fixStart = problem.startPosition;
-			fixEnd = problem.endPosition;
-		}
-	}
+	// let vscFix = vscFixLib.vscFixes.filter(fix => fix.tsLintMessage.toLowerCase() === problem.getFailure().toLocaleLowerCase());
+	// if ((vscFix.length > 0)) {
+	// 	// not tslFix or vscFix.override
+	// 	if ((!problem.getFix()) || (vscFix[0].overrideTSLintFix)) {
+	// 		fixText = vscFix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
+	// 		fixStart = problem.getStartPosition().getLineAndCharacter();
+	// 		fixEnd = problem.endPosition;
+	// 	}
+	// }
 
-	if (fixText !== null) {
-		// fix is defined
-
+	if (replacement !== null) {
 		// create an autoFixEntry for the document in the codeActions
 		let uri = document.uri;
 		let edits: Map<AutoFix> = codeActions[uri];
@@ -214,22 +168,20 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 			codeActions[uri] = edits;
 		}
 
-		/** temporary variable for debugging purpose
-		 * it's not possible to use console.log to trace the autofx rules.
-		 * so uncomment the following variable put a break point on the line and check in/out of autofix rules
-		*/
-		// let debugCodeBefore = document.getText().slice(problem.startPosition.position, problem.endPosition.position);
-		// let debugCodeAfter = afix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
+		function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
+			let start: server.Position = document.positionAt(repl.start);
+			let end: server.Position = document.positionAt(repl.end);
+			return {
+				range: [start, end],
+				text: repl.text,
+			};
+		}
 
 		edits[computeKey(diagnostic)] = {
-			label: `Fix this "${problem.failure}" tslint warning?`,
+			label: `Fix this "${problem.getFailure()}" tslint warning?`,
 			documentVersion: document.version,
-			ruleId: problem.failure,
-			edit: {
-				range: [fixStart, fixEnd],
-				//text: vscFix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position))
-				text: fixText
-			}
+			ruleId: problem.getRuleName(),
+			edit: convertReplacementToAutoFix(document, replacement)
 		};
 	}
 }
@@ -435,8 +387,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	}
 
 	if (result.failureCount > 0) {
-		let lintProblems: any[] = JSON.parse(result.output);
-		lintProblems.forEach(problem => {
+		result.failures.forEach(problem => {
 			let diagnostic = makeDiagnostic(problem);
 			diagnostics.push(diagnostic);
 			recordCodeAction(document, diagnostic, problem);
