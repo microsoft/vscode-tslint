@@ -8,9 +8,7 @@ import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 import * as semver from 'semver';
 
-// import * as vscFixLib from './vscFix';
-
-import * as tslint from 'tslint';
+import * as tslint from 'tslint'; // dev dependency only
 
 import { Delayer } from './delayer';
 
@@ -127,17 +125,8 @@ function makeDiagnostic(problem: tslint.RuleFailure): server.Diagnostic {
 
 let codeActions: Map<Map<AutoFix>> = Object.create(null);
 
-/**
- * convert problem in diagnostic
- * add fix if availble fom vsc or tsl
- * in order to support migration (while not all users move to last version of tslint) and exceptional cases (where IDE information may needed) the rule is:
- *  - tsl fix as to be applier versys vsc fix
- *  - a part when vscFix.overrideTslFix = true
- *
- * !! this algo does not support several fixes provided by tslint engine. Only the first element of the innerReplacements array is used
- * !! let's improve when the case will be raised
- */
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: tslint.RuleFailure): void {
+
 	function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
 		let start: server.Position = document.positionAt(repl.start);
 		let end: server.Position = document.positionAt(repl.end);
@@ -148,24 +137,9 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	}
 
 	let fix = problem.getFix();
-
-	// Limitation: can only apply fixes with a single edit
 	if (!fix) {
 		return;
 	}
-
-	// disable the custom vsc fixes for now
-
-	//check vsc fix
-	// let vscFix = vscFixLib.vscFixes.filter(fix => fix.tsLintMessage.toLowerCase() === problem.getFailure().toLocaleLowerCase());
-	// if ((vscFix.length > 0)) {
-	// 	// not tslFix or vscFix.override
-	// 	if ((!problem.getFix()) || (vscFix[0].overrideTSLintFix)) {
-	// 		fixText = vscFix[0].autoFix(document.getText().slice(problem.startPosition.position, problem.endPosition.position));
-	// 		fixStart = problem.getStartPosition().getLineAndCharacter();
-	// 		fixEnd = problem.endPosition;
-	// 	}
-	// }
 
 	let documentAutoFixes: Map<AutoFix> = codeActions[document.uri];
 	if (!documentAutoFixes) {
@@ -242,6 +216,7 @@ function getConfigurationFailureMessage(err: any): string {
 	return `vscode-tslint: Cannot read tslint configuration - '${errorMessage}'`;
 
 }
+
 function showConfigurationFailure(conn: server.IConnection, err: any) {
 	let message = getConfigurationFailureMessage(err);
 	conn.window.showInformationMessage(message);
@@ -328,7 +303,6 @@ function isTsLintVersion4(linter) {
 function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
 	let uri = document.uri;
 	let diagnostics: server.Diagnostic[] = [];
-	// Clean previously computed code actions.
 	delete codeActions[uri];
 
 	let fsPath = server.Files.uriToFilePath(uri);
@@ -375,7 +349,6 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 			return diagnostics;
 		}
 	} catch (err) {
-		// TO DO show an indication in the workbench
 		conn.console.info(getErrorMessage(err, document));
 		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		return diagnostics;
@@ -418,7 +391,6 @@ function fileIsExcluded(path: string): boolean {
 	}
 }
 
-// A text document has changed. Validate the document.
 documents.onDidChangeContent((event) => {
 	if (settings.tslint.run === 'onType') {
 		triggerValidateDocument(event.document);
@@ -431,8 +403,8 @@ documents.onDidSave((event) => {
 	}
 });
 
-// A text document was closed. Clear the diagnostics .
 documents.onDidClose((event) => {
+	// A text document was closed we clear the diagnostics
 	connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 });
 
@@ -534,20 +506,7 @@ connection.onCodeAction((params) => {
 			let all: AutoFix[] = [];
 			let fixes: AutoFix[] = Object.keys(documentFixes).map(key => documentFixes[key]);
 
-			// TODO from eslint: why? order the fixes for? overlap?
-			// fixes = fixes.sort((a, b) => {
-			// 	let d = a.edit.range[0] - b.edit.range[0];
-			// 	if (d !== 0) {
-			// 		return d;
-			// 	}
-			// 	if (a.edit.range[1] === 0) {
-			// 		return -1;
-			// 	}
-			// 	if (b.edit.range[1] === 0) {
-			// 		return 1;
-			// 	}
-			// 	return a.edit.range[1] - b.edit.range[1];
-			// });
+			fixes = sortFixes(fixes);
 
 			for (let autofix of fixes) {
 				if (documentVersion === -1) {
@@ -561,7 +520,7 @@ connection.onCodeAction((params) => {
 				}
 			}
 
-			// if there several time the same rule identified => propose to fix all
+			// if the same rule warning exists more than once, provide a command to fix all these warnings
 			if (same.length > 1) {
 				result.push(
 					server.Command.create(
@@ -571,7 +530,7 @@ connection.onCodeAction((params) => {
 						documentVersion, concatenateEdits(same)));
 			}
 
-			// propose to fix all
+			// create a command to fix all the warnings with fixes
 			if (all.length > 1) {
 				result.push(
 					server.Command.create(
@@ -586,14 +545,33 @@ connection.onCodeAction((params) => {
 	return result;
 });
 
-function overlaps(lastFix: AutoFix, newFix: AutoFix): boolean {
+function sortFixes(fixes: AutoFix[]):AutoFix[] {
+	return fixes;
+
+			// 	fixes.sort((a, b) => {
+
+			// 	let d = a.edits[0].range[0] - b.edits[0]gi.range[0];
+			// 	if (d !== 0) {
+			// 		return d;
+			// 	}
+			// 	if (a.edit.range[1] === 0) {
+			// 		return -1;
+			// 	}
+			// 	if (b.edit.range[1] === 0) {
+			// 		return 1;
+			// 	}
+			// 	return a.edit.range[1] - b.edit.range[1];
+			// });
+
+}
+function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 	if (!lastFix) {
 		return false;
 	}
 	let doesOverlap = false;
 	lastFix.edits.some(last => {
-		return newFix.edits.some(new_ => {
-			if (last.range[1].line >= new_.range[0].line && last.range[1].character >= new_.range[0].character) {
+		return nextFix.edits.some(next => {
+			if (last.range[1].line >= next.range[0].line && last.range[1].character >= next.range[0].character) {
 				doesOverlap = true;
 				return true;
 			}
