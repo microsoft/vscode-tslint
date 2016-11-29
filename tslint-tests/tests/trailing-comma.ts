@@ -1,8 +1,8 @@
 // a comma is missing at the end
 
 let test = {
-  lastName: user.lastName,
+  lastName: "smith",
   missAComma: "mis"
 };
 
-console.log(test); 
+console.log(test);
