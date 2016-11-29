@@ -138,7 +138,6 @@ let codeActions: Map<Map<AutoFix>> = Object.create(null);
  * !! let's improve when the case will be raised
  */
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: tslint.RuleFailure): void {
-
 	function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
 		let start: server.Position = document.positionAt(repl.start);
 		let end: server.Position = document.positionAt(repl.end);
@@ -595,7 +594,7 @@ function overlaps(lastFix: AutoFix, newFix: AutoFix): boolean {
 	let doesOverlap = false;
 	lastFix.edits.some(last => {
 		return newFix.edits.some(new_ => {
-			if (last[1].line >= new_[0].line && last[1].character >= new_[0].character) {
+			if (last.range[1].line >= new_.range[0].line && last.range[1].character >= new_.range[0].character) {
 				doesOverlap = true;
 				return true;
 			}
