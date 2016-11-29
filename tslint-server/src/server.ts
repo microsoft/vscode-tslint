@@ -513,7 +513,6 @@ connection.onDidChangeWatchedFiles((params) => {
 });
 
 connection.onCodeAction((params) => {
-	//debugger;
 	let result: server.Command[] = [];
 	let uri = params.textDocument.uri;
 	let documentFixes = codeActions[uri];
@@ -657,7 +656,7 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 function concatenateEdits(fixes: AutoFix[]): server.TextEdit[] {
 	let textEdits: server.TextEdit[] = [];
 	fixes.forEach(each => {
-		textEdits.concat(createTextEdit(each));
+		textEdits = textEdits.concat(createTextEdit(each));
 	});
 	return textEdits;
 }
