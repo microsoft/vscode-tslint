@@ -54,7 +54,7 @@ export interface AutoFix {
 	label: string;
 	documentVersion: number;
 	ruleId: string;
-	edit: TSLintAutofixEdit;
+	edits: TSLintAutofixEdit[];
 }
 
 enum Status {
@@ -138,16 +138,25 @@ let codeActions: Map<Map<AutoFix>> = Object.create(null);
  * !! let's improve when the case will be raised
  */
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: tslint.RuleFailure): void {
-	// check tsl fix
-	let fix = problem.getFix();
-	let replacement: tslint.Replacement = null;
 
-	// Limitation: can only apply auto fixes with a single edit
-	if (fix && fix.replacements.length === 1) {
-		replacement = fix.replacements[0];
+	function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
+		let start: server.Position = document.positionAt(repl.start);
+		let end: server.Position = document.positionAt(repl.end);
+		return {
+			range: [start, end],
+			text: repl.text,
+		};
+	}
+
+	let fix = problem.getFix();
+
+	// Limitation: can only apply fixes with a single edit
+	if (!fix) {
+		return;
 	}
 
 	// disable the custom vsc fixes for now
+
 	//check vsc fix
 	// let vscFix = vscFixLib.vscFixes.filter(fix => fix.tsLintMessage.toLowerCase() === problem.getFailure().toLocaleLowerCase());
 	// if ((vscFix.length > 0)) {
@@ -159,31 +168,18 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	// 	}
 	// }
 
-	if (replacement !== null) {
-		// create an autoFixEntry for the document in the codeActions
-		let uri = document.uri;
-		let edits: Map<AutoFix> = codeActions[uri];
-		if (!edits) {
-			edits = Object.create(null);
-			codeActions[uri] = edits;
-		}
-
-		function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
-			let start: server.Position = document.positionAt(repl.start);
-			let end: server.Position = document.positionAt(repl.end);
-			return {
-				range: [start, end],
-				text: repl.text,
-			};
-		}
-
-		edits[computeKey(diagnostic)] = {
-			label: `Fix this "${problem.getFailure()}" tslint warning?`,
-			documentVersion: document.version,
-			ruleId: problem.getRuleName(),
-			edit: convertReplacementToAutoFix(document, replacement)
-		};
+	let documentAutoFixes: Map<AutoFix> = codeActions[document.uri];
+	if (!documentAutoFixes) {
+		documentAutoFixes = Object.create(null);
+		codeActions[document.uri] = documentAutoFixes;
 	}
+	let autoFix: AutoFix = {
+		label: `Fix this "${problem.getFailure()}" tslint warning?`,
+		documentVersion: document.version,
+		ruleId: problem.getRuleName(),
+		edits: fix.replacements.map(each => convertReplacementToAutoFix(document, each)),
+	};
+	documentAutoFixes[computeKey(diagnostic)] = autoFix;
 }
 
 function getConfiguration(filePath: string, configFileName: string): any {
@@ -518,34 +514,27 @@ connection.onDidChangeWatchedFiles((params) => {
 });
 
 connection.onCodeAction((params) => {
+	//debugger;
 	let result: server.Command[] = [];
 	let uri = params.textDocument.uri;
-	let edits = codeActions[uri];
+	let documentFixes = codeActions[uri];
 	let documentVersion: number = -1;
 	let ruleId: string;
-	// function createTextEdit(editInfo: AutoFix): server.TextEdit {
-	// 	return server.TextEdit.replace(
-	// 		server.Range.create(
-	// 			editInfo.edit.range[0],
-	// 			editInfo.edit.range[1]),
-	// 		editInfo.edit.text || '');
-	// }
-	if (edits) {
+
+	if (documentFixes) {
 		for (let diagnostic of params.context.diagnostics) {
 			let key = computeKey(diagnostic);
-			let editInfo = edits[key];
-			if (editInfo) {
-				documentVersion = editInfo.documentVersion;
-				ruleId = editInfo.ruleId;
-				result.push(server.Command.create(editInfo.label, 'tslint.applySingleFix', uri, documentVersion, [
-					createTextEdit(editInfo)
-				]));
+			let autoFix = documentFixes[key];
+			if (autoFix) {
+				documentVersion = autoFix.documentVersion;
+				ruleId = autoFix.ruleId;
+				result.push(server.Command.create(autoFix.label, 'tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix)));
 			}
 		}
 		if (result.length > 0) {
 			let same: AutoFix[] = [];
 			let all: AutoFix[] = [];
-			let fixes: AutoFix[] = Object.keys(edits).map(key => edits[key]);
+			let fixes: AutoFix[] = Object.keys(documentFixes).map(key => documentFixes[key]);
 
 			// TODO from eslint: why? order the fixes for? overlap?
 			// fixes = fixes.sort((a, b) => {
@@ -581,7 +570,7 @@ connection.onCodeAction((params) => {
 						`Fix all "${same[0].ruleId}" tslint warnings?`,
 						'tslint.applySameFixes',
 						uri,
-						documentVersion, same.map(createTextEdit)));
+						documentVersion, concatenateEdits(same)));
 			}
 
 			// propose to fix all
@@ -592,16 +581,28 @@ connection.onCodeAction((params) => {
 						'tslint.applyAllFixes',
 						uri,
 						documentVersion,
-						all.map(createTextEdit)));
+						concatenateEdits(all)));
 			}
 		}
 	}
 	return result;
 });
 
-// check if there are fixes overlaps
-function overlaps(lastEdit: AutoFix, newEdit: AutoFix): boolean {
-	return !!lastEdit && lastEdit.edit.range[1] > newEdit.edit.range[0];
+function overlaps(lastFix: AutoFix, newFix: AutoFix): boolean {
+	if (!lastFix) {
+		return false;
+	}
+	let doesOverlap = false;
+	lastFix.edits.some(last => {
+		return newFix.edits.some(new_ => {
+			if (last[1].line >= new_[0].line && last[1].character >= new_[0].character) {
+				doesOverlap = true;
+				return true;
+			}
+			return false;
+		});
+	});
+	return doesOverlap;
 }
 
 function getLastEdit(array: AutoFix[]): AutoFix {
@@ -612,11 +613,10 @@ function getLastEdit(array: AutoFix[]): AutoFix {
 	return array[length - 1];
 }
 
-function createTextEdit(editInfo: AutoFix): server.TextEdit {
-	return server.TextEdit.replace(
-		server.Range.create(editInfo.edit.range[0], editInfo.edit.range[1]),
-		editInfo.edit.text || '');
+function createTextEdit(autoFix: AutoFix): server.TextEdit[] {
+	return autoFix.edits.map(each => server.TextEdit.replace(server.Range.create(each.range[0], each.range[1]), each.text || ''));
 }
+
 interface AllFixesParams {
 	textDocument: server.TextDocumentIdentifier;
 }
@@ -633,15 +633,14 @@ namespace AllFixesRequest {
 connection.onRequest(AllFixesRequest.type, (params) => {
 	let result: AllFixesResult = null;
 	let uri = params.textDocument.uri;
-	let edits = codeActions[uri];
+	let documentFixes = codeActions[uri];
 	let documentVersion: number = -1;
 
-	if (!edits) {
+	if (!documentFixes) {
 		return null;
 	}
 
-	// retrive document version
-	let fixes: AutoFix[] = Object.keys(edits).map(key => edits[key]);
+	let fixes: AutoFix[] = Object.keys(documentFixes).map(key => documentFixes[key]);
 	for (let fix of fixes) {
 		if (documentVersion === -1) {
 			documentVersion = fix.documentVersion;
@@ -649,19 +648,19 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 		}
 	}
 
-	// convert autoFix in textEdits
-	// let textEdits: server.TextEdit[] = fixes.map((fix) => {
-	// 	let range  = server.Range.create(fix.edit.range[0], fix.edit.range[1]);
-	// 	return server.TextEdit.replace( range , fix.edit.text);
-	// });
-
-	let textEdits: server.TextEdit[] = fixes.map(createTextEdit);
-
 	result = {
 		documentVersion: documentVersion,
-		edits: textEdits
+		edits: concatenateEdits(fixes)
 	};
 	return result;
 });
+
+function concatenateEdits(fixes: AutoFix[]): server.TextEdit[] {
+	let textEdits: server.TextEdit[] = [];
+	fixes.forEach(each => {
+		textEdits.concat(createTextEdit(each));
+	});
+	return textEdits;
+}
 
 connection.listen();
