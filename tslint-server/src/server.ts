@@ -322,7 +322,7 @@ function isTsLintVersion4(linter) {
 		version = linter.VERSION;
 	} catch (e) {
 	}
-	return semver.gte(version, '4.0.0');
+	return semver.satisfies(version, ">= 4.0.0 || >= 4.0.0-dev");
 }
 
 function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
