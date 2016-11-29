@@ -549,15 +549,15 @@ connection.onCodeAction((params) => {
 			// 	return a.edit.range[1] - b.edit.range[1];
 			// });
 
-			for (let editInfo of fixes) {
+			for (let autofix of fixes) {
 				if (documentVersion === -1) {
-					documentVersion = editInfo.documentVersion;
+					documentVersion = autofix.documentVersion;
 				}
-				if (editInfo.ruleId === ruleId && !overlaps(getLastEdit(same), editInfo)) {
-					same.push(editInfo);
+				if (autofix.ruleId === ruleId && !overlaps(getLastEdit(same), autofix)) {
+					same.push(autofix);
 				}
-				if (!overlaps(getLastEdit(all), editInfo)) {
-					all.push(editInfo);
+				if (!overlaps(getLastEdit(all), autofix)) {
+					all.push(autofix);
 				}
 			}
 
