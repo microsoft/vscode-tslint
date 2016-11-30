@@ -1,3 +1,6 @@
+## 0.6.5
+- Support all tslint autofixes [#135](https://github.com/Microsoft/vscode-tslint/issues/135)
+
 ## 0.6.0
 - Support tslint >= 4.0
 
