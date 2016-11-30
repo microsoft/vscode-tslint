@@ -136,6 +136,10 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 		};
 	}
 
+	if (!problem.getFix) { // auto fix is not available in tslint versions < 3.15.0
+		return;
+	}
+
 	let fix = problem.getFix();
 	if (!fix) {
 		return;
