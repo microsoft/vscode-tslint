@@ -546,24 +546,29 @@ connection.onCodeAction((params) => {
 });
 
 function sortFixes(fixes: AutoFix[]):AutoFix[] {
-	return fixes;
+	// The AutoFix.edits are sorted, so we sort on the first edit
+	return fixes.sort((a, b) => {
+		let editA: TSLintAutofixEdit = a.edits[0];
+		let editB: TSLintAutofixEdit = b.edits[0];
 
-			// 	fixes.sort((a, b) => {
-
-			// 	let d = a.edits[0].range[0] - b.edits[0]gi.range[0];
-			// 	if (d !== 0) {
-			// 		return d;
-			// 	}
-			// 	if (a.edit.range[1] === 0) {
-			// 		return -1;
-			// 	}
-			// 	if (b.edit.range[1] === 0) {
-			// 		return 1;
-			// 	}
-			// 	return a.edit.range[1] - b.edit.range[1];
-			// });
-
+		if (editA.range[0] < editB.range[0]) {
+			return -1;
+		}
+		if (editA.range[0] > editB.range[0]) {
+			return 1;
+		}
+		// lines are equal
+		if (editA.range[1] < editB.range[1]) {
+			return -1;
+		}
+		if (editA.range[1] > editB.range[1]) {
+			return 1;
+		}
+		// characters are equal
+		return 0;
+	});
 }
+
 function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 	if (!lastFix) {
 		return false;

@@ -5,4 +5,9 @@ let test = {
   missAComma: "mis"
 };
 
-console.log(test);
+let test2 = {
+  lastName: "smith",
+  missAComma: "mis"
+};
+
+console.log(test, test2);
