@@ -51,7 +51,7 @@ export interface TSLintAutofixEdit {
 export interface AutoFix {
 	label: string;
 	documentVersion: number;
-	ruleId: string;
+	problem: tslint.RuleFailure;
 	edits: TSLintAutofixEdit[];
 }
 
@@ -150,10 +150,11 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 		documentAutoFixes = Object.create(null);
 		codeActions[document.uri] = documentAutoFixes;
 	}
+
 	let autoFix: AutoFix = {
-		label: `Fix this "${problem.getFailure()}" tslint warning?`,
+		label: `Fix "${problem.getFailure()}"`,
 		documentVersion: document.version,
-		ruleId: problem.getRuleName(),
+		problem: problem,
 		edits: fix.replacements.map(each => convertReplacementToAutoFix(document, each)),
 	};
 	documentAutoFixes[computeKey(diagnostic)] = autoFix;
@@ -495,14 +496,16 @@ connection.onCodeAction((params) => {
 	let documentVersion: number = -1;
 	let ruleId: string;
 
+
 	if (documentFixes) {
 		for (let diagnostic of params.context.diagnostics) {
 			let key = computeKey(diagnostic);
 			let autoFix = documentFixes[key];
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
-				ruleId = autoFix.ruleId;
+				ruleId = autoFix.problem.getRuleName();
 				result.push(server.Command.create(autoFix.label, 'tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix)));
+				result.push(createDisableRuleCommand(autoFix, uri, documentVersion));
 			}
 		}
 		if (result.length > 0) {
@@ -516,7 +519,7 @@ connection.onCodeAction((params) => {
 				if (documentVersion === -1) {
 					documentVersion = autofix.documentVersion;
 				}
-				if (autofix.ruleId === ruleId && !overlaps(getLastEdit(same), autofix)) {
+				if (autofix.problem.getRuleName() === ruleId && !overlaps(getLastEdit(same), autofix)) {
 					same.push(autofix);
 				}
 				if (!overlaps(getLastEdit(all), autofix)) {
@@ -528,7 +531,7 @@ connection.onCodeAction((params) => {
 			if (same.length > 1) {
 				result.push(
 					server.Command.create(
-						`Fix all "${same[0].ruleId}" tslint warnings?`,
+						`Fix all "${same[0].problem.getRuleName()}" tslint warnings`,
 						'tslint.applySameFixes',
 						uri,
 						documentVersion, concatenateEdits(same)));
@@ -549,7 +552,28 @@ connection.onCodeAction((params) => {
 	return result;
 });
 
-function sortFixes(fixes: AutoFix[]):AutoFix[] {
+function createDisableRuleCommand(autoFix: AutoFix, uri, documentVersion): server.Command {
+	let pos: server.Position = {
+		character: 0,
+		line: autoFix.problem.getStartPosition().getLineAndCharacter().line
+	};
+
+	let disableEdit: TSLintAutofixEdit = {
+		range: [pos, pos],
+		// prefix to the text will be inserted on the client
+		text: `// tslint:disable-next-line:${autoFix.problem.getRuleName()}\n`
+	};
+
+	let disableFix: AutoFix = {
+		label: `Disable rule "${autoFix.problem.getRuleName()}"`,
+		documentVersion: autoFix.documentVersion,
+		problem: autoFix.problem,
+		edits: [disableEdit],
+	};
+	return (server.Command.create(disableFix.label, 'tslint.applyDisableRule', uri, documentVersion, createTextEdit(disableFix)));
+}
+
+function sortFixes(fixes: AutoFix[]): AutoFix[] {
 	// The AutoFix.edits are sorted, so we sort on the first edit
 	return fixes.sort((a, b) => {
 		let editA: TSLintAutofixEdit = a.edits[0];
