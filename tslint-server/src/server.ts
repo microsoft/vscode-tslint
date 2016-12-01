@@ -42,7 +42,6 @@ function computeKey(diagnostic: server.Diagnostic): string {
 	return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}`;
 }
 
-
 export interface TSLintAutofixEdit {
 	range: [server.Position, server.Position];
 	text: string;
@@ -123,41 +122,39 @@ function makeDiagnostic(problem: tslint.RuleFailure): server.Diagnostic {
 	return diagnostic;
 }
 
-let codeActions: Map<Map<AutoFix>> = Object.create(null);
+let codeFixActions: Map<Map<AutoFix>> = Object.create(null);
+let codeDisableRuleActions: Map<Map<AutoFix>> = Object.create(null);
 
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: tslint.RuleFailure): void {
-
-	function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
-		let start: server.Position = document.positionAt(repl.start);
-		let end: server.Position = document.positionAt(repl.end);
-		return {
-			range: [start, end],
-			text: repl.text,
-		};
+	let documentDisableRuleFixes: Map<AutoFix> = codeDisableRuleActions[document.uri];
+	if (!documentDisableRuleFixes) {
+		documentDisableRuleFixes = Object.create(null);
+		codeDisableRuleActions[document.uri] = documentDisableRuleFixes;
 	}
+	documentDisableRuleFixes[computeKey(diagnostic)] = createDisableRuleFix(problem, document);
 
 	if (!problem.getFix) { // auto fix is not available in tslint versions < 3.15.0
 		return;
 	}
-
 	let fix = problem.getFix();
 	if (!fix) {
 		return;
 	}
-
-	let documentAutoFixes: Map<AutoFix> = codeActions[document.uri];
+	let documentAutoFixes: Map<AutoFix> = codeFixActions[document.uri];
 	if (!documentAutoFixes) {
 		documentAutoFixes = Object.create(null);
-		codeActions[document.uri] = documentAutoFixes;
+		codeFixActions[document.uri] = documentAutoFixes;
 	}
+	documentAutoFixes[computeKey(diagnostic)] = createAutoFix(problem, document, fix);
+}
 
-	let autoFix: AutoFix = {
-		label: `Fix "${problem.getFailure()}"`,
-		documentVersion: document.version,
-		problem: problem,
-		edits: fix.replacements.map(each => convertReplacementToAutoFix(document, each)),
+function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
+	let start: server.Position = document.positionAt(repl.start);
+	let end: server.Position = document.positionAt(repl.end);
+	return {
+		range: [start, end],
+		text: repl.text,
 	};
-	documentAutoFixes[computeKey(diagnostic)] = autoFix;
 }
 
 function getConfiguration(filePath: string, configFileName: string): any {
@@ -308,7 +305,8 @@ function isTsLintVersion4(linter) {
 function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
 	let uri = document.uri;
 	let diagnostics: server.Diagnostic[] = [];
-	delete codeActions[uri];
+	delete codeFixActions[uri];
+	delete codeDisableRuleActions[uri];
 
 	let fsPath = server.Files.uriToFilePath(uri);
 	if (!fsPath) {
@@ -492,20 +490,17 @@ connection.onDidChangeWatchedFiles((params) => {
 connection.onCodeAction((params) => {
 	let result: server.Command[] = [];
 	let uri = params.textDocument.uri;
-	let documentFixes = codeActions[uri];
 	let documentVersion: number = -1;
 	let ruleId: string;
 
-
+	let documentFixes = codeFixActions[uri];
 	if (documentFixes) {
 		for (let diagnostic of params.context.diagnostics) {
-			let key = computeKey(diagnostic);
-			let autoFix = documentFixes[key];
+			let autoFix = documentFixes[computeKey(diagnostic)];
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				ruleId = autoFix.problem.getRuleName();
 				result.push(server.Command.create(autoFix.label, 'tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix)));
-				result.push(createDisableRuleCommand(autoFix, uri, documentVersion));
 			}
 		}
 		if (result.length > 0) {
@@ -549,28 +544,52 @@ connection.onCodeAction((params) => {
 			}
 		}
 	}
+	// add the fix to disable the rule
+	let disableRuleFixes = codeDisableRuleActions[uri];
+	if (disableRuleFixes) {
+		for (let diagnostic of params.context.diagnostics) {
+			let autoFix = disableRuleFixes[computeKey(diagnostic)];
+			if (autoFix) {
+				documentVersion = autoFix.documentVersion;
+				ruleId = autoFix.problem.getRuleName();
+				result.push(server.Command.create(autoFix.label, 'tslint.applyDisableRule', uri, documentVersion, createTextEdit(autoFix)));
+			}
+		}
+	}
 	return result;
 });
 
-function createDisableRuleCommand(autoFix: AutoFix, uri, documentVersion): server.Command {
+function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocument, fix: tslint.Fix): AutoFix {
+
+	let autofix: AutoFix = {
+		label: `Fix "${problem.getFailure()}"`,
+		documentVersion: document.version,
+		problem: problem,
+		edits: fix.replacements.map(each => convertReplacementToAutoFix(document, each)),
+	};
+	return autofix;
+}
+
+function createDisableRuleFix(problem: tslint.RuleFailure, document: server.TextDocument): AutoFix {
+
 	let pos: server.Position = {
 		character: 0,
-		line: autoFix.problem.getStartPosition().getLineAndCharacter().line
+		line: problem.getStartPosition().getLineAndCharacter().line
 	};
 
 	let disableEdit: TSLintAutofixEdit = {
 		range: [pos, pos],
 		// prefix to the text will be inserted on the client
-		text: `// tslint:disable-next-line:${autoFix.problem.getRuleName()}\n`
+		text: `// tslint:disable-next-line:${problem.getRuleName()}\n`
 	};
 
 	let disableFix: AutoFix = {
-		label: `Disable rule "${autoFix.problem.getRuleName()}"`,
-		documentVersion: autoFix.documentVersion,
-		problem: autoFix.problem,
-		edits: [disableEdit],
+		label: `Disable rule "${problem.getRuleName()}"`,
+		documentVersion: document.version,
+		problem: problem,
+		edits: [disableEdit]
 	};
-	return (server.Command.create(disableFix.label, 'tslint.applyDisableRule', uri, documentVersion, createTextEdit(disableFix)));
+	return disableFix;
 }
 
 function sortFixes(fixes: AutoFix[]): AutoFix[] {
@@ -642,7 +661,7 @@ namespace AllFixesRequest {
 connection.onRequest(AllFixesRequest.type, (params) => {
 	let result: AllFixesResult = null;
 	let uri = params.textDocument.uri;
-	let documentFixes = codeActions[uri];
+	let documentFixes = codeFixActions[uri];
 	let documentVersion: number = -1;
 
 	if (!documentFixes) {
