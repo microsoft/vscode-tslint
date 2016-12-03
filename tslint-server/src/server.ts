@@ -12,6 +12,7 @@ import * as tslint from 'tslint'; // dev dependency only
 
 import { Delayer } from './delayer';
 
+
 // Settings as defined in VS Code
 interface Settings {
 	tslint: {
@@ -87,6 +88,42 @@ let options: tslint.ILinterOptions = {
 	formattersDirectory: undefined
 };
 
+interface FixCreator {
+	(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit;
+}
+
+let fixes: Map<FixCreator> = Object.create(null);
+
+let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
+	// error message: ' should be "   or " should be '
+	const wrongQuote = problem.getFailure()[0];
+	const fixedQuote = wrongQuote === "'" ? '"' : "'";
+	const contents = document.getText().slice(problem.getStartPosition().getPosition() + 1, problem.getEndPosition().getPosition() - 1);
+	let startPosition = convertToServerPosition(problem.getStartPosition());
+	let endPosition = convertToServerPosition(problem.getEndPosition());
+	return {
+		range: [startPosition, endPosition],
+		text: `${fixedQuote}${contents}${fixedQuote}`
+	};
+};
+
+function convertToServerPosition(position: tslint.RuleFailurePosition): server.Position {
+	return {
+		character: position.getLineAndCharacter().character,
+		line: position.getLineAndCharacter().line
+	};
+}
+
+fixes['quotemark'] = quoteFixCreator;
+
+export function createVscFixForRuleFailure(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit | undefined {
+	let creator = fixes[problem.getRuleName()];
+	if (creator) {
+		return creator(problem, document);
+	}
+	return undefined;
+}
+
 let configFile: string = null;
 let configFileWatcher: fs.FSWatcher = null;
 let configuration: tslint.Configuration.IConfigurationFile = null;
@@ -133,19 +170,24 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	}
 	documentDisableRuleFixes[computeKey(diagnostic)] = createDisableRuleFix(problem, document);
 
-	if (!problem.getFix) { // auto fix is not available in tslint versions < 3.15.0
-		return;
+	let fix: AutoFix = null;
+	if (problem.getFix && problem.getFix()) { // tslint fixes are not available in tslint < 3.17
+		fix = createAutoFix(problem, document, problem.getFix());
 	}
-	let fix = problem.getFix();
+	let vscFix = createVscFixForRuleFailure(problem, document);
+	if (vscFix) {
+		fix = createAutoFix(problem, document, vscFix);
+	}
 	if (!fix) {
 		return;
 	}
+
 	let documentAutoFixes: Map<AutoFix> = codeFixActions[document.uri];
 	if (!documentAutoFixes) {
 		documentAutoFixes = Object.create(null);
 		codeFixActions[document.uri] = documentAutoFixes;
 	}
-	documentAutoFixes[computeKey(diagnostic)] = createAutoFix(problem, document, fix);
+	documentAutoFixes[computeKey(diagnostic)] = fix;
 }
 
 function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
@@ -559,13 +601,23 @@ connection.onCodeAction((params) => {
 	return result;
 });
 
-function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocument, fix: tslint.Fix): AutoFix {
+function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocument, fix: tslint.Fix | TSLintAutofixEdit): AutoFix {
+	let edits: TSLintAutofixEdit[] = null;
+
+	function isTslintFix(fix: tslint.Fix | TSLintAutofixEdit): fix is tslint.Fix {
+		return (<tslint.Fix>fix).replacements !== undefined;
+	}
+	if (isTslintFix(fix)) {
+		edits = fix.replacements.map(each => convertReplacementToAutoFix(document, each));
+	} else {
+		edits = [<TSLintAutofixEdit>fix];
+	}
 
 	let autofix: AutoFix = {
 		label: `Fix "${problem.getFailure()}"`,
 		documentVersion: document.version,
 		problem: problem,
-		edits: fix.replacements.map(each => convertReplacementToAutoFix(document, each)),
+		edits: edits,
 	};
 	return autofix;
 }
