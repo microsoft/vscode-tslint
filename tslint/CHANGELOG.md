@@ -1,5 +1,9 @@
+## 0.7.0
+- Added quickfixes to disable a rule [#110](https://github.com/Microsoft/vscode-tslint/issues/110)
+- Bring back the VS Code provided fix for the `quotemark` rule (e.g. ' should be") [#144](https://github.com/Microsoft/vscode-tslint/issues/144)
+
 ## 0.6.7
-- Support tslint versions < 3.15.0 [#143](https://github.com/Microsoft/vscode-tslint/issues/135)
+- Support tslint versions < 3.15.0 [#143](https://github.com/Microsoft/vscode-tslint/issues/143)
 
 ## 0.6.6
 - Support all tslint autofixes [#135](https://github.com/Microsoft/vscode-tslint/issues/135)
