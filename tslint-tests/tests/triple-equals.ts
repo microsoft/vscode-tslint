@@ -1,3 +1,4 @@
+// VS Code provided fix
 let a = 3;
 
 if (a == 3) {
