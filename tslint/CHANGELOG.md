@@ -1,3 +1,6 @@
+## 0.7.1
+- Revived VS Code quick fixed for some additional rules: `comment-format`, `triple-equals`, `whitespace`
+
 ## 0.7.0
 - Added quickfixes to disable a rule [#110](https://github.com/Microsoft/vscode-tslint/issues/110)
 - Bring back the VS Code provided fix for the `quotemark` rule (e.g. ' should be") [#144](https://github.com/Microsoft/vscode-tslint/issues/144)
