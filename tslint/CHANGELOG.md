@@ -1,5 +1,5 @@
 ## 0.7.1
-- Revived VS Code quick fixed for some additional rules: `comment-format`, `triple-equals`, `whitespace`
+- Revived VS Code quick fixes for some additional rules: `comment-format`, `triple-equals`, `whitespace`
 
 ## 0.7.0
 - Added quickfixes to disable a rule [#110](https://github.com/Microsoft/vscode-tslint/issues/110)
