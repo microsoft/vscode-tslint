@@ -104,7 +104,6 @@ let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server
 		text: `${fixedQuote}${contents}${fixedQuote}`
 	};
 };
-
 fixes['quotemark'] = quoteFixCreator;
 
 let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
@@ -118,7 +117,6 @@ let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: s
 		text: ` ${contents}`
 	};
 };
-
 fixes['whitespace'] = whiteSpaceFixCreator;
 
 let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
@@ -136,8 +134,20 @@ let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document:
 		text: `${contents}`
 	};
 };
-
 fixes['triple-equals'] = tripleEqualsFixCreator;
+
+let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
+	// error message: 'comment must start with a space'
+	if (problem.getFailure() !== 'comment must start with a space') {
+		return null;
+	}
+	const contents = document.getText().slice(problem.getStartPosition().getPosition(), problem.getEndPosition().getPosition());
+	return {
+		range: convertProblemPositionsToRange(problem),
+		text: ` ${contents}`
+	};
+};
+fixes['comment-format'] = commentFormatFixCreator;
 
 function convertToServerPosition(position: tslint.RuleFailurePosition): server.Position {
 	return {
