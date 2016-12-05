@@ -653,10 +653,11 @@ function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocumen
 	function isTslintFix(fix: tslint.Fix | TSLintAutofixEdit): fix is tslint.Fix {
 		return (<tslint.Fix>fix).replacements !== undefined;
 	}
+
 	if (isTslintFix(fix)) {
 		edits = fix.replacements.map(each => convertReplacementToAutoFix(document, each));
 	} else {
-		edits = [<TSLintAutofixEdit>fix];
+		edits = [fix];
 	}
 
 	let autofix: AutoFix = {
