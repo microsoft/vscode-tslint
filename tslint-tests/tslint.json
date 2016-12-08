@@ -1,14 +1,31 @@
 {
     "rules": {
         "array-type": [
-            true, "array-simple"
-        ], 
+            true,
+            "array-simple"
+        ],
         "arrow-parens": true,
         "no-var-keyword": true,
-        "no-unused-variable": [true, {"ignore-pattern": "^_"}],
-        "ordered-imports": [true, {"import-sources-order": "lowercase-last", "named-imports-order": "lowercase-first"}],
-        "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
-
+        "no-unused-variable": [
+            true,
+            {
+                "ignore-pattern": "^_"
+            }
+        ],
+        "ordered-imports": [
+            true,
+            {
+                "import-sources-order": "lowercase-last",
+                "named-imports-order": "lowercase-first"
+            }
+        ],
+        "trailing-comma": [
+            true,
+            {
+                "multiline": "always",
+                "singleline": "never"
+            }
+        ],
         "class-name": true,
         "comment-format": [
             true,
