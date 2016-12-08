@@ -137,14 +137,40 @@ let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document:
 fixes['triple-equals'] = tripleEqualsFixCreator;
 
 let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
-	// error message: 'comment must start with a space'
-	if (problem.getFailure() !== 'comment must start with a space') {
-		return null;
+	// error messages:
+	//   'comment must start with a space'
+	//   'comment must start with lowercase letter'
+	//   'comment must start with uppercase letter'
+	function swapCase(contents: string, toLower: boolean): string {
+		let i = contents.search(/\S/);
+		if (i === -1) {
+			return contents;
+		}
+		let prefix = contents.substring(0, i);
+		let swap = toLower ? contents[i].toLowerCase(): contents[i].toUpperCase();
+		let suffix = contents.substring(i+1);
+		return `${prefix}${swap}${suffix}`;
 	}
+
+	let replacement;
 	const contents = document.getText().slice(problem.getStartPosition().getPosition(), problem.getEndPosition().getPosition());
+
+	switch (problem.getFailure()) {
+		case 'comment must start with a space':
+			replacement = ` ${contents}`;
+			break;
+		case 'comment must start with lowercase letter':
+			replacement = swapCase(contents, true);
+			break;
+		case 'comment must start with uppercase letter':
+			replacement = swapCase(contents, false);
+			break;
+		default:
+			return null;
+	}
 	return {
 		range: convertProblemPositionsToRange(problem),
-		text: ` ${contents}`
+		text: replacement
 	};
 };
 fixes['comment-format'] = commentFormatFixCreator;
