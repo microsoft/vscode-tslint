@@ -1,0 +1,16 @@
+{
+  "name": "tslint-issues",
+  "version": "1.0.0",
+  "description": "dummy project containing dummies files to raise tslint problems and check that correction are working fine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^2.0.10"
+  }
+}

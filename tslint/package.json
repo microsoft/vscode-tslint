@@ -2,7 +2,7 @@
 	"name": "tslint",
 	"displayName": "TSLint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.6.4",
+	"version": "0.7.1",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"publisher": "eg2",
@@ -29,6 +29,7 @@
 		"onLanguage:typescript",
 		"onLanguage:typescriptreact",
 		"onLanguage:javascript",
+		"onLanguage:javascriptreact",
 		"onCommand:tslint.fixAllProblems",
 		"onCommand:tslint.createConfig",
 		"onCommand:tslint.showOutputChannel"

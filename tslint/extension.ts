@@ -85,7 +85,8 @@ export function activate(context: ExtensionContext) {
 	}
 
 	function isTypeScriptDocument(languageId) {
-		return languageId === 'typescript' || languageId === 'typescriptreact' || languageId === 'javascript';
+		return languageId === 'typescript' || languageId === 'typescriptreact' ||
+			   languageId === 'javascript' || languageId === 'javascriptreact';
 	}
 
 	function udpateStatusBarVisibility(editor: TextEditor): void {
@@ -127,7 +128,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: ['typescript', 'typescriptreact', 'javascript'],
+		documentSelector: ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
 		synchronize: {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
@@ -229,6 +230,23 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
+	function applyDisableRuleEdit(uri: string, documentVersion: number, edits: TextEdit[]) {
+		let textEditor = window.activeTextEditor;
+		if (textEditor && textEditor.document.uri.toString() === uri) {
+			if (textEditor.document.version !== documentVersion) {
+				window.showInformationMessage(`TSLint fixes are outdated and can't be applied to the document.`);
+			}
+			// prefix disable comment with same indent as line with the diagnostic
+			let edit = edits[0];
+			let ruleLine = textEditor.document.lineAt(edit.range.start.line);
+			let prefixIndex = ruleLine.firstNonWhitespaceCharacterIndex;
+			let prefix = ruleLine.text.substr(0, prefixIndex);
+			edit.newText = prefix + edit.newText;
+			applyTextEdits(uri, documentVersion, edits);
+		}
+	}
+
+
 	function fixAllProblems() {
 		let textEditor = window.activeTextEditor;
 		if (!textEditor) {
@@ -293,6 +311,7 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
 		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
+		commands.registerCommand('tslint.applyDisableRule', applyDisableRuleEdit),
 		commands.registerCommand('tslint.fixAllProblems', fixAllProblems),
 		commands.registerCommand('tslint.createConfig', createDefaultConfiguration),
 		commands.registerCommand('tslint.showOutputChannel', () => { client.outputChannel.show(); }),
