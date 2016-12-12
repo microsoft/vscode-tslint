@@ -646,7 +646,7 @@ connection.onCodeAction((params) => {
 			if (same.length > 1) {
 				result.push(
 					server.Command.create(
-						`Fix all "${same[0].problem.getRuleName()}" tslint warnings`,
+						`Fix all: ${same[0].problem.getFailure()}`,
 						'tslint.applySameFixes',
 						uri,
 						documentVersion, concatenateEdits(same)));
@@ -693,7 +693,7 @@ function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocumen
 	}
 
 	let autofix: AutoFix = {
-		label: `Fix "${problem.getFailure()}"`,
+		label: `Fix: ${problem.getFailure()}`,
 		documentVersion: document.version,
 		problem: problem,
 		edits: edits,
