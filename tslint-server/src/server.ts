@@ -17,6 +17,7 @@ import { Delayer } from './delayer';
 interface Settings {
 	tslint: {
 		enable: boolean;
+		jsEnable: boolean;
 		rulesDirectory: string | string[];
 		configFile: string;
 		ignoreDefinitionFiles: boolean;
@@ -439,6 +440,11 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	} catch (err) {
 		// this should not happen since we guard against incorrect configurations
 		showConfigurationFailure(conn, err);
+		return diagnostics;
+	}
+
+	if (settings && settings.tslint && !settings.tslint.jsEnable &&
+	   (document.languageId === "javascript" || document.languageId === "javascriptreact")) {
 		return diagnostics;
 	}
 

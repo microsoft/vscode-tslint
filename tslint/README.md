@@ -12,6 +12,7 @@ then try to install tslint and its typescript dependency globally using `npm ins
 # Configuration options
 
 - `tslint.enable` - enable/disable tslint.
+- `tslint.jsEnable` - enable/disable tslint for .js files.
 - `tslint.run` - run the linter `onSave` or `onType`, default is `onType`.
 - `tslint.rulesDirectory` - an additional rules directory, for user-created rules.
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.

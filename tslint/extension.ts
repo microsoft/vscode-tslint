@@ -85,8 +85,19 @@ export function activate(context: ExtensionContext) {
 	}
 
 	function isTypeScriptDocument(languageId) {
-		return languageId === 'typescript' || languageId === 'typescriptreact' ||
-			   languageId === 'javascript' || languageId === 'javascriptreact';
+		return languageId === 'typescript' || languageId === 'typescriptreact';
+	}
+
+	function isJavaScriptDocument(languageId) {
+		return languageId === 'javascript' || languageId === 'javascriptreact';
+	}
+
+	function isEnableForJavaScriptDocument(languageId) {
+		let isJsEnable = workspace.getConfiguration('tslint').get('jsEnable', true);
+		if (isJsEnable && isJavaScriptDocument(languageId)) {
+			return true;
+		}
+		return false;
 	}
 
 	function udpateStatusBarVisibility(editor: TextEditor): void {
@@ -108,7 +119,7 @@ export function activate(context: ExtensionContext) {
 			serverRunning &&
 			(
 				tslintStatus !== Status.ok ||
-				(editor && (isTypeScriptDocument(editor.document.languageId)))
+				(editor && (isTypeScriptDocument(editor.document.languageId) || isEnableForJavaScriptDocument(editor.document.languageId)))
 			)
 		);
 	}
@@ -282,7 +293,8 @@ export function activate(context: ExtensionContext) {
 			willSaveTextDocument = workspace.onWillSaveTextDocument((event) => {
 				let document = event.document;
 				// only auto fix when the document was not auto saved
-				if (!isTypeScriptDocument(document.languageId) || event.reason === TextDocumentSaveReason.AfterDelay) {
+				if (!(isTypeScriptDocument(document.languageId) || isEnableForJavaScriptDocument(document.languageId))
+					|| event.reason === TextDocumentSaveReason.AfterDelay) {
 					return;
 				}
 				const version = document.version;

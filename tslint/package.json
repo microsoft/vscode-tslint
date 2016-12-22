@@ -45,6 +45,11 @@
 					"default": true,
 					"description": "Control whether tslint is enabled for TypeScript files or not."
 				},
+				"tslint.jsEnable": {
+					"type": "boolean",
+					"default": true,
+					"description": "Control whether tslint is enabled for JavaScript files or not."
+				},
 				"tslint.rulesDirectory": {
 					"type": [
 						"string",
