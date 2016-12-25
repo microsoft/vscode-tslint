@@ -24,21 +24,9 @@ then try to install tslint and its typescript dependency globally using `npm ins
 
 # Auto fixing
 
-The extension supports automatic fixing of warnings. For warnings which support an auto fix a light bulb is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
+The extension supports automatic fixing of warnings as support by tslint. For warnings which support an auto fix a light bulb is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
 * clicking the light bulb appearing or by executing the `Quick Fix`, when the mouse is over the errornous code
 * or using the command `Fix all auto-fixable problems`.
-
-The following quick fixes are currently supported:
-- missing whitespace
-- missing semicolon
-- missing trailing comma
-- ' should be "
-- " should be '
-- trailing whitespace
-- file should end with a newline
-- forbidden 'var' keyword
-- == should be ===
-- Comment must start with a space
 
 # Using the extension with tasks running tslint
 
