@@ -496,7 +496,7 @@ function isJsDocument(document: server.TextDocument) {
 }
 
 function lintJsFiles() {
-	return settings && settings.tslint && !settings.tslint.jsEnable;
+	return settings && settings.tslint && settings.tslint.jsEnable;
 }
 
 function fileIsExcluded(path: string): boolean {
