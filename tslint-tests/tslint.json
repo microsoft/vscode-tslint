@@ -78,5 +78,11 @@
             "check-separator",
             "check-type"
         ]
+    },
+    "jsRules": {
+        "triple-equals": [
+            true,
+            "allow-null-check"
+        ]
     }
 }
