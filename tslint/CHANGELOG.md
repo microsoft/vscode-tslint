@@ -1,3 +1,6 @@
+## 0.8.1
+- added a setting to enable/disable the linting of `.js` files with tslint. The default is `false`. **Previously** tslint was enabled by default for `.js` files.
+
 ## 0.7.1
 - Revived VS Code quick fixes for some additional rules: `comment-format`, `triple-equals`, `whitespace`
 
