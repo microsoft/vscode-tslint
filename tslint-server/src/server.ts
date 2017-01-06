@@ -243,12 +243,16 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	documentDisableRuleFixes[computeKey(diagnostic)] = createDisableRuleFix(problem, document);
 
 	let fix: AutoFix = null;
-	if (problem.getFix && problem.getFix()) { // tslint fixes are not available in tslint < 3.17
+
+	// tslint can return a fix with an empty replacements array, this fixes are ignored
+	if (problem.getFix && problem.getFix() && problem.getFix().replacements.length > 0) { // tslint fixes are not available in tslint < 3.17
 		fix = createAutoFix(problem, document, problem.getFix());
 	}
-	let vscFix = createVscFixForRuleFailure(problem, document);
-	if (vscFix) {
-		fix = createAutoFix(problem, document, vscFix);
+	if (!fix) {
+		let vscFix = createVscFixForRuleFailure(problem, document);
+		if (vscFix) {
+			fix = createAutoFix(problem, document, vscFix);
+		}
 	}
 	if (!fix) {
 		return;
