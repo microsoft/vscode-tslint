@@ -447,8 +447,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		return diagnostics;
 	}
 
-	if (settings && settings.tslint && !settings.tslint.jsEnable &&
-	   (document.languageId === "javascript" || document.languageId === "javascriptreact")) {
+	if (isJsDocument(document) && !lintJsFiles()) {
 		return diagnostics;
 	}
 
@@ -468,7 +467,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 			result = tslint.getResult();
 		}
 		// support for linting js files is only available in tslint > 4.0
-		else if (document.languageId !== "javascript" && document.languageId !== "javascriptreact") {
+		else if (!isJsDocument(document)) {
 			(<any>options).configuration = configuration;
 			let tslint = new (<any>linter)(fsPath, contents, options);
 			result = tslint.lint();
@@ -490,6 +489,14 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	}
 	connection.sendNotification(StatusNotification.type, { state: Status.ok });
 	return diagnostics;
+}
+
+function isJsDocument(document: server.TextDocument) {
+	return (document.languageId === "javascript" || document.languageId === "javascriptreact");
+}
+
+function lintJsFiles() {
+	return settings && settings.tslint && !settings.tslint.jsEnable;
 }
 
 function fileIsExcluded(path: string): boolean {
