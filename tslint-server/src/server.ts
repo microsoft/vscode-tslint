@@ -245,7 +245,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 
 	let fix: AutoFix = null;
 
-	// tslint can return a fix with an empty replacements array, this fixes are ignored
+	// tslint can return a fix with an empty replacements array, these fixes are ignored
 	if (problem.getFix && problem.getFix() && problem.getFix().replacements.length > 0) { // tslint fixes are not available in tslint < 3.17
 		fix = createAutoFix(problem, document, problem.getFix());
 	}
