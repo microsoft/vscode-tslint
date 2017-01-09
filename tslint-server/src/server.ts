@@ -6,9 +6,10 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as semver from 'semver';
 
-import * as tslint from 'tslint'; // dev dependency only
+import * as tslint from 'tslint'; // this is a dev dependency only
 
 import { Delayer } from './delayer';
 
@@ -148,8 +149,8 @@ let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document
 			return contents;
 		}
 		let prefix = contents.substring(0, i);
-		let swap = toLower ? contents[i].toLowerCase(): contents[i].toUpperCase();
-		let suffix = contents.substring(i+1);
+		let swap = toLower ? contents[i].toLowerCase() : contents[i].toUpperCase();
+		let suffix = contents.substring(i + 1);
 		return `${prefix}${swap}${suffix}`;
 	}
 
@@ -481,7 +482,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	}
 
 	if (result.failureCount > 0) {
-		result.failures.forEach(problem => {
+		filterProblemsForDocument(fsPath, result.failures).forEach(problem => {
 			let diagnostic = makeDiagnostic(problem);
 			diagnostics.push(diagnostic);
 			recordCodeAction(document, diagnostic, problem);
@@ -489,6 +490,22 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	}
 	connection.sendNotification(StatusNotification.type, { state: Status.ok });
 	return diagnostics;
+}
+
+/**
+ * Filter failures for the given document
+ */
+function filterProblemsForDocument(documentPath: string, failures: tslint.RuleFailure[]): tslint.RuleFailure[] {
+	let normalizedPath = path.normalize(documentPath);
+	// we only show diagnostics targetting this open document, some tslint rule return diagnostics for other documents/files
+	let normalizedFiles = {};
+	return failures.filter(each => {
+		let fileName = each.getFileName();
+		if (!normalizedFiles[fileName]) {
+			normalizedFiles[fileName] = path.normalize(fileName);
+		}
+		return normalizedFiles[fileName] === normalizedPath;
+	});
 }
 
 function isJsDocument(document: server.TextDocument) {
