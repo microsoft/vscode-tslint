@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason } from 'vscode';
 import {
-	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit, Protocol2Code,
+	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
 } from 'vscode-languageclient';
 
@@ -31,7 +31,7 @@ interface AllFixesResult {
 }
 
 namespace AllFixesRequest {
-	export const type: RequestType<AllFixesParams, AllFixesResult, void> = { get method() { return 'textDocument/tslint/allFixes'; } };
+	export const type = new RequestType<AllFixesParams, AllFixesResult, void, void>('textDocument/tslint/allFixes');
 }
 
 enum Status {
@@ -45,7 +45,7 @@ interface StatusParams {
 }
 
 namespace StatusNotification {
-	export const type: NotificationType<StatusParams> = { get method() { return 'tslint/status'; } };
+	export const type = new NotificationType<StatusParams, void>('tslint/status');
 }
 
 let willSaveTextDocument: Disposable;
@@ -219,8 +219,10 @@ export function activate(context: ExtensionContext) {
 		udpateStatusBarVisibility(window.activeTextEditor);
 	});
 
-	client.onNotification(StatusNotification.type, (params) => {
-		updateStatus(params.state);
+	client.onReady().then(() => {
+		client.onNotification(StatusNotification.type, (params) => {
+			updateStatus(params.state);
+		});
 	});
 
 	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
@@ -231,7 +233,7 @@ export function activate(context: ExtensionContext) {
 			}
 			textEditor.edit(mutator => {
 				for (let edit of edits) {
-					mutator.replace(Protocol2Code.asRange(edit.range), edit.newText);
+					mutator.replace(client.protocol2CodeConverter.asRange(edit.range), edit.newText);
 				}
 			}).then((success) => {
 				if (!success) {
@@ -301,7 +303,7 @@ export function activate(context: ExtensionContext) {
 				event.waitUntil(
 					client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() } }).then((result) => {
 						if (result && version === result.documentVersion) {
-							return Protocol2Code.asTextEdits(result.edits);
+							return client.protocol2CodeConverter.asTextEdits(result.edits);
 						} else {
 							return [];
 						}

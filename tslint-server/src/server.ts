@@ -68,7 +68,7 @@ interface StatusParams {
 }
 
 namespace StatusNotification {
-	export const type: server.NotificationType<StatusParams> = { get method() { return 'tslint/status'; } };
+	export const type = new server.NotificationType<StatusParams, void>('tslint/status');
 }
 
 let settings: Settings = null;
@@ -814,7 +814,7 @@ interface AllFixesResult {
 }
 
 namespace AllFixesRequest {
-	export const type: server.RequestType<server.CodeActionParams, AllFixesResult, void> = { get method() { return 'textDocument/tslint/allFixes'; } };
+	export const type = new server.RequestType<AllFixesParams, AllFixesResult, void, void>('textDocument/tslint/allFixes');
 }
 
 connection.onRequest(AllFixesRequest.type, (params) => {
