@@ -2,5 +2,6 @@
 {
     "tslint.autoFixOnSave": false,
     "tslint.jsEnable": true,
+   // "tslint.trace.server": "verbose",
     "files.autoSave": "off"
 }
