@@ -71,6 +71,7 @@ namespace StatusNotification {
 	export const type = new server.NotificationType<StatusParams, void>('tslint/status');
 }
 
+let rootDir: string | null = null;
 let settings: Settings = null;
 
 let linter: typeof tslint.Linter = null;
@@ -376,6 +377,7 @@ function trace(message: string, verbose?: string): void {
 }
 
 connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
+	rootDir = params.rootPath;
 	let rootFolder = params.rootPath;
 	let initOptions: {
 		nodePath: string;
@@ -587,6 +589,18 @@ function tslintConfigurationValid(): boolean {
 	return true;
 }
 
+function resolveFileLocation(location: string | null): string | null {
+	if (!location) {
+		return null;
+	}
+
+	if (rootDir) {
+		location = location.replace(/\${workspaceRoot}/g, rootDir);
+	}
+
+	return location;
+}
+
 // The VS Code tslint settings have changed. Revalidate all documents.
 connection.onDidChangeConfiguration((params) => {
 	flushConfigCache();
@@ -594,7 +608,7 @@ connection.onDidChangeConfiguration((params) => {
 
 	if (settings.tslint) {
 		options.rulesDirectory = settings.tslint.rulesDirectory || null;
-		let newConfigFile = settings.tslint.configFile || null;
+		let newConfigFile = resolveFileLocation(settings.tslint.configFile || null);
 		if (configFile !== newConfigFile) {
 			if (configFileWatcher) {
 				configFileWatcher.close();
