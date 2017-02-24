@@ -38,48 +38,51 @@ the warnings in the `Problems` panel, then you can:
 - define a VS Code [task](https://code.visualstudio.com/docs/editor/tasks) with a [problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
 that extracts VS Code warnings from the tslint output.
 
-Here is an example. Create a gulp task using `gulp-tslint` that generates a report that you can then match
+Here is an example. Create a gulp task using `gulp-tslint` that you can then match
 by a VS Code Task's problem matcher. In your `gulpfile.js` define a task like the one below:
 
 ```js
 'use strict';
 const gulp = require('gulp');
 const gulp_tslint = require('gulp-tslint');
-//...
+
 gulp.task('tslint', () => {
-    return gulp.src(['**/*.ts', '!**/*.d.ts', '!node_modules/**'])
-      .pipe(gulp_tslint())
-      .pipe(gulp_tslint.report());
+    gulp.src(['tests/*.ts'])
+      .pipe(gulp_tslint({
+          formatter: "prose"
+      }))
+      .pipe(gulp_tslint.report({
+          emitError: false
+      }));
 });
 ```
 
 Next define a Task which runs the gulp task with a problem matcher that extracts the tslint errors into warnings.
 
 ```json
-"tasks": [
-	{
-		"taskName": "tslint",
-		"args": [],
-		"problemMatcher": {
-			"owner": "tslint",
-			"fileLocation": [
-				"relative",
-				"${workspaceRoot}"
-			],
-			"severity": "warning",
-			"pattern": {
-				"regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
-				"file": 1,
-				"line": 2,
-				"column": 3,
-				"message": 4
-			}
-		}
-	}
-]
+    "tasks": [
+        {
+            "taskName": "tslint",
+            "args": [],
+            "problemMatcher": {
+                "owner": "tslint",
+                "fileLocation": "absolute",
+                "severity": "warning",
+                "pattern": {
+                    "regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4
+                }
+            }
+        }
+    ]
 ```
 >Notice: you must set the `owner` attribute to `tslint`. Then the warnings extracted by the problem matcher go into the same collection
 as the warnings produced by this extension. In this way you will not see duplicates.
 
-Finally, when you then run the `tslint` task you will see the warning produced by the gulp task in the `Problems` panel.
+Finally, when you then run the `tslint` task you will see the warnings produced by the gulp task in the `Problems` panel.
+
+This is an [example setup](https://github.com/Microsoft/vscode-tslint/tree/master/tslint-tests).
 
