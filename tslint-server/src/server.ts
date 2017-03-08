@@ -648,7 +648,7 @@ connection.onCodeAction((params) => {
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				ruleId = autoFix.problem.getRuleName();
-				result.push(server.Command.create(autoFix.label, 'tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix)));
+				result.push(server.Command.create(autoFix.label, '_tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix)));
 			}
 		}
 		if (result.length > 0) {
@@ -675,7 +675,7 @@ connection.onCodeAction((params) => {
 				result.push(
 					server.Command.create(
 						`Fix all: ${same[0].problem.getFailure()}`,
-						'tslint.applySameFixes',
+						'_tslint.applySameFixes',
 						uri,
 						documentVersion, concatenateEdits(same)));
 			}
@@ -685,7 +685,7 @@ connection.onCodeAction((params) => {
 				result.push(
 					server.Command.create(
 						`Fix all auto-fixable problems`,
-						'tslint.applyAllFixes',
+						'_tslint.applyAllFixes',
 						uri,
 						documentVersion,
 						concatenateEdits(all)));
@@ -700,7 +700,7 @@ connection.onCodeAction((params) => {
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				ruleId = autoFix.problem.getRuleName();
-				result.push(server.Command.create(autoFix.label, 'tslint.applyDisableRule', uri, documentVersion, createTextEdit(autoFix)));
+				result.push(server.Command.create(autoFix.label, '_tslint.applyDisableRule', uri, documentVersion, createTextEdit(autoFix)));
 			}
 		}
 	}

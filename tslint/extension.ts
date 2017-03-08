@@ -322,10 +322,12 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		new SettingMonitor(client, 'tslint.enable').start(),
 		configurationChangedListener,
-		commands.registerCommand('tslint.applySingleFix', applyTextEdits),
-		commands.registerCommand('tslint.applySameFixes', applyTextEdits),
-		commands.registerCommand('tslint.applyAllFixes', applyTextEdits),
-		commands.registerCommand('tslint.applyDisableRule', applyDisableRuleEdit),
+		// internal commands
+		commands.registerCommand('_tslint.applySingleFix', applyTextEdits),
+		commands.registerCommand('_tslint.applySameFixes', applyTextEdits),
+		commands.registerCommand('_tslint.applyAllFixes', applyTextEdits),
+		commands.registerCommand('_tslint.applyDisableRule', applyDisableRuleEdit),
+		// user commands
 		commands.registerCommand('tslint.fixAllProblems', fixAllProblems),
 		commands.registerCommand('tslint.createConfig', createDefaultConfiguration),
 		commands.registerCommand('tslint.showOutputChannel', () => { client.outputChannel.show(); }),
