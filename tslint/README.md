@@ -30,11 +30,15 @@ The extension supports automatic fixing of warnings as support by tslint. For wa
 
 **Notice** overlapping auto fixes are currently not supported [#164](https://github.com/Microsoft/vscode-tslint/issues/164).
 
+# ProblemPatterns and ProblemMatchers
+
+The extension contributes a `tslint4` `ProblemPattern` and a corresponding `tslint4` `ProblemMatcher`. You can use these variables when defining a tslint task in your `task.json` file. See the next section for an example.
+
 # Using the extension with tasks running tslint
 
 The extension lints an individual file only. If you want to lint your entire workspace or project and want to see
 the warnings in the `Problems` panel, then you can:
-- use a task runner like gulp or grunt that runs tslint across the entire project
+- use a task runner like gulp that runs tslint across the entire project
 - define a VS Code [task](https://code.visualstudio.com/docs/editor/tasks) with a [problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
 that extracts VS Code warnings from the tslint output.
 
@@ -60,24 +64,18 @@ gulp.task('tslint', () => {
 Next define a Task which runs the gulp task with a problem matcher that extracts the tslint errors into warnings.
 
 ```json
+{
+    "version": "2.0.0",
+    "command": "gulp",
+    "isShellCommand": true,
     "tasks": [
         {
             "taskName": "tslint",
             "args": [],
-            "problemMatcher": {
-                "owner": "tslint",
-                "fileLocation": "absolute",
-                "severity": "warning",
-                "pattern": {
-                    "regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "message": 4
-                }
-            }
+            "problemMatcher": "$tslint4"
         }
     ]
+}
 ```
 >Notice: you must set the `owner` attribute to `tslint`. Then the warnings extracted by the problem matcher go into the same collection
 as the warnings produced by this extension. In this way you will not see duplicates.
