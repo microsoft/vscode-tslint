@@ -481,7 +481,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		return diagnostics;
 	}
 
-	if (result.failureCount > 0) {
+	if (result.failures.length > 0) {
 		filterProblemsForDocument(fsPath, result.failures).forEach(problem => {
 			let diagnostic = makeDiagnostic(problem);
 			diagnostics.push(diagnostic);
