@@ -1,3 +1,8 @@
+
+## 0.10.0
+- contribute a `tslint4` ProblemPattern and a `tslint4` ProblemMatcher.
+- updated the task documentation to use the `tslint4` ProblemMatcher.
+
 ## 0.9.0
 - updated to version 3.0.2 of the language-client and language-server libraries.
 - fix for [#174](https://github.com/Microsoft/vscode-tslint/issues/174) error when using tslint 5.0.0-dev.0
