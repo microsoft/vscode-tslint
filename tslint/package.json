@@ -129,6 +129,26 @@
 				"fileMatch": "tslint.json",
 				"url": "http://json.schemastore.org/tslint"
 			}
+		],
+		"problemPatterns": [
+			{
+				"name": "tslint4",
+				"regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
+				"file": 1,
+				"line": 2,
+				"column": 3,
+				"message": 4
+			}
+		],
+		"problemMatchers": [
+			{
+				"name": "tslint4",
+				"owner": "tslint",
+				"applyTo": "closedDocuments",
+                "fileLocation": "absolute",
+                "severity": "warning",
+                "pattern": "$tslint4"
+			}
 		]
 	},
 	"scripts": {
