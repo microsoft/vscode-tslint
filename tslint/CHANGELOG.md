@@ -1,5 +1,8 @@
 ## 0.9.0
-- updated to version 3.0 of the language-client and language-server libraries.
+- updated to version 3.0.2 of the language-client and language-server libraries.
+- fix for [#174](https://github.com/Microsoft/vscode-tslint/issues/174) error when using tslint 5.0.0-dev.0
+- fix for [#180](https://github.com/Microsoft/vscode-tslint/issues/180) tslint.applyAllFixes should not appear in the list of available commands
+
 
 ## 0.8.1
 - added a setting to enable/disable the linting of `.js` files with tslint. The default is `false`. **Previously** tslint was enabled by default for `.js` files.
