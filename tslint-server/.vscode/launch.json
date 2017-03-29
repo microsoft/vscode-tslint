@@ -6,7 +6,8 @@
 			"type": "node",
 			"request": "attach",
 			"address": "localhost",
-			"port": 6004,
+			"protocol": "legacy",
+			"port": 6010,
 			"sourceMaps": true,
 			"outFiles": ["${workspaceRoot}/../tslint/server/**/*.js"]
 		}

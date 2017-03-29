@@ -131,8 +131,8 @@ export function activate(context: ExtensionContext) {
 	// the output folder.
 	let serverModulePath = path.join(__dirname, '..', 'server', 'server.js');
 	// break on start options
-	//let debugOptions = { execArgv: ["--nolazy", "--debug=6004", "--debug-brk"] };
-	let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
+	//let debugOptions = { execArgv: ["--nolazy", "--debug=6010", "--debug-brk"] };
+	let debugOptions = { execArgv: ["--nolazy", "--debug=6010"] };
 	let serverOptions: ServerOptions = {
 		run: { module: serverModulePath, transport: TransportKind.ipc },
 		debug: { module: serverModulePath, transport: TransportKind.ipc, options: debugOptions }
