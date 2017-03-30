@@ -11,7 +11,7 @@
   "dependencies": {
     "gulp": "^3.9.1",
     "gulp-tslint": "^7.1.0",
-    "tslint": "^4.4.2"
+    "tslint": "^5.0.0"
   },
   "devDependencies": {
     "typescript": "^2.0.10"

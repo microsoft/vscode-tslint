@@ -247,7 +247,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	let fix: AutoFix = null;
 
 	// tslint can return a fix with an empty replacements array, these fixes are ignored
-	if (problem.getFix && problem.getFix() && problem.getFix().replacements.length > 0) { // tslint fixes are not available in tslint < 3.17
+	if (problem.getFix && problem.getFix() && !replacementsAreEmpty(problem.getFix())) { // tslint fixes are not available in tslint < 3.17
 		fix = createAutoFix(problem, document, problem.getFix());
 	}
 	if (!fix) {
@@ -707,17 +707,41 @@ connection.onCodeAction((params) => {
 	return result;
 });
 
+
+function replacementsAreEmpty(fix: tslint.Fix): boolean {
+	// in tslint 4 a Fix has a replacement property witht the Replacements
+	if ((<any>fix).replacements) {
+		return (<any>fix).replacements.length === 0;
+	}
+	// tslint 5
+	if (Array.isArray(fix)) {
+		return fix.length === 0;
+	}
+	return false;
+}
+
 function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocument, fix: tslint.Fix | TSLintAutofixEdit): AutoFix {
 	let edits: TSLintAutofixEdit[] = null;
 
-	function isTslintFix(fix: tslint.Fix | TSLintAutofixEdit): fix is tslint.Fix {
-		return (<tslint.Fix>fix).replacements !== undefined;
+	function isTslintAutofixEdit(fix: tslint.Fix | TSLintAutofixEdit): fix is TSLintAutofixEdit {
+		return (<TSLintAutofixEdit>fix).range !== undefined;
 	}
 
-	if (isTslintFix(fix)) {
-		edits = fix.replacements.map(each => convertReplacementToAutoFix(document, each));
-	} else {
+	if (isTslintAutofixEdit(fix)) {
 		edits = [fix];
+	} else {
+		let ff: any = fix;
+		// in tslint4 a Fix has a replacement property witht the Replacements
+		if (ff.replacements) {
+			// tslint4
+			edits = ff.replacements.map(each => convertReplacementToAutoFix(document, each));
+		} else {
+			// in tslint 5 a Fix is a Replacment | Replacement[]
+			if (!Array.isArray(fix)) {
+				fix = [fix];
+			}
+			edits = fix.map(each => convertReplacementToAutoFix(document, each));
+		}
 	}
 
 	let autofix: AutoFix = {
