@@ -1,7 +1,9 @@
+## 0.11.0
+- support [tslint 5.0](https://github.com/palantir/tslint/releases/tag/5.0.0).
 
 ## 0.10.0
-- contribute a `tslint4` ProblemPattern and a `tslint4` ProblemMatcher.
-- updated the task documentation to use the `tslint4` ProblemMatcher.
+- contribute a `tslint4` ProblemPattern and a `tslint4` ProblemMatcher (requires VS Code 1.11).
+- updated the task documentation to use the `tslint4` ProblemMatcher (requires VS Code 1.11).
 
 ## 0.9.0
 - updated to version 3.0.2 of the language-client and language-server libraries.
