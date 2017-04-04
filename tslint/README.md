@@ -17,7 +17,7 @@ then try to install tslint and its typescript dependency globally using `npm ins
 - `tslint.rulesDirectory` - an additional rules directory, for user-created rules.
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
-- `tslint.exclude` - configure glob patterns of file paths to exclude from linting.
+- `tslint.exclude` - configure glob patterns of file paths to exclude from linting. The pattern is matched against the absolute path of the linted file.
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
 - `tslint.nodePath` - use this setting load tslint from a different location than the current workspace or the globally installed npm modules`.
 - `tslint.autoFixOnSave` - fix auto fixable warnings when a file is saved. This option is ignored when `files.autoSave` is set to `afterDelay`.
