@@ -10,10 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "gulp": "^3.9.1",
-    "gulp-tslint": "^7.1.0",
+    "gulp-tslint": "^8.0.0",
     "tslint": "^5.0.0"
   },
   "devDependencies": {
-    "typescript": "^2.0.10"
+    "typescript": "^2.2.2"
   }
 }

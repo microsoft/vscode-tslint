@@ -10,3 +10,5 @@ gulp.task('tslint', () => {
           emitError: false
       }));
 });
+
+gulp.task('default', ["tslint"]);
