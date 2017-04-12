@@ -2,7 +2,7 @@
 	"name": "tslint",
 	"displayName": "TSLint",
 	"description": "TSLint for Visual Studio Code",
-	"version": "0.11.0",
+	"version": "0.12.0",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"publisher": "eg2",
