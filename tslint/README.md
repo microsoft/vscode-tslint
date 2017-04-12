@@ -32,13 +32,44 @@ The extension supports automatic fixing of warnings as support by tslint. For wa
 
 # ProblemPatterns and ProblemMatchers
 
-The extension contributes a `tslint4` `ProblemPattern` and a corresponding `tslint4` `ProblemMatcher`. You can use these variables when defining a tslint task in your `task.json` file. See the next section for an example.
+The extension contributes a `tslint4` and a `tslint5` `ProblemMatcher` and corresponding problem patterns. You can use these variables when defining a tslint task in your `task.json` file. The `tslint5` problem matcher matches the rule
+severities introduced in version 5 of tslint.
+
+The problem matcher is defined as follows:
+```json
+{
+    "name": "tslint5",
+    "owner": "tslint",
+    "applyTo": "closedDocuments",
+    "fileLocation": "absolute",
+    "severity": "warning",
+    "pattern": "$tslint5"
+},
+```
+
+The meaning of the different attributes is:
+- the `owner` attribute is set to `tslint` so that the warnings extracted by the problem matcher go into the same collection
+as the warnings produced by this extension. In this way you will not see duplicates warnings.
+- the `applyTo` attribute is defined so that the problem matcher only runs on documents that are not open in an editor. An open document is already validated by the extension as the user types.
+- the `fileLocation` is taken as an absolute path. This is correct for the output from `gulp`. When tslint is launched on the command line directly or from a package.json script then the file location is reported relative and you need to overwrite the value of this attribute (see below).
+- the `severity` defaults to `warning` unless the rule is configured to report errors.
+
+You can easily overwrite the value of these attributes. The following examples overwrites the `fileLocation` attribute to use the problem matcher when tslint is run on the command line or from a package.json script:
+
+```json
+"problemMatcher": {
+    "base": "$tslint5",
+    "fileLocation": "relative"
+}
+```
+
+See the next section for an example.
 
 # Using the extension with tasks running tslint
 
 The extension lints an individual file only. If you want to lint your entire workspace or project and want to see
 the warnings in the `Problems` panel, then you can:
-- use a task runner like gulp that runs tslint across the entire project
+- use gulp that or define a script inside the `package.json` that runs tslint across your project.
 - define a VS Code [task](https://code.visualstudio.com/docs/editor/tasks) with a [problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
 that extracts VS Code warnings from the tslint output.
 
@@ -72,15 +103,13 @@ Next define a Task which runs the gulp task with a problem matcher that extracts
         {
             "taskName": "tslint",
             "args": [],
-            "problemMatcher": "$tslint4"
+            "problemMatcher": "$tslint5"
         }
     ]
 }
 ```
->Notice: you must set the `owner` attribute to `tslint`. Then the warnings extracted by the problem matcher go into the same collection
-as the warnings produced by this extension. In this way you will not see duplicates.
 
 Finally, when you then run the `tslint` task you will see the warnings produced by the gulp task in the `Problems` panel.
 
-This is an [example setup](https://github.com/Microsoft/vscode-tslint/tree/master/tslint-tests).
+Here is another [example setup](https://github.com/Microsoft/vscode-tslint/tree/master/tslint-tests) for a script inside the package.json.
 

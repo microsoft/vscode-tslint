@@ -6,8 +6,11 @@
         {
             "taskName": "lint",
             "suppressTaskName": true,
-            "args": ["run", "lint"],
-            "problemMatcher": "$tslint5"
+            "args": [ "run", "lint"],
+            "problemMatcher": {
+                "base": "$tslint5",
+                "fileLocation": "relative"
+            }
         }
     ]
 }
