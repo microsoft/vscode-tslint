@@ -11,7 +11,7 @@ VSCode extension to support tslint
 - open VS Code on `tslint-server`
 - run `npm run compile` or `npm run watch` to build the server and copy it into the `tslint` folder
 - to debug press F5 which attaches a debugger to the server
-- to trace the server communication you can enable the setting: "tslint.trace.server": "verbose" 
+- to trace the server communication you can enable the setting: "tslint.trace.server": "verbose", "messages"
 
 ## Developing the extension/client
 - open VS Code on `tslint`
