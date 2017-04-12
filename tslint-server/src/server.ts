@@ -213,8 +213,16 @@ function makeDiagnostic(problem: tslint.RuleFailure): server.Diagnostic {
 	let message = (problem.getRuleName() !== null)
 		? `${problem.getFailure()} (${problem.getRuleName()})`
 		: `${problem.getFailure()}`;
+
+	let severity;
+	if (problem.getRuleSeverity && problem.getRuleSeverity() === 'error') { // tslint5 supports to assign severities to rules
+		severity = server.DiagnosticSeverity.Error;
+	} else {
+		severity = server.DiagnosticSeverity.Warning;
+	}
+
 	let diagnostic: server.Diagnostic = {
-		severity: server.DiagnosticSeverity.Warning,
+		severity: severity,
 		message: message,
 		range: {
 			start: {
@@ -731,7 +739,7 @@ function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocumen
 		edits = [fix];
 	} else {
 		let ff: any = fix;
-		// in tslint4 a Fix has a replacement property witht the Replacements
+		// in tslint4 a Fix has a replacement property with the Replacements
 		if (ff.replacements) {
 			// tslint4
 			edits = ff.replacements.map(each => convertReplacementToAutoFix(document, each));
