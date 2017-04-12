@@ -1,12 +1,13 @@
 {
     "version": "2.0.0",
-    "command": "gulp",
+    "command": "npm",
     "isShellCommand": true,
     "tasks": [
         {
-            "taskName": "tslint",
-            "args": [],
-            "problemMatcher": "$tslint4"
+            "taskName": "lint",
+            "suppressTaskName": true,
+            "args": ["run", "lint"],
+            "problemMatcher": "$tslint5"
         }
     ]
 }

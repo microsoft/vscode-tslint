@@ -84,5 +84,6 @@
             true,
             "allow-null-check"
         ]
-    }
+    },
+    "defaultSeverity": "error"
 }

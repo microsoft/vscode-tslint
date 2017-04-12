@@ -133,11 +133,20 @@
 		"problemPatterns": [
 			{
 				"name": "tslint4",
-				"regexp": "^(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
-				"file": 1,
-				"line": 2,
-				"column": 3,
-				"message": 4
+				"regexp": "^(\\(\\S*\\)\\s+)?(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
+				"file": 2,
+				"line": 3,
+				"column": 4,
+				"message": 5
+			},
+			{
+				"name": "tslint5",
+				"regexp": "^(WARNING|ERROR):(\\s+\\(\\S*\\))?\\s+(\\S.*)\\[(\\d+), (\\d+)\\]:\\s+(.*)$",
+				"severity": 1,
+				"file": 3,
+				"line": 4,
+				"column": 5,
+				"message": 6
 			}
 		],
 		"problemMatchers": [
@@ -145,9 +154,17 @@
 				"name": "tslint4",
 				"owner": "tslint",
 				"applyTo": "closedDocuments",
-                "fileLocation": "absolute",
-                "severity": "warning",
-                "pattern": "$tslint4"
+				"fileLocation": "absolute",
+				"severity": "warning",
+				"pattern": "$tslint4"
+			},
+			{
+				"name": "tslint5",
+				"owner": "tslint",
+				"applyTo": "closedDocuments",
+				"fileLocation": "absolute",
+				"severity": "warning",
+				"pattern": "$tslint5"
 			}
 		]
 	},
