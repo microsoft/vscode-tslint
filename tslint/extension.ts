@@ -11,7 +11,6 @@ const tslintConfig: string = [
 	'	"rules": {',
 	'		"no-unused-expression": true,',
 	'		"no-duplicate-variable": true,',
-	'		"no-duplicate-key": true,',
 	'		"no-unused-variable": true,',
 	'		"curly": true,',
 	'		"class-name": true,',
