@@ -1,9 +1,10 @@
-## 0.13.0
+## 0.14.0
 - fix for [#163](https://github.com/Microsoft/vscode-tslint/issues/163) tslint.autoFixOnSave often goes rogue and adds semi-colons everywhere.
   - Auto fix is now only run when the user manually saves a file.
 - added a setting to always show rule failures as warnings, independent of the severity configuration in the `tslint.json` configuration [#199](https://github.com/Microsoft/vscode-tslint/issues/199).
-- fix for [#197](https://github.com/Microsoft/vscode-tslint/issues/197) Spamed by cannot read tslint configuration
 - fix for [#103](https://github.com/Microsoft/vscode-tslint/issues/103) After correcting errors in tslint.json, output channel doesn't reflect "ok" state
+- fix for [#194](https://github.com/Microsoft/vscode-tslint/issues/194) 'null: Error: null' in devtools console
+- fix for [#197](https://github.com/Microsoft/vscode-tslint/issues/197) Spamed by cannot read tslint configuration
 
 ## 0.12.0
 - support configurable rule severities introduced in [tslint 5.0](https://github.com/palantir/tslint/releases/tag/5.0.0).

@@ -83,6 +83,9 @@ let tslintNotFound =
 	`Failed to load tslint library. Please install tslint in your workspace
 folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.`;
 
+let tslintNotFoundIgnored =
+	`[vscode-tslint] Failed to load tslint library. This failure is not reported to the user since there is no \'tslint.json\' in the workspace`;
+
 // Options passed to tslint
 let options: tslint.ILinterOptions = {
 	formatter: "json",
@@ -419,7 +422,7 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 			// Respond that initialization failed silently, without prompting the user.
 			return Promise.reject(
 				new server.ResponseError<server.InitializeError>(100,
-					null, // do not show an error message
+					tslintNotFoundIgnored,
 					{ retry: false }));
 		});
 });
