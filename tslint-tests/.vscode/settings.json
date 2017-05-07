@@ -2,7 +2,8 @@
 {
     "files.autoSave": "off",
     "tslint.autoFixOnSave": false,
+    // "tslint.nodePath": "c:\\tmp",
     "tslint.jsEnable": true
-    // "tslint.trace.server": "verbose",
+    // "tslint.trace.server": "verbose"
     // "tslint.alwaysShowRuleFailuresAsWarnings": true
 }
