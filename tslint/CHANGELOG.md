@@ -1,3 +1,7 @@
+## 0.13.0
+- fix for [#163](https://github.com/Microsoft/vscode-tslint/issues/163) tslint.autoFixOnSave often goes rogue and adds semi-colons everywhere.
+  - The fix is to only run auto fix when the user manually saves a file.
+
 ## 0.12.0
 - support configurable rule severities introduced in [tslint 5.0](https://github.com/palantir/tslint/releases/tag/5.0.0).
 - added a ProblemPattern and ProblemMatcher for `tslint5` which matches the reported severities properly.

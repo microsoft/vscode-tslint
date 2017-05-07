@@ -293,9 +293,9 @@ export function activate(context: ExtensionContext) {
 		if (autoFix && !willSaveTextDocument) {
 			willSaveTextDocument = workspace.onWillSaveTextDocument((event) => {
 				let document = event.document;
-				// only auto fix when the document was not auto saved
+				// only auto fix when the document was manually saved by the user
 				if (!(isTypeScriptDocument(document.languageId) || isEnableForJavaScriptDocument(document.languageId))
-					|| event.reason === TextDocumentSaveReason.AfterDelay) {
+					|| event.reason !== TextDocumentSaveReason.Manual) {
 					return;
 				}
 				const version = document.version;
