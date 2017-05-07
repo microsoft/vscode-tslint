@@ -351,8 +351,8 @@ function getConfigurationFailureMessage(err: any): string {
 }
 
 function showConfigurationFailure(conn: server.IConnection, err: any) {
-	let message = getConfigurationFailureMessage(err);
-	conn.window.showInformationMessage(message);
+	conn.console.info(getConfigurationFailureMessage(err));
+	connection.sendNotification(StatusNotification.type, { state: Status.error });
 }
 
 function validateAllTextDocuments(connection: server.IConnection, documents: server.TextDocument[]): void {
