@@ -25,6 +25,7 @@ interface Settings {
 		exclude: string | string[];
 		validateWithDefaultConfig: boolean;
 		run: 'onSave' | 'onType';
+		alwaysShowRuleFailuresAsWarnings: boolean
 	};
 }
 
@@ -215,7 +216,9 @@ function makeDiagnostic(problem: tslint.RuleFailure): server.Diagnostic {
 		: `${problem.getFailure()}`;
 
 	let severity;
-	if (problem.getRuleSeverity && problem.getRuleSeverity() === 'error') { // tslint5 supports to assign severities to rules
+	let alwaysWarning = settings && settings.tslint.alwaysShowRuleFailuresAsWarnings;
+	// tslint5 supports to assign severities to rules
+	if (!alwaysWarning && problem.getRuleSeverity && problem.getRuleSeverity() === 'error') {
 		severity = server.DiagnosticSeverity.Error;
 	} else {
 		severity = server.DiagnosticSeverity.Warning;

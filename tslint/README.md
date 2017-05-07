@@ -21,6 +21,7 @@ then try to install tslint and its typescript dependency globally using `npm ins
 - `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
 - `tslint.nodePath` - use this setting load tslint from a different location than the current workspace or the globally installed npm modules`.
 - `tslint.autoFixOnSave` - fix auto fixable warnings when a file is saved. **Notice** Auto fixing is only done when the user manually saves a file. It is ignored when the file is automatically saved because of the `files.autoSave` setting. Executing a manual save on an already saved document will also trigger auto fixing.
+- `tslint.alwaysShowRuleFailuresAsWarnings` - always show rule failures as warnings, independent of the severity configuration in the `tslint.json` configuration.
 
 # Auto fixing
 

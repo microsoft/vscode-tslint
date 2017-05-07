@@ -104,6 +104,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Turns auto fix on save on or off."
+				},
+				"tslint.alwaysShowRuleFailuresAsWarnings": {
+					"type": "boolean",
+					"default": false,
+					"description": "Always show rule failures as warnings, independent of the tslint configuration."
 				}
 			}
 		},
