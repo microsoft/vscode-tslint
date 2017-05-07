@@ -79,6 +79,9 @@ export function activate(context: ExtensionContext) {
 				statusBarItem.color = 'yellow'; // darkred doesn't work
 				break;
 		}
+		if (tslintStatus !== Status.ok && status == Status.ok) { // an error got addressed fix, write to the output that the status is OK
+			client.info('vscode-tslint: Status is OK');
+		}
 		tslintStatus = status;
 		udpateStatusBarVisibility(window.activeTextEditor);
 	}
