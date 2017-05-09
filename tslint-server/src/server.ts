@@ -820,7 +820,12 @@ function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 	let doesOverlap = false;
 	lastFix.edits.some(last => {
 		return nextFix.edits.some(next => {
-			if (last.range[1].line >= next.range[0].line && last.range[1].character >= next.range[0].character) {
+			if (last.range[1].line > next.range[0].line) {
+				doesOverlap = true;
+				return true;
+			} else if (last.range[1].line < next.range[0].line) {
+				return false;
+			} else if (last.range[1].character >= next.range[0].character){
 				doesOverlap = true;
 				return true;
 			}
@@ -836,6 +841,17 @@ function getLastEdit(array: AutoFix[]): AutoFix {
 		return undefined;
 	}
 	return array[length - 1];
+}
+
+function getAllNonOverlappingFixes(fixes: AutoFix[]): AutoFix[] {
+	let nonOverlapping: AutoFix[] = [];
+	fixes = sortFixes(fixes);
+	for (let autofix of fixes) {
+		if (!overlaps(getLastEdit(nonOverlapping), autofix)) {
+			nonOverlapping.push(autofix);
+		}
+	}
+	return nonOverlapping;
 }
 
 function createTextEdit(autoFix: AutoFix): server.TextEdit[] {
@@ -866,16 +882,18 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 	}
 
 	let fixes: AutoFix[] = Object.keys(documentFixes).map(key => documentFixes[key]);
+
 	for (let fix of fixes) {
 		if (documentVersion === -1) {
 			documentVersion = fix.documentVersion;
 			break;
 		}
 	}
+	let allFixes = getAllNonOverlappingFixes(fixes);
 
 	result = {
 		documentVersion: documentVersion,
-		edits: concatenateEdits(fixes)
+		edits: concatenateEdits(allFixes)
 	};
 	return result;
 });
