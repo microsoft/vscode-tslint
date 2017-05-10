@@ -4,6 +4,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"allowSyntheticDefaultImports": true,
+		"outDir": "out",
 		"sourceMap": true,
 		"lib": [
 			"es6"

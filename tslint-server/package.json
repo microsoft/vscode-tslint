@@ -23,7 +23,7 @@
   "scripts": {
     "compile": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc -p ./src",
     "watch": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc --watch -p ./src",
-    "pretest": "tsc -p test",
-    "test": "mocha"
+    "pretest": "tsc -p ./test",
+    "test": "mocha test/out/test"
   }
 }

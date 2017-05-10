@@ -33,6 +33,8 @@ describe('Array', () => {
     it('non overlapping fixes', ()=> {
       assert.equal(1, getAllNonOverlappingFixes([autofix(1, 0, 6, 0)]).length);
       assert.equal(1, getAllNonOverlappingFixes([autofix(1, 0, 6, 0), autofix(4, 9, 4, 9)]).length);
+      assert.equal(1, getAllNonOverlappingFixes([autofix(1, 0, 1, 0), autofix(1, 0, 1, 0)]).length);
+      assert.equal(1, getAllNonOverlappingFixes([autofix(1, 0, 6, 0), autofix(1, 0, 6, 0)]).length);
       assert.equal(1, getAllNonOverlappingFixes([autofix(1, 0, 6, 0), autofix(6, 0, 6, 0)]).length);
       assert.equal(2, getAllNonOverlappingFixes([autofix(1, 0, 6, 0), autofix(7, 0, 7, 0)]).length);
       assert.equal(2, getAllNonOverlappingFixes([autofix(1, 0, 6, 0), autofix(6, 1, 6, 1)]).length);
