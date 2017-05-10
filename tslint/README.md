@@ -6,8 +6,8 @@ Please refer to the tslint [documentation](https://github.com/palantir/tslint) f
 # Prerequisites
 The extension requires that tslint is installed either locally or globally.
 
->Tip: if you get the error that "failed to load tslint", but you have tslint installed locally,
-then try to install tslint and its typescript dependency globally using `npm install -g tslint typescript`.
+>Tip: if you get an error saying, "failed to load tslint", but you have tslint installed locally,
+ try to install tslint and its typescript dependency globally using `npm install -g tslint typescript`.
 
 # Configuration options
 
@@ -18,23 +18,22 @@ then try to install tslint and its typescript dependency globally using `npm ins
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
 - `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting. The pattern is matched against the absolute path of the linted file.
-- `tslint.validateWithDefaultConfig` - validate a file for which there was no custom tslint confguration found. The default is `false`.
-- `tslint.nodePath` - use this setting load tslint from a different location than the current workspace or the globally installed npm modules`.
-- `tslint.autoFixOnSave` - fix auto fixable warnings when a file is saved. **Notice** Auto fixing is only done when the user manually saves a file. It is ignored when the file is automatically saved because of the `files.autoSave` setting. Executing a manual save on an already saved document will also trigger auto fixing.
-- `tslint.alwaysShowRuleFailuresAsWarnings` - always show rule failures as warnings, independent of the severity configuration in the `tslint.json` configuration.
+- `tslint.validateWithDefaultConfig` - validate a file for which no custom tslint configuration was found. The default is `false`.
+- `tslint.nodePath` - custom path to node modules directory, used to load tslint from a different location than the default of the current workspace or the global node modules directory.
+- `tslint.autoFixOnSave` - fix auto-fixable warnings when a file is saved. **Note:** Auto-fixing is only done when manually saving a file. It is not performed when the file is automatically saved based on the `files.autoSave` setting. Executing a manual save on an already-saved document will trigger auto-fixing.
+- `tslint.alwaysShowRuleFailuresAsWarnings` - always show rule failures as warnings, ignoring the severity configuration in the `tslint.json` configuration.
 
-# Auto fixing
+# Auto-fixing
 
-The extension supports automatic fixing of warnings as support by tslint. For warnings which support an auto fix, a light bulb is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
-* clicking the light bulb appearing or by executing the `Quick Fix`, when the mouse is over the errornous code
+The extension supports automatic fixing of warnings to the extent supported by tslint. For warnings which support an auto-fix, a light bulb is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
+* clicking the light bulb appearing or by executing the `Quick Fix`, when the mouse is over the erroneous code
 * or using the command `Fix all auto-fixable problems`.
 
-**Notice** overlapping auto fixes are currently not supported [#164](https://github.com/Microsoft/vscode-tslint/issues/164).
+**Note:** overlapping auto-fixes are currently unsupported [#164](https://github.com/Microsoft/vscode-tslint/issues/164).
 
 # ProblemPatterns and ProblemMatchers
 
-The extension contributes a `tslint4` and a `tslint5` `ProblemMatcher` and corresponding problem patterns. You can use these variables when defining a tslint task in your `task.json` file. The `tslint5` problem matcher matches the rule
-severities introduced in version 5 of tslint.
+The extension contributes a `tslint4` and a `tslint5` `ProblemMatcher` and corresponding problem patterns. You can use these variables when defining a tslint task in your `task.json` file. The `tslint5` problem matcher matches the rule severities introduced in version 5 of tslint.
 
 The problem matcher is defined as follows:
 ```json
@@ -50,7 +49,7 @@ The problem matcher is defined as follows:
 
 The meaning of the different attributes is:
 - the `owner` attribute is set to `tslint` so that the warnings extracted by the problem matcher go into the same collection
-as the warnings produced by this extension. In this way you will not see duplicates warnings.
+as the warnings produced by this extension. This will prevent showing duplicate warnings.
 - the `applyTo` attribute is defined so that the problem matcher only runs on documents that are not open in an editor. An open document is already validated by the extension as the user types.
 - the `fileLocation` is taken as an absolute path. This is correct for the output from `gulp`. When tslint is launched on the command line directly or from a package.json script then the file location is reported relative and you need to overwrite the value of this attribute (see below).
 - the `severity` defaults to `warning` unless the rule is configured to report errors.
@@ -93,7 +92,7 @@ gulp.task('tslint', () => {
 });
 ```
 
-Next define a Task which runs the gulp task with a problem matcher that extracts the tslint errors into warnings.
+Next, define a Task which runs the gulp task with a problem matcher that extracts the tslint errors into warnings.
 
 ```json
 {
