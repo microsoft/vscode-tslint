@@ -813,7 +813,7 @@ function sortFixes(fixes: AutoFix[]): AutoFix[] {
 	});
 }
 
-function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
+export function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 	if (!lastFix) {
 		return false;
 	}
@@ -843,7 +843,7 @@ function getLastEdit(array: AutoFix[]): AutoFix {
 	return array[length - 1];
 }
 
-function getAllNonOverlappingFixes(fixes: AutoFix[]): AutoFix[] {
+export function getAllNonOverlappingFixes(fixes: AutoFix[]): AutoFix[] {
 	let nonOverlapping: AutoFix[] = [];
 	fixes = sortFixes(fixes);
 	for (let autofix of fixes) {

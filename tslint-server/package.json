@@ -13,13 +13,17 @@
   },
   "devDependencies": {
     "@types/minimatch": "^2.0.29",
+    "@types/mocha": "^2.2.41",
     "@types/node": "^6.0.41",
     "@types/semver": "^5.3.30",
-    "typescript": "^2.0.3",
-    "tslint": "^5.0.0"
+    "mocha": "^3.3.0",
+    "tslint": "^5.0.0",
+    "typescript": "^2.0.3"
   },
   "scripts": {
     "compile": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc -p ./src",
-    "watch": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc --watch -p ./src"
+    "watch": "installServerIntoExtension ../tslint ./package.json ./src/tsconfig.json && tsc --watch -p ./src",
+    "pretest": "tsc -p test",
+    "test": "mocha"
   }
 }

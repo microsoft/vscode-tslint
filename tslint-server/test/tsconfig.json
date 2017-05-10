@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": true,
+		"lib": [
+			"es6"
+		]
+	},
+	"exclude": [
+		"node_modules"
+	]
+}
