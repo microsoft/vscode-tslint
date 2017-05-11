@@ -11,6 +11,8 @@ then try to install tslint and its typescript dependency globally using `npm ins
 
 # Configuration options
 
+**Notice** this configuration settings allow you to configure the behaviour of the vscode-tslint extension. To configure rules and tslint options you should use the `tslint.json` file.
+
 - `tslint.enable` - enable/disable tslint.
 - `tslint.jsEnable` - enable/disable tslint for .js files, default is `false`.
 - `tslint.run` - run the linter `onSave` or `onType`, default is `onType`.
@@ -29,7 +31,7 @@ The extension supports automatic fixing of warnings as support by tslint. For wa
 * clicking the light bulb appearing or by executing the `Quick Fix`, when the mouse is over the errornous code
 * or using the command `Fix all auto-fixable problems`.
 
-**Notice** overlapping auto fixes are currently not supported [#164](https://github.com/Microsoft/vscode-tslint/issues/164).
+When there are overlapping auto fixes a user will have to trigger `Fix all auto-fixable problems` more than once.
 
 # ProblemPatterns and ProblemMatchers
 
