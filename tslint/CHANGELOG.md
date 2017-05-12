@@ -1,3 +1,9 @@
+## 0.15.0
+- fix for [#164](https://github.com/Microsoft/vscode-tslint/issues/164) Auto fixer for ordered-imports does not work with multiline named imports
+- fix for [#183](https://github.com/Microsoft/vscode-tslint/issues/183) Overlapping fix ranges cause errors which eventually disables `autoFixOnSave`
+- fix for [#202](https://github.com/Microsoft/vscode-tslint/issues/202) In TSLint section for settings.json, explain that TSLint settings are configured in tslint.json
+- fix for [#206](https://github.com/Microsoft/vscode-tslint/issues/202) Tslint failed to load error should mention that TypeScript is a peer dependency to tslint
+
 ## 0.14.0
 - fix for [#163](https://github.com/Microsoft/vscode-tslint/issues/163) tslint.autoFixOnSave often goes rogue and adds semi-colons everywhere.
   - Auto fix is now only run when the user manually saves a file.

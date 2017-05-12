@@ -29,10 +29,6 @@ interface Settings {
 	};
 }
 
-interface Map<V> {
-	[key: string]: V;
-}
-
 class ID {
 	private static base: string = `${Date.now().toString()}-`;
 	private static counter: number = 0;
@@ -77,7 +73,7 @@ let settings: Settings = null;
 let linter: typeof tslint.Linter = null;
 let linterConfiguration: typeof tslint.Configuration = null;
 
-let validationDelayer: Map<Delayer<void>> = Object.create(null); // key is the URI of the document
+let validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
 
 let tslintNotFound =
 	`Failed to load tslint library. Please install tslint in your workspace
@@ -98,7 +94,7 @@ interface FixCreator {
 	(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit;
 }
 
-let fixes: Map<FixCreator> = Object.create(null);
+let fixes = new Map<string, FixCreator>();
 
 let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
 	// error message: ' should be "   or " should be '
@@ -247,11 +243,11 @@ function makeDiagnostic(problem: tslint.RuleFailure): server.Diagnostic {
 	return diagnostic;
 }
 
-let codeFixActions: Map<Map<AutoFix>> = Object.create(null);
-let codeDisableRuleActions: Map<Map<AutoFix>> = Object.create(null);
+let codeFixActions = new Map<string, Map<string, tslint.RuleFailure>>();
+let codeDisableRuleActions = new Map<string, Map<string, tslint.RuleFailure>>();
 
 function recordCodeAction(document: server.TextDocument, diagnostic: server.Diagnostic, problem: tslint.RuleFailure): void {
-	let documentDisableRuleFixes: Map<AutoFix> = codeDisableRuleActions[document.uri];
+	let documentDisableRuleFixes: Map<string, AutoFix> = codeDisableRuleActions[document.uri];
 	if (!documentDisableRuleFixes) {
 		documentDisableRuleFixes = Object.create(null);
 		codeDisableRuleActions[document.uri] = documentDisableRuleFixes;
@@ -274,7 +270,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 		return;
 	}
 
-	let documentAutoFixes: Map<AutoFix> = codeFixActions[document.uri];
+	let documentAutoFixes: Map<string, AutoFix> = codeFixActions[document.uri];
 	if (!documentAutoFixes) {
 		documentAutoFixes = Object.create(null);
 		codeFixActions[document.uri] = documentAutoFixes;
@@ -813,7 +809,7 @@ function sortFixes(fixes: AutoFix[]): AutoFix[] {
 	});
 }
 
-function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
+export function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 	if (!lastFix) {
 		return false;
 	}
@@ -843,7 +839,7 @@ function getLastEdit(array: AutoFix[]): AutoFix {
 	return array[length - 1];
 }
 
-function getAllNonOverlappingFixes(fixes: AutoFix[]): AutoFix[] {
+export function getAllNonOverlappingFixes(fixes: AutoFix[]): AutoFix[] {
 	let nonOverlapping: AutoFix[] = [];
 	fixes = sortFixes(fixes);
 	for (let autofix of fixes) {
