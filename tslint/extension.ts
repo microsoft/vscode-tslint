@@ -161,14 +161,14 @@ export function activate(context: ExtensionContext) {
 						client.info([
 							'Failed to load the TSLint library.',
 							'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
-							'TSLint has a peer dependency on `typescript`, make sure that `typescript` installed as well.',
+							'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
 							'You need to reopen the workspace after installing tslint.',
 						].join('\n'));
 					} else {
 						client.info([
 							'Failed to load the TSLint library.',
 							'To use TSLint for single TypeScript files install tslint globally using \'npm install -g tslint\'.',
-							'TSLint has a peer dependency on `typescript`, make sure that `typescript` installed as well.',
+							'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
 							'You need to reopen VS Code after installing tslint.',
 						].join('\n'));
 					}
