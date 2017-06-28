@@ -714,6 +714,18 @@ connection.onCodeAction((params) => {
 			}
 		}
 	}
+	// quick fix to show the rule documentation
+	if (documentFixes) {
+		for (let diagnostic of params.context.diagnostics) {
+			let autoFix = disableRuleFixes[computeKey(diagnostic)];
+			if (autoFix) {
+				documentVersion = autoFix.documentVersion;
+				let ruleId = autoFix.problem.getRuleName();
+				result.push(server.Command.create(`Show documentation for "${ruleId}"`, '_tslint.showRuleDocumentation', uri, documentVersion, null, ruleId));
+			}
+		}
+	}
+
 	return result;
 });
 

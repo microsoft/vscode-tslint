@@ -6,6 +6,8 @@ import {
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
 } from 'vscode-languageclient';
 
+const open = require('open');
+
 const tslintConfig: string = [
 	'{',
 	'	"rules": {',
@@ -27,6 +29,7 @@ interface AllFixesParams {
 interface AllFixesResult {
 	documentVersion: number;
 	edits: TextEdit[];
+	ruleId?: string
 }
 
 namespace AllFixesRequest {
@@ -79,7 +82,7 @@ export function activate(context: ExtensionContext) {
 				statusBarItem.color = 'yellow'; // darkred doesn't work
 				break;
 		}
-		if (tslintStatus !== Status.ok && status == Status.ok) { // an error got addressed fix, write to the output that the status is OK
+		if (tslintStatus !== Status.ok && status === Status.ok) { // an error got addressed fix, write to the output that the status is OK
 			client.info('vscode-tslint: Status is OK');
 		}
 		tslintStatus = status;
@@ -263,6 +266,13 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
+	function showRuleDocumentation(uri: string, documentVersion: number, edits: TextEdit[], ruleId: string) {
+		const tslintDocBaseURL = "https://palantir.github.io/tslint/rules";
+		if (!ruleId) {
+			return;
+		}
+		open(tslintDocBaseURL+'/'+ruleId);
+	}
 
 	function fixAllProblems() {
 		let textEditor = window.activeTextEditor;
@@ -331,6 +341,7 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('_tslint.applySameFixes', applyTextEdits),
 		commands.registerCommand('_tslint.applyAllFixes', applyTextEdits),
 		commands.registerCommand('_tslint.applyDisableRule', applyDisableRuleEdit),
+		commands.registerCommand('_tslint.showRuleDocumentation', showRuleDocumentation),
 		// user commands
 		commands.registerCommand('tslint.fixAllProblems', fixAllProblems),
 		commands.registerCommand('tslint.createConfig', createDefaultConfiguration),

@@ -1,3 +1,8 @@
+## 0.16.0
+- Added quick fix to show the documentation of a rule.
+- Added description to the contributed variables `tslint4` and `tslint5`.
+
+
 ## 0.15.0
 - fix for [#164](https://github.com/Microsoft/vscode-tslint/issues/164) Auto fixer for ordered-imports does not work with multiline named imports
 - fix for [#183](https://github.com/Microsoft/vscode-tslint/issues/183) Overlapping fix ranges cause errors which eventually disables `autoFixOnSave`
