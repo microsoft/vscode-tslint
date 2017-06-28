@@ -157,6 +157,7 @@
 		"problemMatchers": [
 			{
 				"name": "tslint4",
+				"label": "tslint (version 4) warnings",
 				"owner": "tslint",
 				"applyTo": "closedDocuments",
 				"fileLocation": "absolute",
@@ -166,6 +167,7 @@
 			{
 				"name": "tslint5",
 				"owner": "tslint",
+				"label": "tslint (version 5) warnings",
 				"applyTo": "closedDocuments",
 				"fileLocation": "absolute",
 				"severity": "warning",
