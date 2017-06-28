@@ -6,7 +6,7 @@
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"publisher": "eg2",
-	"icon": "TSLint_icon.svg",
+	"icon": "TSLint_icon.png",
 	"galleryBanner": {
 		"color": "#5c2d91",
 		"theme": "dark"
