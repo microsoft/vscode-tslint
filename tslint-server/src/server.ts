@@ -385,7 +385,7 @@ function trace(message: string, verbose?: string): void {
 	connection.tracer.log(message, verbose);
 }
 
-connection.onInitialize((params): Thenable<server.InitializeResult | server.ResponseError<server.InitializeError>> => {
+connection.onInitialize((params) => {
 	let rootFolder = params.rootPath;
 	let initOptions: {
 		nodePath: string;
@@ -393,7 +393,7 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 	let nodePath = initOptions ? (initOptions.nodePath ? initOptions.nodePath : undefined) : undefined;
 
 	return server.Files.resolveModule2(rootFolder, 'tslint', nodePath, trace).
-		then((value): server.InitializeResult | server.ResponseError<server.InitializeError> => {
+		then((value) => {
 			linter = value.Linter;
 			linterConfiguration = value.Configuration;
 
@@ -403,7 +403,12 @@ connection.onInitialize((params): Thenable<server.InitializeResult | server.Resp
 			if (!isTsLint4) {
 				linter = value;
 			}
-			let result: server.InitializeResult = { capabilities: { textDocumentSync: documents.syncKind, codeActionProvider: true } };
+			let result: server.InitializeResult = {
+				capabilities: {
+					textDocumentSync: documents.syncKind,
+					codeActionProvider: true
+				}
+			};
 			return result;
 		}, (error) => {
 			// We only want to show the tslint load failed error, when the workspace is configured for tslint.
