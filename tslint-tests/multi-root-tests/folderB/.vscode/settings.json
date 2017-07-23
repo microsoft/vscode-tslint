@@ -1,0 +1,14 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "tslint.alwaysShowRuleFailuresAsWarnings": true,
+    // "tslint.autoFixOnSave": false,
+    // "tslint.ignoreDefinitionFiles": true,
+    // "tslint.jsEnable": false,
+    "tslint.configFile": "FolderB"
+    // "tslint.exclude": "",
+    // "tslint.rulesDirectory": "",
+    // "tslint.nodePath": "",
+    // "tslint.enable": true,
+    // "tslint.run": "onType",
+    // "tslint.validateWithDefaultConfig": false
+}

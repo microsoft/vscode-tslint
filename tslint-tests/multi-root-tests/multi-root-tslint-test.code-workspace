@@ -1,0 +1,8 @@
+{
+	"id": "1500818222048",
+	"folders": [
+		"file:///c:/Users/egamma/Projects/vscode-tslint/tslint-tests/multi-root-tests/folderA",
+		"file:///c:/Users/egamma/Projects/vscode-tslint/tslint-tests/multi-root-tests/folderB"
+	],
+	"settings": {}
+}
