@@ -24,6 +24,7 @@ const tslintConfig: string = [
 
 interface AllFixesParams {
 	textDocument: TextDocumentIdentifier;
+	isOnSave: boolean;
 }
 
 interface AllFixesResult {
@@ -315,7 +316,7 @@ export function activate(context: ExtensionContext) {
 				}
 				const version = document.version;
 				event.waitUntil(
-					client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() } }).then((result) => {
+					client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then((result) => {
 						if (result && version === result.documentVersion) {
 							return client.protocol2CodeConverter.asTextEdits(result.edits);
 						} else {

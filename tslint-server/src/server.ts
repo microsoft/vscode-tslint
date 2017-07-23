@@ -26,7 +26,7 @@ interface Settings {
 		validateWithDefaultConfig: boolean;
 		run: 'onSave' | 'onType';
 		alwaysShowRuleFailuresAsWarnings: boolean,
-		autoFixableRules: string[]
+		autoFixOnSave: boolean | string[]
 	};
 }
 
@@ -874,6 +874,7 @@ function createTextEdit(autoFix: AutoFix): server.TextEdit[] {
 
 interface AllFixesParams {
 	textDocument: server.TextDocumentIdentifier;
+	isOnSave: boolean;
 }
 
 interface AllFixesResult {
@@ -905,10 +906,11 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 	}
 
 	// Filter out fixes for problems that aren't set to be autofixable on save
-	const autoFixableRules = settings.tslint.autoFixableRules;
-
-	if (autoFixableRules.length > 0) {
-		fixes = fixes.filter(x => settings.tslint.autoFixableRules.indexOf(x.problem.getRuleName()) > -1);
+	if (params.isOnSave && Array.isArray(settings.tslint.autoFixOnSave)) {
+		const autoFixOnSave = settings.tslint.autoFixOnSave as Array<string>;
+		if (autoFixOnSave.length > 0) {
+			fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
+		}
 	}
 
 	let allFixes = getAllNonOverlappingFixes(fixes);

@@ -1,10 +1,11 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "files.autoSave": "off",
-    "tslint.autoFixOnSave": true,
+    "tslint.autoFixOnSave": [
+        "arrow-parens"
+    ],
     // "tslint.nodePath": "c:\\tmp",
-    "tslint.jsEnable": true,
+    "tslint.jsEnable": true
     // "tslint.trace.server": "verbose"
     // "tslint.alwaysShowRuleFailuresAsWarnings": true,
-    "tslint.autoFixableRules": []
 }
