@@ -908,9 +908,7 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 	// Filter out fixes for problems that aren't set to be autofixable on save
 	if (params.isOnSave && Array.isArray(settings.tslint.autoFixOnSave)) {
 		const autoFixOnSave = settings.tslint.autoFixOnSave as Array<string>;
-		if (autoFixOnSave.length > 0) {
-			fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
-		}
+		fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
 	}
 
 	let allFixes = getAllNonOverlappingFixes(fixes);
