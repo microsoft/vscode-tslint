@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason } from 'vscode';
+import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
@@ -49,6 +49,32 @@ interface StatusParams {
 
 namespace StatusNotification {
 	export const type = new NotificationType<StatusParams, void>('tslint/status');
+}
+
+interface SettingsRequestParams {
+	textDocument: TextDocumentIdentifier;
+}
+
+interface Settings {
+	tslint: {
+		enable: boolean;
+		jsEnable: boolean;
+		rulesDirectory: string | string[];
+		configFile?: string;
+		ignoreDefinitionFiles?: boolean;
+		exclude?: string | string[];
+		validateWithDefaultConfig?: boolean;
+		run?: 'onSave' | 'onType';
+		alwaysShowRuleFailuresAsWarnings?: boolean
+	}
+}
+
+interface SettingsRequestResult {
+	settings: Settings;
+}
+
+namespace SettingsRequest {
+	export const type = new RequestType<SettingsRequestParams, SettingsRequestResult, void, void>('textDocument/tslint/settings');
 }
 
 let willSaveTextDocument: Disposable;
@@ -230,6 +256,26 @@ export function activate(context: ExtensionContext) {
 	client.onReady().then(() => {
 		client.onNotification(StatusNotification.type, (params) => {
 			updateStatus(params.state);
+		});
+		client.onRequest(SettingsRequest.type, (params) => {
+			let uri = params.textDocument.uri;
+			let config = workspace.getConfiguration2('tslint', Uri.file(uri));
+			let result: SettingsRequestResult = {
+				settings: {
+					tslint: {
+						enable: config.get<boolean>('enable'),
+						jsEnable: config.get<boolean>('jsEnable'),
+						rulesDirectory: config.get('rulesDirectory'),
+						configFile: 'fromClient',//config.get<string>('configFile'),
+						ignoreDefinitionFiles: config.get<boolean>('ignoreDefinitionFiles'),
+						exclude: config.get<string>('exclude'),
+						validateWithDefaultConfig: config.get<boolean>('validateWithDefaultConfig'),
+						run: config.get('run'),
+						alwaysShowRuleFailuresAsWarnings: config.get<boolean>('alwaysShowRuleFailuresAsWarnings')
+					}
+				}
+			}
+			return result;
 		});
 	});
 

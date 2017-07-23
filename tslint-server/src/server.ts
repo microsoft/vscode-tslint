@@ -69,6 +69,18 @@ namespace StatusNotification {
 	export const type = new server.NotificationType<StatusParams, void>('tslint/status');
 }
 
+interface SettingsRequestParams {
+	textDocument: server.TextDocumentIdentifier;
+}
+
+interface SettingsRequestResult {
+	settings: Settings;
+}
+
+namespace SettingsRequest {
+	export const type = new server.RequestType<SettingsRequestParams, SettingsRequestResult, void, void>('textDocument/tslint/settings');
+}
+
 let settings: Settings = null;
 
 let linter: typeof tslint.Linter = null;
@@ -449,6 +461,10 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		// tslint can only lint files on disk
 		return diagnostics;
 	}
+
+	connection.sendRequest(SettingsRequest.type, { textDocument: { uri } }).then((result) => {
+		// connection.window.showErrorMessage('hello='+result.settings.tslint.configFile);
+	});
 
 	if (fileIsExcluded(fsPath)) {
 		return diagnostics;
