@@ -25,7 +25,8 @@ interface Settings {
 		exclude: string | string[];
 		validateWithDefaultConfig: boolean;
 		run: 'onSave' | 'onType';
-		alwaysShowRuleFailuresAsWarnings: boolean
+		alwaysShowRuleFailuresAsWarnings: boolean,
+		autoFixableRules: string[]
 	};
 }
 
@@ -838,7 +839,7 @@ export function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 				return true;
 			} else if (last.range[1].line < next.range[0].line) {
 				return false;
-			} else if (last.range[1].character >= next.range[0].character){
+			} else if (last.range[1].character >= next.range[0].character) {
 				doesOverlap = true;
 				return true;
 			}
@@ -902,6 +903,14 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 			break;
 		}
 	}
+
+	// Filter out fixes for problems that aren't set to be autofixable on save
+	const autoFixableRules = settings.tslint.autoFixableRules;
+
+	if (autoFixableRules.length > 0) {
+		fixes = fixes.filter(x => settings.tslint.autoFixableRules.indexOf(x.problem.getRuleName()) > -1);
+	}
+
 	let allFixes = getAllNonOverlappingFixes(fixes);
 
 	result = {

@@ -23,7 +23,7 @@
     "Linters"
   ],
   "engines": {
-    "vscode": "^1.6.0"
+    "vscode": "^1.8.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
@@ -109,6 +109,11 @@
           "type": "boolean",
           "default": false,
           "description": "Always show rule failures as warnings, independent of the tslint configuration."
+        },
+        "tslint.autoFixableRules": {
+          "type": "array",
+          "default": [],
+          "description": "List of rules to be autofixed when autoFixOnSave is enabled."
         }
       }
     },
