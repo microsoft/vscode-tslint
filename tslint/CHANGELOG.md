@@ -1,3 +1,7 @@
+
+## 0.17.0
+- Added support to define which auto fixes should be applied automatically on save [#152](https://github.com/Microsoft/vscode-tslint/issues/152). 
+
 ## 0.16.0
 - Added quick fix to show the documentation of a rule.
 - Added description to the contributed variables `tslint4` and `tslint5`.

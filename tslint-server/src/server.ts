@@ -907,6 +907,7 @@ namespace AllFixesRequest {
 connection.onRequest(AllFixesRequest.type, (params) => {
 	let result: AllFixesResult = null;
 	let uri = params.textDocument.uri;
+	let isOnSave = params.isOnSave;
 	let documentFixes = codeFixActions[uri];
 	let documentVersion: number = -1;
 
@@ -923,8 +924,8 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 		}
 	}
 
-	// Filter out fixes for problems that aren't set to be autofixable on save
-	if (params.isOnSave && Array.isArray(settings.tslint.autoFixOnSave)) {
+	// Filter out fixes for problems that aren't defined to be autofixable on save
+	if (isOnSave && Array.isArray(settings.tslint.autoFixOnSave)) {
 		const autoFixOnSave = settings.tslint.autoFixOnSave as Array<string>;
 		fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
 	}
