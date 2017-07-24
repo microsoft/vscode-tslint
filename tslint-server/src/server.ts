@@ -25,7 +25,8 @@ interface Settings {
 		exclude: string | string[];
 		validateWithDefaultConfig: boolean;
 		run: 'onSave' | 'onType';
-		alwaysShowRuleFailuresAsWarnings: boolean
+		alwaysShowRuleFailuresAsWarnings: boolean,
+		autoFixOnSave: boolean | string[]
 	};
 }
 
@@ -838,7 +839,7 @@ export function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 				return true;
 			} else if (last.range[1].line < next.range[0].line) {
 				return false;
-			} else if (last.range[1].character >= next.range[0].character){
+			} else if (last.range[1].character >= next.range[0].character) {
 				doesOverlap = true;
 				return true;
 			}
@@ -873,6 +874,7 @@ function createTextEdit(autoFix: AutoFix): server.TextEdit[] {
 
 interface AllFixesParams {
 	textDocument: server.TextDocumentIdentifier;
+	isOnSave: boolean;
 }
 
 interface AllFixesResult {
@@ -902,6 +904,13 @@ connection.onRequest(AllFixesRequest.type, (params) => {
 			break;
 		}
 	}
+
+	// Filter out fixes for problems that aren't set to be autofixable on save
+	if (params.isOnSave && Array.isArray(settings.tslint.autoFixOnSave)) {
+		const autoFixOnSave = settings.tslint.autoFixOnSave as Array<string>;
+		fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
+	}
+
 	let allFixes = getAllNonOverlappingFixes(fixes);
 
 	result = {

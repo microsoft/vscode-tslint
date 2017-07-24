@@ -23,7 +23,7 @@
     "Linters"
   ],
   "engines": {
-    "vscode": "^1.6.0"
+    "vscode": "^1.8.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
@@ -101,9 +101,12 @@
           "description": "A path added to NODE_PATH when resolving the tslint module."
         },
         "tslint.autoFixOnSave": {
-          "type": "boolean",
+          "type": [
+            "boolean",
+            "array"
+          ],
           "default": false,
-          "description": "Turns auto fix on save on or off."
+          "description": "Turns auto fix on save on or off, or sets which rules to auto fix on save."
         },
         "tslint.alwaysShowRuleFailuresAsWarnings": {
           "type": "boolean",
