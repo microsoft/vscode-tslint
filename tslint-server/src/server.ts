@@ -462,9 +462,11 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 		return diagnostics;
 	}
 
-	connection.sendRequest(SettingsRequest.type, { textDocument: { uri } }).then((result) => {
-		// connection.window.showErrorMessage('hello='+result.settings.tslint.configFile);
-	});
+	// Experiment with supporting settings in the multi root folder setup
+	// Currently blocked on https://github.com/Microsoft/vscode/issues/31282
+	// connection.sendRequest(SettingsRequest.type, { textDocument: { uri } }).then((result) => {
+	// 	// connection.window.showErrorMessage('hello='+result.settings.tslint.configFile);
+	// });
 
 	if (fileIsExcluded(fsPath)) {
 		return diagnostics;
