@@ -25,7 +25,6 @@
   "engines": {
     "vscode": "^1.8.0"
   },
-  "enableProposedApi": true,
   "activationEvents": [
     "onLanguage:typescript",
     "onLanguage:typescriptreact",
