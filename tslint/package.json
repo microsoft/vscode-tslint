@@ -23,7 +23,7 @@
     "Linters"
   ],
   "engines": {
-    "vscode": "^1.8.0"
+    "vscode": "^0.10.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
@@ -48,7 +48,8 @@
         "tslint.jsEnable": {
           "type": "boolean",
           "default": false,
-          "description": "Control whether tslint is enabled for JavaScript files or not."
+          "description": "Control whether tslint is enabled for JavaScript files or not.",
+          "scope": "resource"
         },
         "tslint.rulesDirectory": {
           "type": [
@@ -59,22 +60,26 @@
             "type": "string"
           },
           "description": "An additional rules directory",
-          "default": ""
+          "default": "",
+          "scope": "resource"
         },
         "tslint.validateWithDefaultConfig": {
           "type": "boolean",
           "description": "Validate a file when there is only a default tslint configuration is found",
-          "default": false
+          "default": false,
+          "scope": "resource"
         },
         "tslint.configFile": {
           "type": "string",
           "description": "The path to the rules configuration file",
-          "default": ""
+          "default": "",
+          "scope": "resource"
         },
         "tslint.ignoreDefinitionFiles": {
           "type": "boolean",
           "default": true,
-          "description": "Control if TypeScript definition files should be ignored"
+          "description": "Control if TypeScript definition files should be ignored",
+          "scope": "resource"
         },
         "tslint.exclude": {
           "type": [
@@ -84,7 +89,8 @@
           "items": {
             "type": "string"
           },
-          "description": "Configure glob patterns of file paths to exclude from linting"
+          "description": "Configure glob patterns of file paths to exclude from linting",
+          "scope": "resource"
         },
         "tslint.run": {
           "type": "string",
@@ -93,12 +99,15 @@
             "onType"
           ],
           "default": "onType",
-          "description": "Run the linter on save (onSave) or on type (onType)"
+          "description": "Run the linter on save (onSave) or on type (onType)",
+          "scope": "window"
+
         },
         "tslint.nodePath": {
           "type": "string",
           "default": "",
-          "description": "A path added to NODE_PATH when resolving the tslint module."
+          "description": "A path added to NODE_PATH when resolving the tslint module.",
+          "scope": "window"
         },
         "tslint.autoFixOnSave": {
           "type": [
@@ -109,12 +118,14 @@
             "type": "string"
           },
           "default": false,
-          "description": "Turns auto fix on save on or off, or defines which rules (e.g. `no-var-keyword`) to auto fix on save."
+          "description": "Turns auto fix on save on or off, or defines which rules (e.g. `no-var-keyword`) to auto fix on save.",
+          "scope": "resource"
         },
         "tslint.alwaysShowRuleFailuresAsWarnings": {
           "type": "boolean",
           "default": false,
-          "description": "Always show rule failures as warnings, independent of the tslint configuration."
+          "description": "Always show rule failures as warnings, independent of the tslint configuration.",
+          "scope": "resource"
         }
       }
     },
