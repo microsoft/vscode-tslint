@@ -1,0 +1,19 @@
+{
+  "name": "tslint-issues",
+  "version": "1.0.0",
+  "description": "dummy project containing dummies files to raise tslint problems and check that correction are working fine",
+  "main": "index.js",
+  "scripts": {
+    "lint": "tslint tests/*.ts -t verbose"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-tslint": "^8.0.0",
+    "tslint": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^2.2.2"
+  }
+}
