@@ -1,0 +1,13 @@
+{
+  "name": "tslint-issues",
+  "version": "1.0.0",
+  "description": "Setup with no local tslint module installed",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^2.2.2"
+  }
+}

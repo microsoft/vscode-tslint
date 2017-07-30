@@ -8,6 +8,7 @@ import * as server from 'vscode-languageserver';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
+import Uri from 'vscode-uri';
 
 import * as tslint from 'tslint'; // this is a dev dependency only
 
@@ -69,6 +70,17 @@ namespace StatusNotification {
 	export const type = new server.NotificationType<StatusParams, void>('tslint/status');
 }
 
+interface NoTSLintLibraryParams {
+	source: server.TextDocumentIdentifier;
+}
+
+interface NoTSLintLibraryResult {
+}
+
+namespace NoTSLintLibraryRequest {
+	export const type = new server.RequestType<NoTSLintLibraryParams, NoTSLintLibraryResult, void, void>('tslint/noLibrary');
+}
+
 interface SettingsRequestParams {
 	textDocument: server.TextDocumentIdentifier;
 }
@@ -81,10 +93,15 @@ namespace SettingsRequest {
 	export const type = new server.RequestType<SettingsRequestParams, SettingsRequestResult, void, void>('textDocument/tslint/settings');
 }
 
+let globalNodePath: string = undefined;
+let nodePath: string = undefined;
+let workspaceRoot: string = undefined;
+
 let settings: Settings = null;
 
-let linter: typeof tslint.Linter = null;
-let linterConfiguration: typeof tslint.Configuration = null;
+// if tslint < tslint4 then the linter is the module therefore the type `any`
+let path2Library: Map<string, typeof tslint.Linter | any> = new Map();
+let document2Library: Map<string, Thenable<typeof tslint.Linter | any>> = new Map();
 
 let validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
 
@@ -214,7 +231,6 @@ export function createVscFixForRuleFailure(problem: tslint.RuleFailure, document
 let configFile: string = null;
 let configFileWatcher: fs.FSWatcher = null;
 let configuration: tslint.Configuration.IConfigurationFile = null;
-let isTsLint4: boolean = true;
 
 let configCache = {
 	filePath: <string>null,
@@ -300,7 +316,7 @@ function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint
 	};
 }
 
-function getConfiguration(filePath: string, configFileName: string): any {
+function getConfiguration(filePath: string, library: any, configFileName: string): any {
 	if (configCache.configuration && configCache.filePath === filePath) {
 		return configCache.configuration;
 	}
@@ -308,11 +324,12 @@ function getConfiguration(filePath: string, configFileName: string): any {
 	let isDefaultConfig = false;
 	let configuration;
 
-	if (isTsLint4) {
-		if (linterConfiguration.findConfigurationPath) {
-			isDefaultConfig = linterConfiguration.findConfigurationPath(configFileName, filePath) === undefined;
+	let linter = getLinterFromLibrary(library);
+	if (isTsLintVersion4(library)) {
+		if (linter.findConfigurationPath) {
+			isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
 		}
-		let configurationResult = linterConfiguration.findConfiguration(configFileName, filePath);
+		let configurationResult = linter.findConfiguration(configFileName, filePath);
 
 		// between tslint 4.0.1 and tslint 4.0.2 the attribute 'error' has been removed from IConfigurationLoadResult
 		// in 4.0.2 findConfiguration throws an exception as in version ^3.0.0
@@ -364,29 +381,54 @@ function getConfigurationFailureMessage(err: any): string {
 
 function showConfigurationFailure(conn: server.IConnection, err: any) {
 	conn.console.info(getConfigurationFailureMessage(err));
-	connection.sendNotification(StatusNotification.type, { state: Status.error });
+	conn.sendNotification(StatusNotification.type, { state: Status.error });
 }
 
-function validateAllTextDocuments(connection: server.IConnection, documents: server.TextDocument[]): void {
+function validateAllTextDocuments(conn: server.IConnection, documents: server.TextDocument[]): void {
 	let tracker = new server.ErrorMessageTracker();
 	documents.forEach(document => {
 		try {
-			validateTextDocument(connection, document);
+			validateTextDocument(conn, document);
 		} catch (err) {
 			tracker.add(getErrorMessage(err, document));
 		}
 	});
-	tracker.sendErrors(connection);
 }
 
-function validateTextDocument(connection: server.IConnection, document: server.TextDocument): void {
-	try {
-		let uri = document.uri;
-		let diagnostics = doValidate(connection, document);
-		connection.sendDiagnostics({ uri, diagnostics });
-	} catch (err) {
-		connection.window.showErrorMessage(getErrorMessage(err, document));
+function getLinterFromLibrary(library): typeof tslint.Linter {
+	let isTsLint4 = isTsLintVersion4(library);
+	let linter;
+	if (!isTsLint4) {
+		linter = library;
+	} else {
+		linter = library.Linter
 	}
+	return linter;
+}
+
+function validateTextDocument(connection: server.IConnection, document: server.TextDocument) {
+	let uri = document.uri;
+
+	if (!document2Library.has(document.uri)) {
+		loadLibrary(document.uri);
+	}
+
+	if (!document2Library.has(document.uri)) {
+		return;
+	}
+
+	document2Library.get(document.uri).then((library) => {
+		if (!library) {
+			return;
+		}
+		try {
+			let diagnostics = doValidate(connection, library, document);
+			connection.sendDiagnostics({ uri, diagnostics });
+			connection.sendNotification(StatusNotification.type, { state: Status.ok });
+		} catch (err) {
+			connection.window.showErrorMessage(getErrorMessage(err, document));
+		}
+	});
 }
 
 let connection: server.IConnection = server.createConnection(new server.IPCMessageReader(process), new server.IPCMessageWriter(process));
@@ -399,59 +441,63 @@ function trace(message: string, verbose?: string): void {
 }
 
 connection.onInitialize((params) => {
-	let rootFolder = params.rootPath;
 	let initOptions: {
+		legacyModuleResolve: boolean;
 		nodePath: string;
 	} = params.initializationOptions;
-	let nodePath = initOptions ? (initOptions.nodePath ? initOptions.nodePath : undefined) : undefined;
-
-	return server.Files.resolveModule2(rootFolder, 'tslint', nodePath, trace).
-		then((value) => {
-			linter = value.Linter;
-			linterConfiguration = value.Configuration;
-
-			isTsLint4 = isTsLintVersion4(linter);
-			// connection.window.showInformationMessage(isTsLint4 ? 'tslint4': 'tslint3');
-
-			if (!isTsLint4) {
-				linter = value;
-			}
-			let result: server.InitializeResult = {
-				capabilities: {
-					textDocumentSync: documents.syncKind,
-					codeActionProvider: true
-				}
-			};
-			return result;
-		}, (error) => {
-			// We only want to show the tslint load failed error, when the workspace is configured for tslint.
-			// However, only tslint knows whether a config file exists, but since we cannot load it we cannot ask it.
-			// For now we hard code a common case and only show the error in this case.
-			if (fs.existsSync('tslint.json')) {
-				return Promise.reject(
-					new server.ResponseError<server.InitializeError>(99,
-						tslintNotFound,
-						{ retry: true }));
-			}
-			// Respond that initialization failed silently, without prompting the user.
-			return Promise.reject(
-				new server.ResponseError<server.InitializeError>(100,
-					tslintNotFoundIgnored,
-					{ retry: false }));
-		});
+	workspaceRoot = params.rootPath;
+	nodePath = initOptions.nodePath;
+	globalNodePath = server.Files.resolveGlobalNodePath();
+	return {
+		capabilities: {
+			textDocumentSync: documents.syncKind,
+			codeActionProvider: true
+		}
+	};
 });
 
-function isTsLintVersion4(linter) {
+function isTsLintVersion4(library) {
 	let version = '1.0.0';
 	try {
-		version = linter.VERSION;
+		version = library.Linter.VERSION;
 	} catch (e) {
 	}
 	return !(semver.satisfies(version, "<= 3.x.x"));
 }
 
-function doValidate(conn: server.IConnection, document: server.TextDocument): server.Diagnostic[] {
+function loadLibrary(docUri: string) {
+	let uri = Uri.parse(docUri);
+	let promise: Thenable<string>;
+	if (uri.scheme === 'file') {
+		let file = uri.fsPath;
+		let directory = path.dirname(file);
+		if (nodePath) {
+			 promise = server.Files.resolve('tslint', nodePath, nodePath, trace).then<string, string>(undefined, () => {
+				 return server.Files.resolve('tslint', globalNodePath, directory, trace);
+			 });
+		} else {
+			promise = server.Files.resolve('tslint', globalNodePath, directory, trace);
+		}
+	} else {
+		promise = server.Files.resolve('tslint', globalNodePath, workspaceRoot, trace);
+	}
+	document2Library.set(docUri, promise.then((path) => {
+		let library;
+		if (!path2Library.has(path)) {
+			library = require(path);
+			connection.console.info(`TSLint library loaded from: ${path}`);
+			path2Library.set(path, library);
+		}
+		return path2Library.get(path);
+	}, () => {
+		connection.sendRequest(NoTSLintLibraryRequest.type, { source: { uri: docUri } });
+		return null;
+	}));
+}
+
+function doValidate(conn: server.IConnection, library: any, document: server.TextDocument): server.Diagnostic[] {
 	let uri = document.uri;
+
 	let diagnostics: server.Diagnostic[] = [];
 	delete codeFixActions[uri];
 	delete codeDisableRuleActions[uri];
@@ -463,9 +509,8 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	}
 
 	// Experiment with supporting settings in the multi root folder setup
-	// Currently blocked on https://github.com/Microsoft/vscode/issues/31282
 	// connection.sendRequest(SettingsRequest.type, { textDocument: { uri } }).then((result) => {
-	// 	// connection.window.showErrorMessage('hello='+result.settings.tslint.configFile);
+	// 	connection.window.showErrorMessage('hello='+result.settings.tslint.configFile);
 	// });
 
 	if (fileIsExcluded(fsPath)) {
@@ -475,7 +520,7 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 	let contents = document.getText();
 
 	try {
-		configuration = getConfiguration(fsPath, configFile);
+		configuration = getConfiguration(fsPath, library, configFile);
 	} catch (err) {
 		// this should not happen since we guard against incorrect configurations
 		showConfigurationFailure(conn, err);
@@ -496,7 +541,8 @@ function doValidate(conn: server.IConnection, document: server.TextDocument): se
 
 	let result: tslint.LintResult;
 	try { // protect against tslint crashes
-		if (isTsLint4) {
+		let linter = getLinterFromLibrary(library);
+		if (isTsLintVersion4(library)) {
 			let tslint = new linter(options);
 			tslint.lint(fsPath, contents, configuration);
 			result = tslint.getResult();
@@ -591,6 +637,7 @@ documents.onDidSave((event) => {
 documents.onDidClose((event) => {
 	// A text document was closed we clear the diagnostics
 	connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+	document2Library.delete(event.document.uri);
 });
 
 function triggerValidateDocument(document: server.TextDocument) {
@@ -610,7 +657,7 @@ function tslintConfigurationValid(): boolean {
 		documents.all().forEach((each) => {
 			let fsPath = server.Files.uriToFilePath(each.uri);
 			if (fsPath) {
-				getConfiguration(fsPath, configFile);
+				// TODO getConfiguration(fsPath, configFile);
 			}
 		});
 	} catch (err) {

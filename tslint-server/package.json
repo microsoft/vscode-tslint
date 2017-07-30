@@ -9,7 +9,8 @@
   "dependencies": {
     "minimatch": "^3.0.0",
     "vscode-languageserver": "^3.0.2-beta.3",
-    "semver": "^5.1.0"
+    "semver": "^5.1.0",
+    "vscode-uri": "^1.0.1"
   },
   "devDependencies": {
     "@types/minimatch": "^2.0.29",

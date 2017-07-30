@@ -37,6 +37,17 @@ namespace AllFixesRequest {
 	export const type = new RequestType<AllFixesParams, AllFixesResult, void, void>('textDocument/tslint/allFixes');
 }
 
+interface NoTSLintLibraryParams {
+	source: TextDocumentIdentifier;
+}
+
+interface NoTSLintLibraryResult {
+}
+
+namespace NoTSLintLibraryRequest {
+	export const type = new RequestType<NoTSLintLibraryParams, NoTSLintLibraryResult, void, void>('tslint/noLibrary');
+}
+
 enum Status {
 	ok = 1,
 	warn = 2,
@@ -184,55 +195,60 @@ export function activate(context: ExtensionContext) {
 			};
 		},
 		initializationFailedHandler: (error) => {
-			if (error instanceof ResponseError) {
-				let responseError = (error as ResponseError<InitializeError>);
-				if (responseError.code === 99) {
-					if (workspace.rootPath) {
-						client.info([
-							'Failed to load the TSLint library.',
-							'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
-							'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
-							'You need to reopen the workspace after installing tslint.',
-						].join('\n'));
-					} else {
-						client.info([
-							'Failed to load the TSLint library.',
-							'To use TSLint for single TypeScript files install tslint globally using \'npm install -g tslint\'.',
-							'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
-							'You need to reopen VS Code after installing tslint.',
-						].join('\n'));
-					}
-					// actively inform the user in the output channel
-					client.outputChannel.show(true);
-				} else if (responseError.code === 100) {
-					// inform the user but do not show the output channel
-					client.info([
-						'Failed to load the TSLint library.',
-						'Ignoring the failure since there is no \'tslint.json\' file at the root of this workspace.',
-					].join('\n'));
-				} else if (responseError.code === 101) {
-					if (workspace.rootPath) {
-						client.error([
-							'The extension requires at least version 4.0.0 of tslint.',
-							'Please install the latest version of tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
-							'You need to reopen the workspace after installing tslint.',
-						].join('\n'));
-					} else {
-						client.error([
-							'The extension requires at least version 4.0.0 of tslint.',
-							'Please install the latest version of tslint globally using \'npm install -g tslint\'.',
-							'You need to reopen VS Code after installing tslint.',
-						].join('\n'));
-					}
-					// actively inform the user in the output channel
-					client.outputChannel.show(true);
-				}
-			} else {
-				client.error('Server initialization failed.', error);
-				client.outputChannel.show(true);
-			}
+			client.error('Server initialization failed.', error);
+			client.outputChannel.show(true);
 			return false;
 		},
+		// initializationFailedHandler: (error) => {
+		// 	if (error instanceof ResponseError) {
+		// 		let responseError = (error as ResponseError<InitializeError>);
+		// 		if (responseError.code === 99) {
+		// 			if (workspace.rootPath) {
+		// 				client.info([
+		// 					'Failed to load the TSLint library.',
+		// 					'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
+		// 					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
+		// 					'You need to reopen the workspace after installing tslint.',
+		// 				].join('\n'));
+		// 			} else {
+		// 				client.info([
+		// 					'Failed to load the TSLint library.',
+		// 					'To use TSLint for single TypeScript files install tslint globally using \'npm install -g tslint\'.',
+		// 					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
+		// 					'You need to reopen VS Code after installing tslint.',
+		// 				].join('\n'));
+		// 			}
+		// 			// actively inform the user in the output channel
+		// 			client.outputChannel.show(true);
+		// 		} else if (responseError.code === 100) {
+		// 			// inform the user but do not show the output channel
+		// 			client.info([
+		// 				'Failed to load the TSLint library.',
+		// 				'Ignoring the failure since there is no \'tslint.json\' file at the root of this workspace.',
+		// 			].join('\n'));
+		// 		} else if (responseError.code === 101) {
+		// 			if (workspace.rootPath) {
+		// 				client.error([
+		// 					'The extension requires at least version 4.0.0 of tslint.',
+		// 					'Please install the latest version of tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
+		// 					'You need to reopen the workspace after installing tslint.',
+		// 				].join('\n'));
+		// 			} else {
+		// 				client.error([
+		// 					'The extension requires at least version 4.0.0 of tslint.',
+		// 					'Please install the latest version of tslint globally using \'npm install -g tslint\'.',
+		// 					'You need to reopen VS Code after installing tslint.',
+		// 				].join('\n'));
+		// 			}
+		// 			// actively inform the user in the output channel
+		// 			client.outputChannel.show(true);
+		// 		}
+		// 	} else {
+		// 		client.error('Server initialization failed.', error);
+		// 		client.outputChannel.show(true);
+		// 	}
+		// 	return false;
+		// },
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
@@ -257,26 +273,37 @@ export function activate(context: ExtensionContext) {
 		client.onNotification(StatusNotification.type, (params) => {
 			updateStatus(params.state);
 		});
-		client.onRequest(SettingsRequest.type, (params) => {
-			let uri = params.textDocument.uri;
-			let config = workspace.getConfiguration2('tslint', Uri.file(uri));
-			let result: SettingsRequestResult = {
-				settings: {
-					tslint: {
-						enable: config.get<boolean>('enable'),
-						jsEnable: config.get<boolean>('jsEnable'),
-						rulesDirectory: config.get('rulesDirectory'),
-						configFile: 'fromClient',//config.get<string>('configFile'),
-						ignoreDefinitionFiles: config.get<boolean>('ignoreDefinitionFiles'),
-						exclude: config.get<string>('exclude'),
-						validateWithDefaultConfig: config.get<boolean>('validateWithDefaultConfig'),
-						run: config.get('run'),
-						alwaysShowRuleFailuresAsWarnings: config.get<boolean>('alwaysShowRuleFailuresAsWarnings')
-					}
-				}
+		client.onRequest(NoTSLintLibraryRequest.type, (params) => {
+			let uri: Uri = Uri.parse(params.source.uri);
+			if (workspace.rootPath) {
+				client.info([
+					'',
+					`Failed to load the TSLint library for the document ${uri.fsPath}`,
+					'',
+					'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
+					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
+					'You need to reopen the workspace after installing tslint.',
+				].join('\n'));
+			} else {
+				client.info([
+					`Failed to load the TSLint library for the document ${uri.fsPath}`,
+					'To use TSLint for single file install tslint globally using \'npm install -g tslint\'.',
+					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
+					'You need to reopen VS Code after installing tslint.',
+				].join('\n'));
 			}
-			return result;
+			return {};
 		});
+
+		// client.onRequest(SettingsRequest.type, (params) => {
+		// 	let config = workspace.getConfiguration('tslint', Uri.parse(params.textDocument.uri));
+		// 	let result: SettingsRequestResult = {
+		// 		settings: {
+		// 			tslint: <any>config
+		// 		}
+		// 	}
+		// 	return result;
+		// });
 	});
 
 	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {

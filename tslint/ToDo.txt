@@ -1,0 +1,5 @@
+Items to do for multi root folder support
+
+- check that nodePath is honored as a resource
+- fetch settings for the resource
+- test with tslint 3
