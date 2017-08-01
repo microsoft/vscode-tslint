@@ -2,4 +2,10 @@ Items to do for multi root folder support
 
 - check that nodePath is honored as a resource
 - fetch settings for the resource
+- add some typing to the tslint module
+
+Done
 - test with tslint 3
+- remove workspace root references
+    one reference in server.ts, the argument is optional, so it should be fine to remove the argument
+    promise = server.Files.resolve('tslint', globalNodePath, workspaceRoot, trace);

@@ -95,7 +95,6 @@ namespace SettingsRequest {
 
 let globalNodePath: string = undefined;
 let nodePath: string = undefined;
-let workspaceRoot: string = undefined;
 
 let settings: Settings = null;
 
@@ -437,7 +436,6 @@ connection.onInitialize((params) => {
 		legacyModuleResolve: boolean;
 		nodePath: string;
 	} = params.initializationOptions;
-	workspaceRoot = params.rootPath;
 	nodePath = initOptions.nodePath;
 	globalNodePath = server.Files.resolveGlobalNodePath();
 	return {
