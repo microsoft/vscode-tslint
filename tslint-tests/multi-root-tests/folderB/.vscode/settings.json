@@ -4,7 +4,7 @@
     // "tslint.autoFixOnSave": false,
     // "tslint.ignoreDefinitionFiles": true,
     // "tslint.jsEnable": false,
-    "tslint.configFile": "FolderB"
+    // "tslint.configFile": ""
     // "tslint.exclude": "",
     // "tslint.rulesDirectory": "",
     // "tslint.nodePath": "",
