@@ -1,26 +1,12 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri } from 'vscode';
+import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
 } from 'vscode-languageclient';
-
-const open = require('open');
-
-const tslintConfig: string = [
-	'{',
-	'	"rules": {',
-	'		"no-unused-expression": true,',
-	'		"no-duplicate-variable": true,',
-	'		"no-unused-variable": true,',
-	'		"curly": true,',
-	'		"class-name": true,',
-	'		"semicolon": ["always"],',
-	'		"triple-equals": true',
-	'	}',
-	'}'
-].join(process.platform === 'win32' ? '\r\n' : '\n');
+import { exec }  from 'child_process';
+import {open} from 'open';
 
 interface AllFixesParams {
 	textDocument: TextDocumentIdentifier;
@@ -199,56 +185,6 @@ export function activate(context: ExtensionContext) {
 			client.outputChannel.show(true);
 			return false;
 		},
-		// initializationFailedHandler: (error) => {
-		// 	if (error instanceof ResponseError) {
-		// 		let responseError = (error as ResponseError<InitializeError>);
-		// 		if (responseError.code === 99) {
-		// 			if (workspace.rootPath) {
-		// 				client.info([
-		// 					'Failed to load the TSLint library.',
-		// 					'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
-		// 					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
-		// 					'You need to reopen the workspace after installing tslint.',
-		// 				].join('\n'));
-		// 			} else {
-		// 				client.info([
-		// 					'Failed to load the TSLint library.',
-		// 					'To use TSLint for single TypeScript files install tslint globally using \'npm install -g tslint\'.',
-		// 					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
-		// 					'You need to reopen VS Code after installing tslint.',
-		// 				].join('\n'));
-		// 			}
-		// 			// actively inform the user in the output channel
-		// 			client.outputChannel.show(true);
-		// 		} else if (responseError.code === 100) {
-		// 			// inform the user but do not show the output channel
-		// 			client.info([
-		// 				'Failed to load the TSLint library.',
-		// 				'Ignoring the failure since there is no \'tslint.json\' file at the root of this workspace.',
-		// 			].join('\n'));
-		// 		} else if (responseError.code === 101) {
-		// 			if (workspace.rootPath) {
-		// 				client.error([
-		// 					'The extension requires at least version 4.0.0 of tslint.',
-		// 					'Please install the latest version of tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
-		// 					'You need to reopen the workspace after installing tslint.',
-		// 				].join('\n'));
-		// 			} else {
-		// 				client.error([
-		// 					'The extension requires at least version 4.0.0 of tslint.',
-		// 					'Please install the latest version of tslint globally using \'npm install -g tslint\'.',
-		// 					'You need to reopen VS Code after installing tslint.',
-		// 				].join('\n'));
-		// 			}
-		// 			// actively inform the user in the output channel
-		// 			client.outputChannel.show(true);
-		// 		}
-		// 	} else {
-		// 		client.error('Server initialization failed.', error);
-		// 		client.outputChannel.show(true);
-		// 	}
-		// 	return false;
-		// },
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
@@ -363,16 +299,35 @@ export function activate(context: ExtensionContext) {
 		});
 	}
 
-	function createDefaultConfiguration(): void {
-		if (!workspace.rootPath) {
+	async function createDefaultConfiguration() {
+		let folders = workspace.workspaceFolders;
+		if (!folders) {
 			window.showErrorMessage('A TSLint configuration file can only be generated if VS Code is opened on a folder.');
 		}
-		let tslintConfigFile = path.join(workspace.rootPath, 'tslint.json');
+		let folderPicks = folders.map(each => {
+			return {label: each.name, description: each.uri.fsPath}
+		});
+		let selection;
+		if (folderPicks.length === 1) {
+			selection = folderPicks[0];
+		} else {
+			selection = await window.showQuickPick(folderPicks, {placeHolder: 'Select the target folder for the tslint.json'});
+		}
+		if(!selection) {
+			return;
+		}
+		let tslintConfigFile = path.join(selection.description, 'tslint.json');
 
 		if (fs.existsSync(tslintConfigFile)) {
 			window.showInformationMessage('A TSLint configuration file already exists.');
 		} else {
-			fs.writeFileSync(tslintConfigFile, tslintConfig, { encoding: 'utf8' });
+			const cmd = 'tslint --init';
+			const p = exec(cmd, { cwd: selection.description, env: process.env });
+			p.on('exit', (code: number, signal: string) => {
+				if (code === 0) {
+					window.showInformationMessage(`A TSLint configuration file created in ${tslintConfigFile}.`);
+				}
+			});
 		}
 	}
 
