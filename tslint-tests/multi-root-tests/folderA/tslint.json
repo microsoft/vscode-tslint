@@ -1,22 +1,10 @@
 {
     "rules": {
-        "array-type": [
-            true,
-            "array-simple"
-        ],
-        "arrow-parens": true,
         "no-var-keyword": true,
         "no-unused-variable": [
             true,
             {
                 "ignore-pattern": "^_"
-            }
-        ],
-        "ordered-imports": [
-            true,
-            {
-                "import-sources-order": "lowercase-last",
-                "named-imports-order": "lowercase-first"
             }
         ],
         "trailing-comma": [
@@ -38,7 +26,6 @@
         "no-eval": true,
         "no-internal-module": true,
         "no-trailing-whitespace": true,
-        "no-unsafe-finally": true,
         "one-line": [
             true,
             "check-open-brace",
