@@ -219,8 +219,8 @@ export function createVscFixForRuleFailure(problem: tslint.RuleFailure, document
 	return undefined;
 }
 
-let configFile: string = null;
-let configFileWatcher: fs.FSWatcher = null;
+let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
+
 let configuration: tslint.Configuration.IConfigurationFile = null;
 
 let configCache = {
@@ -508,6 +508,7 @@ function doValidate(conn: server.IConnection, library: any, document: server.Tex
 	}
 
 	let contents = document.getText();
+	let  configFile = settings.tslint.configFile || undefined;
 
 	try {
 		configuration = getConfiguration(fsPath, library, configFile);
@@ -669,25 +670,22 @@ function tslintConfigurationValid(): boolean {
 connection.onDidChangeConfiguration((params) => {
 	flushConfigCache();
 	settings = params.settings;
-
+	// limitations:
+	// - once a file is watched it continues being watched and triggering revalidation
 	if (settings.tslint) {
-		let newConfigFile = settings.tslint.configFile || null;
-		if (configFile !== newConfigFile) {
-			if (configFileWatcher) {
-				configFileWatcher.close();
-				configFileWatcher = null;
-			}
-			if (!fs.existsSync(newConfigFile)) {
-				connection.window.showWarningMessage(`The file ${newConfigFile} refered to by 'tslint.configFile' does not exist`);
-				configFile = null;
+		let  configFile = settings.tslint.configFile || undefined;
+		if (!configFile) {
+			return;
+		}
+		if (!configFileWatchers.has(configFile)) {
+			if (!fs.existsSync( configFile)) {
+				connection.window.showWarningMessage(`The file ${ configFile} refered to by 'tslint.configFile' does not exist`);
 				return;
 			}
-			configFile = newConfigFile;
-			if (configFile) {
-				configFileWatcher = fs.watch(configFile, { persistent: false }, (event, fileName) => {
-					validateAllTextDocuments(connection, documents.all());
-				});
-			}
+			let watcher = fs.watch(configFile, { persistent: false }, (event, fileName) => {
+				validateAllTextDocuments(connection, documents.all());
+			});
+			configFileWatchers.set(configFile, watcher);
 		}
 	}
 	validateAllTextDocuments(connection, documents.all());
