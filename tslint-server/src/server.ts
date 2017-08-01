@@ -112,14 +112,6 @@ folder using \'npm install tslint\' or \'npm install -g tslint\' and then press 
 let tslintNotFoundIgnored =
 	`[vscode-tslint] Failed to load tslint library. This failure is not reported to the user since there is no \'tslint.json\' in the workspace`;
 
-// Options passed to tslint
-let options: tslint.ILinterOptions = {
-	formatter: "json",
-	fix: false,
-	rulesDirectory: undefined,
-	formattersDirectory: undefined
-};
-
 interface FixCreator {
 	(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit;
 }
@@ -479,7 +471,7 @@ function loadLibrary(docUri: string) {
 			promise = server.Files.resolve('tslint', globalNodePath, directory, trace);
 		}
 	} else {
-		promise = server.Files.resolve('tslint', globalNodePath, workspaceRoot, trace);
+		promise = server.Files.resolve('tslint', globalNodePath, undefined, trace);
 	}
 	document2Library.set(docUri, promise.then((path) => {
 		let library;
@@ -540,6 +532,13 @@ function doValidate(conn: server.IConnection, library: any, document: server.Tex
 	}
 
 	let result: tslint.LintResult;
+	let options: tslint.ILinterOptions = {
+		formatter: "json",
+		fix: false,
+		rulesDirectory: settings.tslint.rulesDirectory || undefined,
+		formattersDirectory: undefined
+	};
+
 	try { // protect against tslint crashes
 		let linter = getLinterFromLibrary(library);
 		if (isTsLintVersion4(library)) {
@@ -674,7 +673,6 @@ connection.onDidChangeConfiguration((params) => {
 	settings = params.settings;
 
 	if (settings.tslint) {
-		options.rulesDirectory = settings.tslint.rulesDirectory || null;
 		let newConfigFile = settings.tslint.configFile || null;
 		if (configFile !== newConfigFile) {
 			if (configFileWatcher) {
