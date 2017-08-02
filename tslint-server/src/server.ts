@@ -221,8 +221,6 @@ export function createVscFixForRuleFailure(problem: tslint.RuleFailure, document
 
 let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
 
-let configuration: tslint.Configuration.IConfigurationFile = null;
-
 let configCache = {
 	filePath: <string>null,
 	configuration: <any>null,
@@ -509,6 +507,7 @@ function doValidate(conn: server.IConnection, library: any, document: server.Tex
 
 	let contents = document.getText();
 	let  configFile = settings.tslint.configFile || undefined;
+	let configuration: tslint.Configuration.IConfigurationFile = null;
 
 	try {
 		configuration = getConfiguration(fsPath, library, configFile);
