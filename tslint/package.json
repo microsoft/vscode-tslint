@@ -23,7 +23,7 @@
     "Linters"
   ],
   "engines": {
-    "vscode": "^0.10.0"
+    "vscode": "^1.15.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
