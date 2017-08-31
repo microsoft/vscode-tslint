@@ -163,7 +163,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
-	client.registerFeature(new ConfigurationFeature(client));	
+	client.registerFeature(new ConfigurationFeature(client));
 
 	const running = 'Linter is running.';
 	const stopped = 'Linter has stopped.';
@@ -329,7 +329,7 @@ export function activate(context: ExtensionContext) {
 	configurationChanged();
 
 	context.subscriptions.push(
-		new SettingMonitor(client, 'tslint.enable').start(),
+		client.start(),
 		configurationChangedListener,
 		// internal commands
 		commands.registerCommand('_tslint.applySingleFix', applyTextEdits),
