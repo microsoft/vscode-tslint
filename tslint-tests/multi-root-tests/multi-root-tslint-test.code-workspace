@@ -1,11 +1,17 @@
 {
 	"folders": [
 		{
-			"path": "c:\\Users\\egamma\\Projects\\vscode-tslint\\tslint-tests\\multi-root-tests\\folderA"
+			"path": "folderA"
 		},
 		{
-			"path": "c:\\Users\\egamma\\Projects\\vscode-tslint\\tslint-tests\\multi-root-tests\\folderB"
+			"path": "folderB"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.autoSave": "off",
+		"team.showWelcomeMessage": false,
+		"tslint.alwaysShowRuleFailuresAsWarnings": false,
+		"tslint.enable": false,
+		"tslint.trace.server": "verbose"
+	}
 }
