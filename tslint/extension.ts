@@ -286,12 +286,15 @@ export function activate(context: ExtensionContext) {
 
 		if (fs.existsSync(tslintConfigFile)) {
 			window.showInformationMessage('A TSLint configuration file already exists.');
+			let document = await workspace.openTextDocument(tslintConfigFile);
+			window.showTextDocument(document);
 		} else {
 			const cmd = 'tslint --init';
 			const p = exec(cmd, { cwd: selection.description, env: process.env });
-			p.on('exit', (code: number, signal: string) => {
+			p.on('exit', async (code: number, signal: string) => {
 				if (code === 0) {
-					window.showInformationMessage(`A TSLint configuration file created in ${tslintConfigFile}.`);
+					let document = await workspace.openTextDocument(tslintConfigFile);
+					window.showTextDocument(document);
 				}
 			});
 		}
