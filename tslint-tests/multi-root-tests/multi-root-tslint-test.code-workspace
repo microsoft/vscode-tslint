@@ -9,9 +9,8 @@
 	],
 	"settings": {
 		"files.autoSave": "off",
-		"team.showWelcomeMessage": false,
 		"tslint.alwaysShowRuleFailuresAsWarnings": false,
-		"tslint.enable": false,
-		"tslint.trace.server": "verbose"
+		"tslint.enable": true
+		//"tslint.trace.server": "verbose"
 	}
 }
