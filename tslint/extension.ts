@@ -251,6 +251,10 @@ export function activate(context: ExtensionContext) {
 	}
 
 	function fixAllProblems() {
+		// server is not running so there can be no problems to fix
+		if (!serverRunning) {
+			return;
+		}
 		let textEditor = window.activeTextEditor;
 		if (!textEditor) {
 			return;
