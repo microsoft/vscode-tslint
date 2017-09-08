@@ -75,43 +75,42 @@ the warnings in the `Problems` panel, then you can:
 - define a VS Code [task](https://code.visualstudio.com/docs/editor/tasks) with a [problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
 that extracts VS Code warnings from the tslint output.
 
-Here is an example. Create a gulp task using `gulp-tslint` that you can then match
-by a VS Code Task's problem matcher. In your `gulpfile.js` define a task like the one below:
+For example, here is an excerpt from a package.json file that defines a script to run tslint:
 
-```js
-'use strict';
-const gulp = require('gulp');
-const gulp_tslint = require('gulp-tslint');
+```json
+{
+  "name": "tslint-script-demo",
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "tslint tests/*.ts -t verbose"
+  },
+  "devDependencies": {
+    "typescript": "^2.2.2",
+    "tslint": "^5.0.0"
+  }
+}
 
-gulp.task('tslint', () => {
-    gulp.src(['tests/*.ts'])
-      .pipe(gulp_tslint({
-          formatter: "prose"
-      }))
-      .pipe(gulp_tslint.report({
-          emitError: false
-      }));
-});
 ```
 
-Next, define a Task which runs the gulp task with a problem matcher that extracts the tslint errors into warnings.
+Next, define a Task which runs the npm script with a problem matcher that extracts the tslint errors into warnings.
 
 ```json
 {
     "version": "2.0.0",
-    "command": "gulp",
-    "isShellCommand": true,
     "tasks": [
         {
-            "taskName": "tslint",
-            "args": [],
-            "problemMatcher": "$tslint5"
+            "type": "npm",
+            "script": "lint",
+            "problemMatcher": {
+                "base": "$tslint5",
+                "fileLocation": "relative"
+            }
         }
     ]
 }
 ```
 
-Finally, when you then run the `tslint` task you will see the warnings produced by the gulp task in the `Problems` panel.
+Finally, when you then run the `tslint` task you will see the warnings produced by the npm script in the `Problems` panel and you can navigate to the errors from there.
 
-Here is another [example setup](https://github.com/Microsoft/vscode-tslint/tree/master/tslint-tests) for a script inside the package.json.
+Here is the complete setup [example setup](https://github.com/Microsoft/vscode-tslint/tree/master/tslint-tests).
 
