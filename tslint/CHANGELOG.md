@@ -1,6 +1,10 @@
+## 1.0.1
+- Added support linting workspaces with multiple root folders. Scoped the tslint settings so that they can be configured per folder.
+- Creating a default `tslint.json` is now using `tslint --init` to create the initial contents.
+- Loads the tslint library that is nearest to the linted file.
 
 ## 0.17.0
-- Added support to define which auto fixes should be applied automatically on save [#152](https://github.com/Microsoft/vscode-tslint/issues/152). 
+- Added support to define which auto fixes should be applied automatically on save [#152](https://github.com/Microsoft/vscode-tslint/issues/152).
 
 ## 0.16.0
 - Added quick fix to show the documentation of a rule.

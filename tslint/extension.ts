@@ -5,6 +5,7 @@ import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
 } from 'vscode-languageclient';
+import { ConfigurationFeature } from 'vscode-languageclient/lib/proposed';
 import { exec }  from 'child_process';
 import {open} from 'open';
 
@@ -46,32 +47,6 @@ interface StatusParams {
 
 namespace StatusNotification {
 	export const type = new NotificationType<StatusParams, void>('tslint/status');
-}
-
-interface SettingsRequestParams {
-	textDocument: TextDocumentIdentifier;
-}
-
-interface Settings {
-	tslint: {
-		enable: boolean;
-		jsEnable: boolean;
-		rulesDirectory: string | string[];
-		configFile?: string;
-		ignoreDefinitionFiles?: boolean;
-		exclude?: string | string[];
-		validateWithDefaultConfig?: boolean;
-		run?: 'onSave' | 'onType';
-		alwaysShowRuleFailuresAsWarnings?: boolean
-	}
-}
-
-interface SettingsRequestResult {
-	settings: Settings;
-}
-
-namespace SettingsRequest {
-	export const type = new RequestType<SettingsRequestParams, SettingsRequestResult, void, void>('textDocument/tslint/settings');
 }
 
 let willSaveTextDocument: Disposable;
@@ -161,7 +136,7 @@ export function activate(context: ExtensionContext) {
 	let serverModulePath = path.join(__dirname, '..', 'server', 'server.js');
 	// break on start options
 	//let debugOptions = { execArgv: ["--nolazy", "--debug=6010", "--debug-brk"] };
-	let debugOptions = { execArgv: ["--nolazy", "--debug=6010"] };
+	let debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
 	let serverOptions: ServerOptions = {
 		run: { module: serverModulePath, transport: TransportKind.ipc },
 		debug: { module: serverModulePath, transport: TransportKind.ipc, options: debugOptions }
@@ -188,6 +163,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
+	client.registerFeature(new ConfigurationFeature(client));
 
 	const running = 'Linter is running.';
 	const stopped = 'Linter has stopped.';
@@ -230,16 +206,6 @@ export function activate(context: ExtensionContext) {
 			}
 			return {};
 		});
-
-		// client.onRequest(SettingsRequest.type, (params) => {
-		// 	let config = workspace.getConfiguration('tslint', Uri.parse(params.textDocument.uri));
-		// 	let result: SettingsRequestResult = {
-		// 		settings: {
-		// 			tslint: <any>config
-		// 		}
-		// 	}
-		// 	return result;
-		// });
 	});
 
 	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
@@ -320,12 +286,15 @@ export function activate(context: ExtensionContext) {
 
 		if (fs.existsSync(tslintConfigFile)) {
 			window.showInformationMessage('A TSLint configuration file already exists.');
+			let document = await workspace.openTextDocument(tslintConfigFile);
+			window.showTextDocument(document);
 		} else {
 			const cmd = 'tslint --init';
 			const p = exec(cmd, { cwd: selection.description, env: process.env });
-			p.on('exit', (code: number, signal: string) => {
+			p.on('exit', async (code: number, signal: string) => {
 				if (code === 0) {
-					window.showInformationMessage(`A TSLint configuration file created in ${tslintConfigFile}.`);
+					let document = await workspace.openTextDocument(tslintConfigFile);
+					window.showTextDocument(document);
 				}
 			});
 		}
@@ -363,7 +332,7 @@ export function activate(context: ExtensionContext) {
 	configurationChanged();
 
 	context.subscriptions.push(
-		new SettingMonitor(client, 'tslint.enable').start(),
+		client.start(),
 		configurationChangedListener,
 		// internal commands
 		commands.registerCommand('_tslint.applySingleFix', applyTextEdits),
