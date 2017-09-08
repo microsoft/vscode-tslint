@@ -3,11 +3,11 @@ import * as fs from 'fs';
 import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
-	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind
+	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
+	ProposedProtocol
 } from 'vscode-languageclient';
-import { ConfigurationFeature } from 'vscode-languageclient/lib/proposed';
 import { exec }  from 'child_process';
-import {open} from 'open';
+import * as open from 'open';
 
 interface AllFixesParams {
 	textDocument: TextDocumentIdentifier;
@@ -163,7 +163,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
-	client.registerFeature(new ConfigurationFeature(client));
+	client.registerFeatures(ProposedProtocol(client));
 
 	const running = 'Linter is running.';
 	const stopped = 'Linter has stopped.';

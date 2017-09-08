@@ -5,7 +5,7 @@
 
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
-import { GetConfigurationRequest } from 'vscode-languageserver-protocol/lib/protocol.configuration.proposed';
+import { ConfigurationRequest } from 'vscode-languageserver-protocol/lib/protocol.configuration.proposed';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
@@ -80,7 +80,7 @@ class SettingsCache {
 		}
 		if (scopedSettingsSupport) {
 			let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
-			let settings = await connection.sendRequest(GetConfigurationRequest.type, configRequestParam);
+			let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
 			this.settings = settings[0];
 			return this.settings;
 		}
