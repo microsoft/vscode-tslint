@@ -1,3 +1,3 @@
-let t: string[] = new Array<string>();
+let t: Array<string> = new Array<string>();
 
 console.log(t);
