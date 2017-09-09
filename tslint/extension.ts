@@ -10,14 +10,14 @@ import { exec }  from 'child_process';
 import * as open from 'open';
 
 interface AllFixesParams {
-	textDocument: TextDocumentIdentifier;
-	isOnSave: boolean;
+	readonly textDocument: TextDocumentIdentifier;
+	readonly isOnSave: boolean;
 }
 
 interface AllFixesResult {
-	documentVersion: number;
-	edits: TextEdit[];
-	ruleId?: string
+	readonly documentVersion: number;
+	readonly edits: TextEdit[];
+	readonly ruleId?: string
 }
 
 namespace AllFixesRequest {
@@ -25,7 +25,7 @@ namespace AllFixesRequest {
 }
 
 interface NoTSLintLibraryParams {
-	source: TextDocumentIdentifier;
+	readonly source: TextDocumentIdentifier;
 }
 
 interface NoTSLintLibraryResult {
@@ -49,7 +49,7 @@ namespace StatusNotification {
 	export const type = new NotificationType<StatusParams, void>('tslint/status');
 }
 
-let willSaveTextDocument: Disposable;
+let willSaveTextDocument: Disposable | undefined;
 let configurationChangedListener: Disposable;
 
 export function activate(context: ExtensionContext) {
@@ -104,7 +104,7 @@ export function activate(context: ExtensionContext) {
 		return false;
 	}
 
-	function udpateStatusBarVisibility(editor: TextEditor): void {
+	function udpateStatusBarVisibility(editor: TextEditor | undefined): void {
 		//statusBarItem.text = tslintStatus === Status.ok ? 'TSLint' : 'TSLint!';
 
 		switch (tslintStatus) {
@@ -119,11 +119,16 @@ export function activate(context: ExtensionContext) {
 				break;
 
 		}
+		let show = serverRunning && (tslintStatus !== Status.ok)
+		if (!editor) {
+			showStatusBarItem(false);
+			return;
+		}
 		showStatusBarItem(
 			serverRunning &&
 			(
 				tslintStatus !== Status.ok ||
-				(editor && (isTypeScriptDocument(editor.document.languageId) || isEnableForJavaScriptDocument(editor.document.languageId)))
+				((isTypeScriptDocument(editor.document.languageId) || isEnableForJavaScriptDocument(editor.document.languageId)))
 			)
 		);
 	}
@@ -273,6 +278,7 @@ export function activate(context: ExtensionContext) {
 		let folders = workspace.workspaceFolders;
 		if (!folders) {
 			window.showErrorMessage('A TSLint configuration file can only be generated if VS Code is opened on a folder.');
+			return;
 		}
 		let folderPicks = folders.map(each => {
 			return {label: each.name, description: each.uri.fsPath}
