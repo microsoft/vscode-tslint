@@ -14,6 +14,7 @@ import Uri from 'vscode-uri';
 import * as tslint from 'tslint'; // this is a dev dependency only
 
 import { Delayer } from './delayer';
+import { createVscFixForRuleFailure, TSLintAutofixEdit } from './fixer';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -39,8 +40,8 @@ class ConfigCache {
 	configuration: Configuration;
 
 	constructor() {
-		this.filePath = null;
-		this.configuration = null
+		this.filePath = undefined;
+		this.configuration = undefined;
 	}
 
 	set(path: string, configuration:Configuration) {
@@ -52,7 +53,7 @@ class ConfigCache {
 		if (forPath === this.filePath) {
 			return this.configuration;
 		}
-		return null;
+		return undefined;
 	}
 
 	isDefaultLinterConfig(): boolean {
@@ -60,8 +61,8 @@ class ConfigCache {
 	}
 
 	flush() {
-		this.filePath = null;
-		this.configuration = null;
+		this.filePath = undefined;
+		this.configuration = undefined;
 	}
 }
 
@@ -70,8 +71,8 @@ class SettingsCache {
 	settings: Settings;
 
 	constructor() {
-		this.uri = null;
-		this.settings = null
+		this.uri = undefined;
+		this.settings = undefined
 	}
 
 	async get(uri:string): Promise<Settings> {
@@ -88,8 +89,8 @@ class SettingsCache {
 	}
 
 	flush() {
-		this.uri = null;
-		this.settings = null;
+		this.uri = undefined;
+		this.settings = undefined;
 	}
 }
 
@@ -109,11 +110,6 @@ class ID {
 function computeKey(diagnostic: server.Diagnostic): string {
 	let range = diagnostic.range;
 	return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}`;
-}
-
-export interface TSLintAutofixEdit {
-	range: [server.Position, server.Position];
-	text: string;
 }
 
 export interface AutoFix {
@@ -164,118 +160,12 @@ folder using \'npm install tslint\' or \'npm install -g tslint\' and then press 
 let tslintNotFoundIgnored =
 	`[vscode-tslint] Failed to load tslint library. This failure is not reported to the user since there is no \'tslint.json\' in the workspace`;
 
-interface FixCreator {
-	(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit;
-}
 
-let fixes = new Map<string, FixCreator>();
-
-let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
-	// error message: ' should be "   or " should be '
-	const wrongQuote = problem.getFailure()[0];
-	const fixedQuote = wrongQuote === "'" ? '"' : "'";
-	const contents = document.getText().slice(problem.getStartPosition().getPosition() + 1, problem.getEndPosition().getPosition() - 1);
-	return {
-		range: convertProblemPositionsToRange(problem),
-		text: `${fixedQuote}${contents}${fixedQuote}`
-	};
-};
-fixes['quotemark'] = quoteFixCreator;
-
-let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
-	// error message: 'missing whitespace'
-	if (problem.getFailure() !== 'missing whitespace') {
-		return null;
-	}
-	const contents = document.getText().slice(problem.getStartPosition().getPosition(), problem.getEndPosition().getPosition());
-	return {
-		range: convertProblemPositionsToRange(problem),
-		text: ` ${contents}`
-	};
-};
-fixes['whitespace'] = whiteSpaceFixCreator;
-
-let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
-	// error message: '== should be ===' or '!= should be !=='
-	let contents = null;
-	if (problem.getFailure() === '== should be ===') {
-		contents = '===';
-	} else if (problem.getFailure() === '!= should be !==') {
-		contents = '!==';
-	} else {
-		return null;
-	}
-	return {
-		range: convertProblemPositionsToRange(problem),
-		text: `${contents}`
-	};
-};
-fixes['triple-equals'] = tripleEqualsFixCreator;
-
-let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
-	// error messages:
-	//   'comment must start with a space'
-	//   'comment must start with lowercase letter'
-	//   'comment must start with uppercase letter'
-	function swapCase(contents: string, toLower: boolean): string {
-		let i = contents.search(/\S/);
-		if (i === -1) {
-			return contents;
-		}
-		let prefix = contents.substring(0, i);
-		let swap = toLower ? contents[i].toLowerCase() : contents[i].toUpperCase();
-		let suffix = contents.substring(i + 1);
-		return `${prefix}${swap}${suffix}`;
-	}
-
-	let replacement;
-	const contents = document.getText().slice(problem.getStartPosition().getPosition(), problem.getEndPosition().getPosition());
-
-	switch (problem.getFailure()) {
-		case 'comment must start with a space':
-			replacement = ` ${contents}`;
-			break;
-		case 'comment must start with lowercase letter':
-			replacement = swapCase(contents, true);
-			break;
-		case 'comment must start with uppercase letter':
-			replacement = swapCase(contents, false);
-			break;
-		default:
-			return null;
-	}
-	return {
-		range: convertProblemPositionsToRange(problem),
-		text: replacement
-	};
-};
-fixes['comment-format'] = commentFormatFixCreator;
-
-function convertToServerPosition(position: tslint.RuleFailurePosition): server.Position {
-	return {
-		character: position.getLineAndCharacter().character,
-		line: position.getLineAndCharacter().line
-	};
-}
-
-function convertProblemPositionsToRange(problem: tslint.RuleFailure): [server.Position, server.Position] {
-	let startPosition = convertToServerPosition(problem.getStartPosition());
-	let endPosition = convertToServerPosition(problem.getEndPosition());
-	return [startPosition, endPosition];
-}
-
-export function createVscFixForRuleFailure(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit | undefined {
-	let creator = fixes[problem.getRuleName()];
-	if (creator) {
-		return creator(problem, document);
-	}
-	return undefined;
-}
 
 let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
 
 function makeDiagnostic(settings: Settings, problem: tslint.RuleFailure): server.Diagnostic {
-	let message = (problem.getRuleName() !== null)
+	let message = (problem.getRuleName())
 		? `${problem.getFailure()} (${problem.getRuleName()})`
 		: `${problem.getFailure()}`;
 
@@ -319,7 +209,7 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	}
 	documentDisableRuleFixes[computeKey(diagnostic)] = createDisableRuleFix(problem, document);
 
-	let fix: AutoFix = null;
+	let fix: AutoFix = undefined;
 
 	// tslint can return a fix with an empty replacements array, these fixes are ignored
 	if (problem.getFix && problem.getFix() && !replacementsAreEmpty(problem.getFix())) { // tslint fixes are not available in tslint < 3.17
@@ -531,7 +421,7 @@ function loadLibrary(docUri: string) {
 		return path2Library.get(path);
 	}, () => {
 		connection.sendRequest(NoTSLintLibraryRequest.type, { source: { uri: docUri } });
-		return null;
+		return undefined;
 	}));
 }
 
@@ -818,7 +708,7 @@ connection.onCodeAction((params) => {
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				let ruleId = autoFix.problem.getRuleName();
-				result.push(server.Command.create(`Show documentation for "${ruleId}"`, '_tslint.showRuleDocumentation', uri, documentVersion, null, ruleId));
+				result.push(server.Command.create(`Show documentation for "${ruleId}"`, '_tslint.showRuleDocumentation', uri, documentVersion, undefined, ruleId));
 			}
 		}
 	}
@@ -840,7 +730,7 @@ function replacementsAreEmpty(fix: tslint.Fix): boolean {
 }
 
 function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocument, fix: tslint.Fix | TSLintAutofixEdit): AutoFix {
-	let edits: TSLintAutofixEdit[] = null;
+	let edits: TSLintAutofixEdit[] = undefined;
 
 	function isTslintAutofixEdit(fix: tslint.Fix | TSLintAutofixEdit): fix is TSLintAutofixEdit {
 		return (<TSLintAutofixEdit>fix).range !== undefined;
@@ -978,7 +868,7 @@ namespace AllFixesRequest {
 }
 
 connection.onRequest(AllFixesRequest.type, async (params) => {
-	let result: AllFixesResult = null;
+	let result: AllFixesResult = undefined;
 	let uri = params.textDocument.uri;
 	let isOnSave = params.isOnSave;
 	let documentFixes = codeFixActions[uri];
@@ -986,7 +876,7 @@ connection.onRequest(AllFixesRequest.type, async (params) => {
 	let settings = await settingsCache.get(uri);
 
 	if (!documentFixes) {
-		return null;
+		return undefined;
 	}
 
 	let fixes: AutoFix[] = Object.keys(documentFixes).map(key => documentFixes[key]);
