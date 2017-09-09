@@ -8,13 +8,15 @@ export interface TSLintAutofixEdit {
 	text: string;
 }
 
+type FixResult = TSLintAutofixEdit | undefined;
+
 interface FixCreator {
-	(problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit;
+	(problem: tslint.RuleFailure, document: server.TextDocument): FixResult;
 }
 
 let fixes = new Map<string, FixCreator>();
 
-let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
+let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): FixResult => {
 	// error message: ' should be "   or " should be '
 	const wrongQuote = problem.getFailure()[0];
 	const fixedQuote = wrongQuote === "'" ? '"' : "'";
@@ -26,7 +28,7 @@ let quoteFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server
 };
 fixes['quotemark'] = quoteFixCreator;
 
-let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
+let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): FixResult => {
 	// error message: 'missing whitespace'
 	if (problem.getFailure() !== 'missing whitespace') {
 		return undefined;
@@ -39,9 +41,9 @@ let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: s
 };
 fixes['whitespace'] = whiteSpaceFixCreator;
 
-let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
+let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): FixResult => {
 	// error message: '== should be ===' or '!= should be !=='
-	let contents = undefined;
+	let contents: string | undefined = undefined;
 	if (problem.getFailure() === '== should be ===') {
 		contents = '===';
 	} else if (problem.getFailure() === '!= should be !==') {
@@ -56,7 +58,7 @@ let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document:
 };
 fixes['triple-equals'] = tripleEqualsFixCreator;
 
-let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): TSLintAutofixEdit => {
+let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): FixResult => {
 	// error messages:
 	//   'comment must start with a space'
 	//   'comment must start with lowercase letter'
@@ -86,7 +88,7 @@ let commentFormatFixCreator: FixCreator = (problem: tslint.RuleFailure, document
 			replacement = swapCase(contents, false);
 			break;
 		default:
-			return null;
+			return undefined;
 	}
 	return {
 		range: convertProblemPositionsToRange(problem),

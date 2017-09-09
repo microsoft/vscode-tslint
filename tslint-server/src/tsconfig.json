@@ -4,6 +4,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"allowSyntheticDefaultImports": true,
+		"strictNullChecks": true,
 		"sourceMap": true,
 		"outDir": "../../tslint/server",
 		"lib": [

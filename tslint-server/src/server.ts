@@ -36,8 +36,8 @@ interface Configuration {
 }
 
 class ConfigCache {
-	filePath: string;
-	configuration: Configuration;
+	filePath: string | undefined;
+	configuration: Configuration  | undefined;
 
 	constructor() {
 		this.filePath = undefined;
@@ -49,7 +49,7 @@ class ConfigCache {
 		this.configuration = configuration
 	}
 
-	get(forPath:string): Configuration {
+	get(forPath:string): Configuration | undefined {
 		if (forPath === this.filePath) {
 			return this.configuration;
 		}
@@ -57,7 +57,10 @@ class ConfigCache {
 	}
 
 	isDefaultLinterConfig(): boolean {
-		return this.configuration.isDefaultLinterConfig;
+		if (this.configuration) {
+			return this.configuration.isDefaultLinterConfig;
+		}
+		return false
 	}
 
 	flush() {
@@ -67,15 +70,15 @@ class ConfigCache {
 }
 
 class SettingsCache {
-	uri: string;
-	settings: Settings;
+	uri: string | undefined;
+	settings: Settings | undefined;
 
 	constructor() {
 		this.uri = undefined;
 		this.settings = undefined
 	}
 
-	async get(uri:string): Promise<Settings> {
+	async get(uri:string): Promise<Settings | undefined> {
 		if (uri === this.uri) {
 			return this.settings;
 		}
@@ -144,8 +147,8 @@ namespace NoTSLintLibraryRequest {
 	export const type = new server.RequestType<NoTSLintLibraryParams, NoTSLintLibraryResult, void, void>('tslint/noLibrary');
 }
 
-let globalNodePath: string = undefined;
-let nodePath: string = undefined;
+let globalNodePath: string | undefined = undefined;
+let nodePath: string | undefined = undefined;
 
 // if tslint < tslint4 then the linter is the module therefore the type `any`
 let path2Library: Map<string, typeof tslint.Linter | any> = new Map();
@@ -164,13 +167,13 @@ let tslintNotFoundIgnored =
 
 let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
 
-function makeDiagnostic(settings: Settings, problem: tslint.RuleFailure): server.Diagnostic {
+function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFailure): server.Diagnostic {
 	let message = (problem.getRuleName())
 		? `${problem.getFailure()} (${problem.getRuleName()})`
 		: `${problem.getFailure()}`;
 
 	let severity;
-	let alwaysWarning = settings.alwaysShowRuleFailuresAsWarnings;
+	let alwaysWarning = settings && settings.alwaysShowRuleFailuresAsWarnings;
 	// tslint5 supports to assign severities to rules
 	if (!alwaysWarning && problem.getRuleSeverity && problem.getRuleSeverity() === 'error') {
 		severity = server.DiagnosticSeverity.Error;
@@ -209,11 +212,12 @@ function recordCodeAction(document: server.TextDocument, diagnostic: server.Diag
 	}
 	documentDisableRuleFixes[computeKey(diagnostic)] = createDisableRuleFix(problem, document);
 
-	let fix: AutoFix = undefined;
+	let fix: AutoFix | undefined = undefined;
+
 
 	// tslint can return a fix with an empty replacements array, these fixes are ignored
 	if (problem.getFix && problem.getFix() && !replacementsAreEmpty(problem.getFix())) { // tslint fixes are not available in tslint < 3.17
-		fix = createAutoFix(problem, document, problem.getFix());
+		fix = createAutoFix(problem, document, problem.getFix()!);
 	}
 	if (!fix) {
 		let vscFix = createVscFixForRuleFailure(problem, document);
@@ -242,7 +246,7 @@ function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint
 	};
 }
 
-async function getConfiguration(uri: string, filePath: string, library: any, configFileName: string): Promise<Configuration> {
+async function getConfiguration(uri: string, filePath: string, library: any, configFileName: string | null): Promise<Configuration | undefined> {
 	let config = configCache.get(filePath);
 	if (config) {
 		return config;
@@ -338,7 +342,7 @@ async function validateTextDocument(connection: server.IConnection, document: se
 		return;
 	}
 
-	document2Library.get(document.uri).then(async (library) => {
+	document2Library.get(document.uri)!.then(async (library) => {
 		if (!library) {
 			return;
 		}
@@ -409,7 +413,7 @@ function loadLibrary(docUri: string) {
 			promise = server.Files.resolve('tslint', globalNodePath, directory, trace);
 		}
 	} else {
-		promise = server.Files.resolve('tslint', globalNodePath, undefined, trace);
+		promise = server.Files.resolve('tslint', globalNodePath, undefined!, trace); // cwd argument can be  undefined
 	}
 	document2Library.set(docUri, promise.then((path) => {
 		let library;
@@ -439,6 +443,9 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	}
 
 	let settings = await settingsCache.get(uri);
+	if (!settings) {
+		return diagnostics;
+	}
 	if (!settings.enable) {
 		return diagnostics;
 	}
@@ -448,8 +455,8 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	}
 
 	let contents = document.getText();
-	let configFile = settings.configFile || undefined;
-	let configuration: Configuration;
+	let configFile = settings.configFile || null;
+	let configuration: Configuration | undefined;
 
 	try {
 		configuration = await getConfiguration(uri, fsPath, library, configFile);
@@ -458,17 +465,22 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		showConfigurationFailure(conn, err);
 		return diagnostics;
 	}
-
+	if (!configuration) {
+		return diagnostics;
+	}
 	if (isJsDocument(document) && !settings.jsEnable) {
 		return diagnostics;
 	}
 
+	if (!configCache.configuration) {
+		return diagnostics;
+	}
 	if (settings.validateWithDefaultConfig === false && configCache.configuration.isDefaultLinterConfig) {
 		return diagnostics;
 	}
 
 	if (configCache.configuration.isDefaultLinterConfig && settings.validateWithDefaultConfig === false) {
-		return;
+		return diagnostics;
 	}
 
 	let result: tslint.LintResult;
@@ -554,19 +566,19 @@ function fileIsExcluded(settings: Settings, path: string): boolean {
 			return true;
 		}
 	}
-
+	return false;
 }
 
 documents.onDidChangeContent(async (event) => {
 	let settings = await settingsCache.get(event.document.uri);
-	if (settings.run === 'onType') {
+	if (settings && settings.run === 'onType') {
 		triggerValidateDocument(event.document);
 	}
 });
 
 documents.onDidSave(async (event) => {
 	let settings = await settingsCache.get(event.document.uri);
-	if (settings.run === 'onSave') {
+	if (settings && settings.run === 'onSave') {
 		triggerValidateDocument(event.document);
 	}
 });
@@ -620,9 +632,11 @@ connection.onDidChangeWatchedFiles((params) => {
 	// the latest configuration file we remove the config file from the module cache.
 	params.changes.forEach(element => {
 		let configFilePath = server.Files.uriToFilePath(element.uri);
-		let cached = require.cache[configFilePath];
-		if (cached) {
-			delete require.cache[configFilePath];
+		if (configFilePath) {
+			let cached = require.cache[configFilePath];
+			if (cached) {
+				delete require.cache[configFilePath];
+			}
 		}
 	});
 
@@ -636,7 +650,7 @@ connection.onCodeAction((params) => {
 	let result: server.Command[] = [];
 	let uri = params.textDocument.uri;
 	let documentVersion: number = -1;
-	let ruleId: string;
+	let ruleId: string | undefined = undefined;
 
 	let documentFixes = codeFixActions[uri];
 	if (documentFixes) {
@@ -717,7 +731,7 @@ connection.onCodeAction((params) => {
 });
 
 
-function replacementsAreEmpty(fix: tslint.Fix): boolean {
+function replacementsAreEmpty(fix: tslint.Fix | undefined): boolean {
 	// in tslint 4 a Fix has a replacement property witht the Replacements
 	if ((<any>fix).replacements) {
 		return (<any>fix).replacements.length === 0;
@@ -730,9 +744,9 @@ function replacementsAreEmpty(fix: tslint.Fix): boolean {
 }
 
 function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocument, fix: tslint.Fix | TSLintAutofixEdit): AutoFix {
-	let edits: TSLintAutofixEdit[] = undefined;
+	let edits: TSLintAutofixEdit[] = [];
 
-	function isTslintAutofixEdit(fix: tslint.Fix | TSLintAutofixEdit): fix is TSLintAutofixEdit {
+	function isTslintAutofixEdit(fix: tslint.Fix | TSLintAutofixEdit | undefined): fix is TSLintAutofixEdit {
 		return (<TSLintAutofixEdit>fix).range !== undefined;
 	}
 
@@ -808,7 +822,7 @@ function sortFixes(fixes: AutoFix[]): AutoFix[] {
 	});
 }
 
-export function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
+export function overlaps(lastFix: AutoFix | undefined, nextFix: AutoFix): boolean {
 	if (!lastFix) {
 		return false;
 	}
@@ -830,7 +844,7 @@ export function overlaps(lastFix: AutoFix, nextFix: AutoFix): boolean {
 	return doesOverlap;
 }
 
-function getLastEdit(array: AutoFix[]): AutoFix {
+function getLastEdit(array: AutoFix[]): AutoFix | undefined {
 	let length = array.length;
 	if (length === 0) {
 		return undefined;
@@ -868,7 +882,7 @@ namespace AllFixesRequest {
 }
 
 connection.onRequest(AllFixesRequest.type, async (params) => {
-	let result: AllFixesResult = undefined;
+	let result: AllFixesResult | undefined = undefined;
 	let uri = params.textDocument.uri;
 	let isOnSave = params.isOnSave;
 	let documentFixes = codeFixActions[uri];
@@ -889,7 +903,7 @@ connection.onRequest(AllFixesRequest.type, async (params) => {
 	}
 
 	// Filter out fixes for problems that aren't defined to be autofixable on save
-	if (isOnSave && Array.isArray(settings.autoFixOnSave)) {
+	if (isOnSave && settings && Array.isArray(settings.autoFixOnSave)) {
 		const autoFixOnSave = settings.autoFixOnSave as Array<string>;
 		fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
 	}
