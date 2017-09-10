@@ -1,5 +1,5 @@
 ## 1.0.2
-- fix for [#252](https://github.com/Microsoft/vscode-tslint/issues/164) The setting nodePath is no longer honored
+- fix for [#252](https://github.com/Microsoft/vscode-tslint/issues/252) The setting nodePath is no longer honored
 
 ## 1.0.1
 - Added support linting workspaces with multiple root folders. Scoped the tslint settings so that they can be configured per folder.
