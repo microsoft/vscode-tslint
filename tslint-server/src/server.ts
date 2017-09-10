@@ -25,6 +25,7 @@ interface Settings {
 	ignoreDefinitionFiles: boolean;
 	exclude: string | string[];
 	validateWithDefaultConfig: boolean;
+	nodePath: string | undefined,
 	run: 'onSave' | 'onType';
 	alwaysShowRuleFailuresAsWarnings: boolean,
 	autoFixOnSave: boolean | string[]
@@ -148,7 +149,6 @@ namespace NoTSLintLibraryRequest {
 }
 
 let globalNodePath: string | undefined = undefined;
-let nodePath: string | undefined = undefined;
 
 // if tslint < tslint4 then the linter is the module therefore the type `any`
 let path2Library: Map<string, typeof tslint.Linter | any> = new Map();
@@ -335,7 +335,7 @@ async function validateTextDocument(connection: server.IConnection, document: se
 	let uri = document.uri;
 
 	if (!document2Library.has(document.uri)) {
-		loadLibrary(document.uri);
+		await loadLibrary(document.uri);
 	}
 
 	if (!document2Library.has(document.uri)) {
@@ -375,12 +375,6 @@ connection.onInitialize((params) => {
 		return !!c;
 	}
 	scopedSettingsSupport = hasClientCapability('workspace.configuration');
-
-	let initOptions: {
-		legacyModuleResolve: boolean;
-		nodePath: string;
-	} = params.initializationOptions;
-	nodePath = initOptions.nodePath;
 	globalNodePath = server.Files.resolveGlobalNodePath();
 	return {
 		capabilities: {
@@ -399,14 +393,16 @@ function isTsLintVersion4(library) {
 	return !(semver.satisfies(version, "<= 3.x.x"));
 }
 
-function loadLibrary(docUri: string) {
+async function loadLibrary(docUri: string) {
 	let uri = Uri.parse(docUri);
 	let promise: Thenable<string>;
+	let settings = await settingsCache.get(docUri);
+
 	if (uri.scheme === 'file') {
 		let file = uri.fsPath;
 		let directory = path.dirname(file);
-		if (nodePath) {
-			 promise = server.Files.resolve('tslint', nodePath, nodePath, trace).then<string, string>(undefined, () => {
+		if (settings && settings.nodePath) {
+			 promise = server.Files.resolve('tslint', settings.nodePath, settings.nodePath!, trace).then<string, string>(undefined, () => {
 				 return server.Files.resolve('tslint', globalNodePath, directory, trace);
 			 });
 		} else {
