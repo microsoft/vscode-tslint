@@ -349,7 +349,6 @@ async function validateTextDocument(connection: server.IConnection, document: se
 		try {
 			let diagnostics = await doValidate(connection, library, document);
 			connection.sendDiagnostics({ uri, diagnostics });
-			connection.sendNotification(StatusNotification.type, { state: Status.ok });
 		} catch (err) {
 			connection.window.showErrorMessage(getErrorMessage(err, document));
 		}
