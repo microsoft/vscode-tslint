@@ -1,6 +1,6 @@
 {
   "name": "vscode-tslint",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The umbrella project for the tslint client and server",
   "main": " ",
   "devDependencies": {
