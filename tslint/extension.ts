@@ -211,6 +211,7 @@ export function activate(context: ExtensionContext) {
 					'You need to reopen VS Code after installing tslint.',
 				].join('\n'));
 			}
+			updateStatus(Status.warn);
 			return {};
 		});
 	});
