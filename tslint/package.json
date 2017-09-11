@@ -134,18 +134,18 @@
         "id": "tslint.error",
         "description": "Color for tslint error message in the status bar.",
         "defaults": {
-          "dark": "errorForeground",
-          "light": "errorForeground",
-          "highContrast": "errorForeground"
+          "dark": "#ffff00",
+          "light": "#ffff00",
+          "highContrast": "#ffff00"
         }
       },
       {
         "id": "tslint.warning",
         "description": "Color for tslint warning message in the status bar.",
         "defaults": {
-          "dark": "notification.warningForeground",
-          "light": "notification.warningForeground",
-          "highContrast": "notification.warningForeground"
+          "dark": "#ffff00",
+          "light": "#ffff00",
+          "highContrast": "#ffff00"
         }
       }
     ],
