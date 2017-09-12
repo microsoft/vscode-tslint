@@ -1,3 +1,6 @@
+## 1.0.4
+- Fix for [#255](https://github.com/Microsoft/vscode-tslint/issues/255) TSLint status shown even when tslint is disabled 
+
 ## 1.0.3
 - Added support to theme the warning and error color of the status bar item
 - Show a warning in the status bar when the tslint library cannot be loaded
