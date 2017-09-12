@@ -107,7 +107,6 @@ export function activate(context: ExtensionContext) {
 	}
 
 	function udpateStatusBarVisibility(editor: TextEditor | undefined): void {
-		//statusBarItem.text = tslintStatus === Status.ok ? 'TSLint' : 'TSLint!';
 
 		switch (tslintStatus) {
 			case Status.ok:
@@ -121,8 +120,10 @@ export function activate(context: ExtensionContext) {
 				break;
 
 		}
-		let show = serverRunning && (tslintStatus !== Status.ok)
-		if (!editor) {
+
+		let enabled = workspace.getConfiguration('tslint')['enable'];
+
+		if (!editor || !enabled) {
 			showStatusBarItem(false);
 			return;
 		}
@@ -143,9 +144,10 @@ export function activate(context: ExtensionContext) {
 	let serverModulePath = path.join(__dirname, '..', 'server', 'server.js');
 	// break on start options
 	//let debugOptions = { execArgv: ["--nolazy", "--debug=6010", "--debug-brk"] };
-	let debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
+	let debugOptions = { execArgv: ["--nolazy", "--inspect=6010"], cwd: process.cwd() };
+	let runOptions = {cwd: process.cwd()};
 	let serverOptions: ServerOptions = {
-		run: { module: serverModulePath, transport: TransportKind.ipc },
+		run: { module: serverModulePath, transport: TransportKind.ipc, options: runOptions },
 		debug: { module: serverModulePath, transport: TransportKind.ipc, options: debugOptions }
 	};
 
@@ -156,12 +158,6 @@ export function activate(context: ExtensionContext) {
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
 		},
 		diagnosticCollectionName: 'tslint',
-		initializationOptions: () => {
-			let configuration = workspace.getConfiguration('tslint');
-			return {
-				nodePath: configuration ? configuration.get('nodePath', undefined) : undefined
-			};
-		},
 		initializationFailedHandler: (error) => {
 			client.error('Server initialization failed.', error);
 			client.outputChannel.show(true);
@@ -339,6 +335,7 @@ export function activate(context: ExtensionContext) {
 			willSaveTextDocument.dispose();
 			willSaveTextDocument = undefined;
 		}
+		udpateStatusBarVisibility(window.activeTextEditor);
 	}
 
 	configurationChangedListener = workspace.onDidChangeConfiguration(configurationChanged);

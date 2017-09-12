@@ -334,6 +334,12 @@ function getLinterFromLibrary(library): typeof tslint.Linter {
 async function validateTextDocument(connection: server.IConnection, document: server.TextDocument) {
 	let uri = document.uri;
 
+	let settings = await settingsCache.get(uri);
+
+	if (settings && !settings.enable) {
+		return;
+	}
+
 	if (!document2Library.has(document.uri)) {
 		await loadLibrary(document.uri);
 	}
@@ -439,9 +445,6 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 
 	let settings = await settingsCache.get(uri);
 	if (!settings) {
-		return diagnostics;
-	}
-	if (!settings.enable) {
 		return diagnostics;
 	}
 
