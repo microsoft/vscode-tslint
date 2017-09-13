@@ -17,7 +17,7 @@ interface AllFixesParams {
 interface AllFixesResult {
 	readonly documentVersion: number;
 	readonly edits: TextEdit[];
-	readonly ruleId?: string
+	readonly ruleId?: string;
 }
 
 namespace AllFixesRequest {
@@ -280,7 +280,7 @@ export function activate(context: ExtensionContext) {
 			return;
 		}
 		let folderPicks = folders.map(each => {
-			return {label: each.name, description: each.uri.fsPath}
+			return {label: each.name, description: each.uri.fsPath};
 		});
 		let selection;
 		if (folderPicks.length === 1) {

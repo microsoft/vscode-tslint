@@ -126,7 +126,18 @@
           "default": false,
           "description": "Always show rule failures as warnings, independent of the tslint configuration.",
           "scope": "resource"
-        }
+        },
+				"tslint.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VSCode and the tslint linter service."
+				}
       }
     },
     "colors": [

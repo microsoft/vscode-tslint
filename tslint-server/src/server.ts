@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import Uri from 'vscode-uri';
+import * as util from 'util';
 
 import * as tslint from 'tslint'; // this is a dev dependency only
 
@@ -25,15 +26,16 @@ interface Settings {
 	ignoreDefinitionFiles: boolean;
 	exclude: string | string[];
 	validateWithDefaultConfig: boolean;
-	nodePath: string | undefined,
+	nodePath: string | undefined;
 	run: 'onSave' | 'onType';
-	alwaysShowRuleFailuresAsWarnings: boolean,
-	autoFixOnSave: boolean | string[]
+	alwaysShowRuleFailuresAsWarnings: boolean;
+	autoFixOnSave: boolean | string[];
+	trace: any;
 }
 
 interface Configuration {
-	linterConfiguration: any;
-	isDefaultLinterConfig: boolean
+	linterConfiguration: tslint.Configuration.IConfigurationFile | undefined;
+	isDefaultLinterConfig: boolean;
 }
 
 class ConfigCache {
@@ -47,7 +49,7 @@ class ConfigCache {
 
 	set(path: string, configuration:Configuration) {
 		this.filePath = path;
-		this.configuration = configuration
+		this.configuration = configuration;
 	}
 
 	get(forPath:string): Configuration | undefined {
@@ -61,7 +63,7 @@ class ConfigCache {
 		if (this.configuration) {
 			return this.configuration.isDefaultLinterConfig;
 		}
-		return false
+		return false;
 	}
 
 	flush() {
@@ -76,7 +78,7 @@ class SettingsCache {
 
 	constructor() {
 		this.uri = undefined;
-		this.settings = undefined
+		this.settings = undefined;
 	}
 
 	async get(uri:string): Promise<Settings | undefined> {
@@ -87,6 +89,7 @@ class SettingsCache {
 			let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
 			let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
 			this.settings = settings[0];
+			this.uri = uri;
 			return this.settings;
 		}
 		return globalSettings;
@@ -253,7 +256,7 @@ async function getConfiguration(uri: string, filePath: string, library: any, con
 	}
 
 	let isDefaultConfig = false;
-	let linterConfiguration: any;
+	let linterConfiguration: tslint.Configuration.IConfigurationFile | undefined;
 
 	let linter = getLinterFromLibrary(library);
 	if (isTsLintVersion4(library)) {
@@ -273,13 +276,13 @@ async function getConfiguration(uri: string, filePath: string, library: any, con
 		if (linter.findConfigurationPath) {
 			isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
 		}
-		linterConfiguration = linter.findConfiguration(configFileName, filePath);
+		linterConfiguration = <tslint.Configuration.IConfigurationFile>linter.findConfiguration(configFileName, filePath);
 	}
 
 	let configuration: Configuration = {
 		isDefaultLinterConfig: isDefaultConfig,
-		linterConfiguration: linterConfiguration
-	}
+		linterConfiguration: linterConfiguration,
+	};
 
 	configCache.set(filePath, configuration);
 	return configCache.configuration;
@@ -326,7 +329,7 @@ function getLinterFromLibrary(library): typeof tslint.Linter {
 	if (!isTsLint4) {
 		linter = library;
 	} else {
-		linter = library.Linter
+		linter = library.Linter;
 	}
 	return linter;
 }
@@ -488,6 +491,10 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		rulesDirectory: settings.rulesDirectory || undefined,
 		formattersDirectory: undefined
 	};
+
+	if (settings.trace && settings.trace.server === 'verbose') { 
+		traceConfigurationFile(configuration.linterConfiguration);
+	}
 
 	try { // protect against tslint crashes
 		let linter = getLinterFromLibrary(library);
@@ -921,6 +928,14 @@ function concatenateEdits(fixes: AutoFix[]): server.TextEdit[] {
 		textEdits = textEdits.concat(createTextEdit(each));
 	});
 	return textEdits;
+}
+
+function traceConfigurationFile(configuration: tslint.Configuration.IConfigurationFile | undefined) {
+	if (!configuration) {
+		trace("no tslint configuration");
+		return;
+	}
+	trace("tslint configuration:", util.inspect(configuration, undefined, 4));
 }
 
 connection.listen();

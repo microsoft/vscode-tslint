@@ -4,10 +4,22 @@ Integrates the [tslint](https://github.com/palantir/tslint) linter for the TypeS
 Please refer to the tslint [documentation](https://github.com/palantir/tslint) for how to configure the linting rules.
 
 # Prerequisites
-The extension requires that tslint is installed either locally or globally.
+The extension requires that the `tslint` and `typescript` modules are installed either locally or globally. The extension will use the tslint module that is installed closest to the linted file. To install tslint and typescript globally you can run `npm install -g tslint typescript`.
 
->Tip: if you get an error saying, "failed to load tslint", but you have tslint installed locally,
- try to install tslint and its typescript dependency globally using `npm install -g tslint typescript`.
+# FAQ
+
+- The `no-unused-variable` rule doesn't report warnings any more?
+
+Since tslint version 5 the rule [no-unused-variable](https://palantir.github.io/tslint/rules/no-unused-variable/) rule requires type information. Rules with type information are currently not supported by vscode-tslint, pls see [issue #70](https://github.com/Microsoft/vscode-tslint/issues/70#issuecomment-241041929). The recommended work around is to enable the TypeScript compiler option `noUnusedLocals` and `noUnusedParameters`in your `tsconfig.json` file.
+
+- How can I use tslint rules that require type information
+
+The recommended way is to run tslint manually on your project from a [task](https://code.visualstudio.com/docs/editor/tasks). To see the lint warnings in the Problems panel you can associate the task with a [Problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers) as described in the section [below](#Using-the-extension-with-tasks-running-tslint).
+
+- Linting does not seem to work what can I do?
+
+Click on the `TSlint` status bar item at the bottom left of the status bar to see the output from the vscode-tslint extension.
+You can enable more tracing output by adding the setting "tslint.trace.server" with a value of "verbose" or "messages".
 
 # Configuration options
 

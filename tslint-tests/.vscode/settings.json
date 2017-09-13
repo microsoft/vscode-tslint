@@ -6,8 +6,8 @@
     // ],
     "tslint.autoFixOnSave": false,
     // "tslint.nodePath": "c:\\tmp",
-    "tslint.jsEnable": true
+    "tslint.jsEnable": true,
     //"tslint.enable": true
-    // "tslint.trace.server": "verbose"
+    "tslint.trace.server": "verbose"
     // "tslint.alwaysShowRuleFailuresAsWarnings": false
 }
