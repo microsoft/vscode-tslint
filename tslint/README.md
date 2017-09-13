@@ -10,7 +10,7 @@ The extension requires that the `tslint` and `typescript` modules are installed 
 
 - The `no-unused-variable` rule doesn't report warnings any more?
 
-Since tslint version 5 the rule [no-unused-variable](https://palantir.github.io/tslint/rules/no-unused-variable/) rule requires type information. Rules with type information are currently not supported by vscode-tslint, pls see [issue #70](https://github.com/Microsoft/vscode-tslint/issues/70#issuecomment-241041929). The recommended work around is to enable the TypeScript compiler option `noUnusedLocals` and `noUnusedParameters`in your `tsconfig.json` file.
+Since tslint version 5 the rule [no-unused-variable](https://palantir.github.io/tslint/rules/no-unused-variable/) rule requires type information. Rules with type information are currently not supported by vscode-tslint, pls see [issue #70](https://github.com/Microsoft/vscode-tslint/issues/70#issuecomment-241041929). The recommended work around is to enable the TypeScript compiler options `noUnusedLocals` and `noUnusedParameters` in your `tsconfig.json` file.
 
 - How can I use tslint rules that require type information
 
@@ -19,7 +19,8 @@ The recommended way is to run tslint manually on your project from a [task](http
 - Linting does not seem to work what can I do?
 
 Click on the `TSlint` status bar item at the bottom left of the status bar to see the output from the vscode-tslint extension.
-You can enable more tracing output by adding the setting "tslint.trace.server" with a value of "verbose" or "messages".
+You can enable more tracing output by adding the setting "tslint.trace.server" with a value of "verbose" or "messages". If this doesn't
+help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issues/new) and include the trace output produced when running with the setting "tslint.trace.server" set to "verbose".
 
 # Configuration options
 
