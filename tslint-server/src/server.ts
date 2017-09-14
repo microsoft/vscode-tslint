@@ -508,7 +508,7 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		}
 		// support for linting js files is only available in tslint > 4.0
 		else if (!isJsDocument(document)) {
-			(<any>options).configuration = configuration;
+			(<any>options).configuration = configuration.linterConfiguration;
 			trace(`Linting: with tslint < version 4`);
 			let tslint = new (<any>linter)(fsPath, contents, options);
 			result = tslint.lint();

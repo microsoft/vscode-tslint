@@ -1,3 +1,6 @@
+## 1.0.6
+- Fix for [#257](https://github.com/Microsoft/vscode-tslint/issues/257) tslint broke when using tslint version < 4.0
+
 ## 1.0.5
 - Added more tracing information when `tslint.trace.server` is set to "verbose"
 
