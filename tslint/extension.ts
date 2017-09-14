@@ -4,7 +4,7 @@ import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBar
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
-	ProposedProtocol
+	Proposed
 } from 'vscode-languageclient';
 import { exec }  from 'child_process';
 import * as open from 'open';
@@ -166,7 +166,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);
-	client.registerFeatures(ProposedProtocol(client));
+	client.registerProposedFeatures();
 
 	const running = 'Linter is running.';
 	const stopped = 'Linter has stopped.';
