@@ -443,15 +443,18 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	let fsPath = server.Files.uriToFilePath(uri);
 	if (!fsPath) {
 		// tslint can only lint files on disk
+		trace(`No linting: file is not saved on disk`);
 		return diagnostics;
 	}
 
 	let settings = await settingsCache.get(uri);
 	if (!settings) {
+		trace('No linting: settings could not be loaded');
 		return diagnostics;
 	}
 
 	if (fileIsExcluded(settings, fsPath)) {
+		trace(`No linting: file ${fsPath} is excluded`);
 		return diagnostics;
 	}
 
@@ -464,23 +467,21 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	} catch (err) {
 		// this should not happen since we guard against incorrect configurations
 		showConfigurationFailure(conn, err);
+		trace(`No linting: exception when getting tslint configuration for ${fsPath}, configFile= ${configFile}`);
 		return diagnostics;
 	}
 	if (!configuration) {
+		trace(`No linting: no tslint configuration`);
 		return diagnostics;
 	}
 	if (isJsDocument(document) && !settings.jsEnable) {
+		trace(`No linting: a JS document, but js linting is disabled`);
 		return diagnostics;
 	}
 
-	if (!configCache.configuration) {
-		return diagnostics;
-	}
-	if (settings.validateWithDefaultConfig === false && configCache.configuration.isDefaultLinterConfig) {
-		return diagnostics;
-	}
 
-	if (configCache.configuration.isDefaultLinterConfig && settings.validateWithDefaultConfig === false) {
+	if (settings.validateWithDefaultConfig === false && configCache.configuration!.isDefaultLinterConfig) {
+		trace(`No linting: linting with default tslint configuration is disabled`);
 		return diagnostics;
 	}
 
@@ -492,7 +493,7 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		formattersDirectory: undefined
 	};
 
-	if (settings.trace && settings.trace.server === 'verbose') { 
+	if (settings.trace && settings.trace.server === 'verbose') {
 		traceConfigurationFile(configuration.linterConfiguration);
 	}
 
@@ -500,20 +501,26 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		let linter = getLinterFromLibrary(library);
 		if (isTsLintVersion4(library)) {
 			let tslint = new linter(options);
+			trace(`Linting: start linting with tslint > version 4`);
 			tslint.lint(fsPath, contents, configuration.linterConfiguration);
 			result = tslint.getResult();
+			trace(`Linting: ended linting`);
 		}
 		// support for linting js files is only available in tslint > 4.0
 		else if (!isJsDocument(document)) {
 			(<any>options).configuration = configuration;
+			trace(`Linting: with tslint < version 4`);
 			let tslint = new (<any>linter)(fsPath, contents, options);
 			result = tslint.lint();
+			trace(`Linting: ended linting`);
 		} else {
+			trace(`No linting: JS linting not supported in tslint < version 4`);
 			return diagnostics;
 		}
 	} catch (err) {
 		conn.console.info(getErrorMessage(err, document));
 		connection.sendNotification(StatusNotification.type, { state: Status.error });
+		trace(`No linting: tslint exception while linting`);
 		return diagnostics;
 	}
 

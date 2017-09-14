@@ -1,7 +1,9 @@
+## 1.0.5
+- Added more tracing information when `tslint.trace.server` is set to "verbose"
+
 ## 1.0.4
 - Fix for [#255](https://github.com/Microsoft/vscode-tslint/issues/255) TSLint status shown even when tslint is disabled
 - Added an FAQ section to the README
-- Adder more tracing information when `tslint.trace.server` is set to "verbose".
 
 ## 1.0.3
 - Added support to theme the warning and error color of the status bar item
