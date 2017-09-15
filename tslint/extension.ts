@@ -145,10 +145,7 @@ export function activate(context: ExtensionContext) {
 		}
 		showStatusBarItem(
 			serverRunning &&
-			(
-				tslintStatus !== Status.ok ||
-				((isTypeScriptDocument(editor.document.languageId) || isEnableForJavaScriptDocument(editor.document.languageId)))
-			)
+			(isTypeScriptDocument(editor.document.languageId) || isEnableForJavaScriptDocument(editor.document.languageId))
 		);
 	}
 
