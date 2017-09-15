@@ -1,5 +1,7 @@
 import * as assert from 'assert';
-import { AutoFix, TSLintAutofixEdit, getAllNonOverlappingFixes } from '../src/server';
+import { AutoFix, getAllNonOverlappingFixes } from '../src/server';
+import { TSLintAutofixEdit } from '../src/fixer';
+
 import * as server from 'vscode-languageserver';
 
 function pos(line, char): server.Position {
@@ -16,7 +18,7 @@ function autoFixEdit(startLine, startChar, endLine, endChar): TSLintAutofixEdit 
   return {
     range: range(startLine, startChar, endLine, endChar),
     text: ''
-  }
+  };
 }
 
 function autofix(startLine, startChar, endLine, endChar): AutoFix {
