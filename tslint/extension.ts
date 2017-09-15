@@ -4,7 +4,7 @@ import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBar
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
-	Proposed
+	Proposed, CancellationToken, WorkspaceMiddleware
 } from 'vscode-languageclient';
 import { exec }  from 'child_process';
 import * as open from 'open';
@@ -47,6 +47,22 @@ interface StatusParams {
 
 namespace StatusNotification {
 	export const type = new NotificationType<StatusParams, void>('tslint/status');
+}
+
+interface Settings {
+	enable: boolean;
+	jsEnable: boolean;
+	rulesDirectory: string | string[];
+	configFile: string;
+	ignoreDefinitionFiles: boolean;
+	exclude: string | string[];
+	validateWithDefaultConfig: boolean;
+	nodePath: string | undefined;
+	run: 'onSave' | 'onType';
+	alwaysShowRuleFailuresAsWarnings: boolean;
+	autoFixOnSave: boolean | string[];
+	trace: any;
+	workspaceFolder: Proposed.WorkspaceFolder | undefined;
 }
 
 let willSaveTextDocument: Disposable | undefined;
@@ -163,6 +179,35 @@ export function activate(context: ExtensionContext) {
 			client.outputChannel.show(true);
 			return false;
 		},
+		middleware: {
+			workspace: {
+				configuration: (params: Proposed.ConfigurationParams, token: CancellationToken, next: Function): any[] => {
+					if (!params.items) {
+						return [];
+					}
+					let result = next(params, token, next);
+					let settings = result[0];
+					let scopeUri = "";
+					// add the workspaceFolder to the settings
+					for (let item of params.items) {
+						if (!item.scopeUri) {
+							continue;
+						} else {
+							scopeUri = item.scopeUri;
+						}
+					}
+					let resource = client.protocol2CodeConverter.asUri(scopeUri);
+					let workspaceFolder = workspace.getWorkspaceFolder(resource);
+					if (workspaceFolder) {
+						settings.workspaceFolder = {
+							name: workspaceFolder.name,
+							uri: client.code2ProtocolConverter.asUri(workspaceFolder.uri)
+						};
+					}
+					return result;
+				}
+			} as WorkspaceMiddleware
+		}
 	};
 
 	let client = new LanguageClient('tslint', serverOptions, clientOptions);

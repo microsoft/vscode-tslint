@@ -31,6 +31,7 @@ interface Settings {
 	alwaysShowRuleFailuresAsWarnings: boolean;
 	autoFixOnSave: boolean | string[];
 	trace: any;
+	workspaceFolder: server.Proposed.WorkspaceFolder | undefined;
 }
 
 interface Configuration {
@@ -460,6 +461,10 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 
 	let contents = document.getText();
 	let configFile = settings.configFile || null;
+	if (configFile && settings.workspaceFolder) {
+		configFile = resolveConfigFile(configFile, settings.workspaceFolder);
+	}
+
 	let configuration: Configuration | undefined;
 
 	try {
@@ -935,6 +940,17 @@ function concatenateEdits(fixes: AutoFix[]): server.TextEdit[] {
 		textEdits = textEdits.concat(createTextEdit(each));
 	});
 	return textEdits;
+}
+
+function resolveConfigFile(configFile: string, folder: server.Proposed.WorkspaceFolder):string {
+	if (path.isAbsolute(configFile)) {
+		return configFile;
+	}
+	let folderPath = server.Files.uriToFilePath(folder.uri);
+	if (!folderPath) {
+		return configFile;
+	}
+	return path.join(folderPath, configFile);
 }
 
 function traceConfigurationFile(configuration: tslint.Configuration.IConfigurationFile | undefined) {
