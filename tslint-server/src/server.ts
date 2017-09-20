@@ -159,15 +159,6 @@ let document2Library: Map<string, Thenable<typeof tslint.Linter | any>> = new Ma
 
 let validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
 
-let tslintNotFound =
-	`Failed to load tslint library. Please install tslint in your workspace
-folder using \'npm install tslint\' or \'npm install -g tslint\' and then press Retry.`;
-
-let tslintNotFoundIgnored =
-	`[vscode-tslint] Failed to load tslint library. This failure is not reported to the user since there is no \'tslint.json\' in the workspace`;
-
-
-
 let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
 
 function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFailure): server.Diagnostic {
@@ -336,6 +327,11 @@ function getLinterFromLibrary(library): typeof tslint.Linter {
 
 async function validateTextDocument(connection: server.IConnection, document: server.TextDocument) {
 	let uri = document.uri;
+
+	// tslint can only validate files on disk
+	if (Uri.parse(uri).scheme !== 'file') {
+		return;
+	}
 
 	let settings = await settingsCache.get(uri);
 
