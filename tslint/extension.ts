@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext } from 'vscode';
+import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
@@ -62,7 +62,6 @@ interface Settings {
 	alwaysShowRuleFailuresAsWarnings: boolean;
 	autoFixOnSave: boolean | string[];
 	trace: any;
-	workspaceFolder: Proposed.WorkspaceFolder | undefined;
 }
 
 let willSaveTextDocument: Disposable | undefined;
@@ -202,7 +201,7 @@ export function activate(context: ExtensionContext) {
 					let result = next(params, token, next);
 					let settings = result[0];
 					let scopeUri = "";
-					// add the workspaceFolder to the settings
+
 					for (let item of params.items) {
 						if (!item.scopeUri) {
 							continue;
@@ -213,10 +212,7 @@ export function activate(context: ExtensionContext) {
 					let resource = client.protocol2CodeConverter.asUri(scopeUri);
 					let workspaceFolder = workspace.getWorkspaceFolder(resource);
 					if (workspaceFolder) {
-						settings.workspaceFolder = {
-							name: workspaceFolder.name,
-							uri: client.code2ProtocolConverter.asUri(workspaceFolder.uri)
-						};
+						convertToAbsolutePaths(settings, workspaceFolder);
 					}
 					return result;
 				}
@@ -270,6 +266,38 @@ export function activate(context: ExtensionContext) {
 			return {};
 		});
 	});
+
+	function convertToAbsolutePaths(settings: Settings, folder: WorkspaceFolder) {
+		let configFile = settings.configFile;
+		if (configFile) {
+			settings.configFile = convertAbsolute(configFile, folder);
+		}
+		let nodePath = settings.nodePath;
+		if (nodePath) {
+			settings.nodePath = convertAbsolute(nodePath, folder);
+		}
+		if (settings.rulesDirectory) {
+			if (Array.isArray(settings.rulesDirectory)) {
+				for (let i = 0; i < settings.rulesDirectory.length; i++) {
+					settings.rulesDirectory[i] = convertAbsolute(settings.rulesDirectory[i], folder);
+
+				}
+			} else {
+				settings.rulesDirectory = convertAbsolute(settings.rulesDirectory, folder);
+			}
+		}
+	}
+
+	function convertAbsolute(file: string, folder: WorkspaceFolder):string {
+		if (path.isAbsolute(file)) {
+			return file;
+		}
+		let folderPath = folder.uri.fsPath;
+		if (!folderPath) {
+			return file;
+		}
+		return path.join(folderPath, file);
+	}
 
 	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
 		let textEditor = window.activeTextEditor;
