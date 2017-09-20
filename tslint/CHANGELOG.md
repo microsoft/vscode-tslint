@@ -1,3 +1,7 @@
+## 1.0.8
+- Fix for [#259](https://github.com/Microsoft/vscode-tslint/issues/259) Support to define tslint.configFile and rulesDirectories with relative paths is broken
+- Fix for [#264](https://github.com/Microsoft/vscode-tslint/issues/264) Support relative nodePath settings
+
 ## 1.0.7
 - Fix for [#259](https://github.com/Microsoft/vscode-tslint/issues/259) tslint.configFile relative to workspace
 - Fix for [#261](https://github.com/Microsoft/vscode-tslint/issues/261) Disabling tslint for .js not honored
