@@ -5,8 +5,9 @@
     //     "arrow-parens"
     // ],
     "tslint.autoFixOnSave": false,
-    // "tslint.nodePath": "c:\\tmp",
-    "tslint.jsEnable": true
+    //"tslint.nodePath": "tmp",
+    "tslint.jsEnable": true,
+    //"tslint.rulesDirectory": ["tmp1", "tmp2"],
     //"tslint.enable": true
     //"tslint.configFile": "tslint.json",
     //"tslint.trace.server": "verbose"
