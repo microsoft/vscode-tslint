@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor,ThemeColor, Disposable, TextDocumentSaveReason, Uri } from 'vscode';
+import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
@@ -177,6 +177,23 @@ export function activate(context: ExtensionContext) {
 			return false;
 		},
 		middleware: {
+			provideCodeActions: (document, range, context, token, next): ProviderResult<Command[]> => {
+				// do not ask server for code action when the diagnostic isn't from tslint
+				if (!context.diagnostics || context.diagnostics.length === 0) {
+					return [];
+				}
+				let tslintDiagnostics: Diagnostic[] = [];
+				for (let diagnostic of context.diagnostics) {
+					if (diagnostic.source === 'tslint') {
+						tslintDiagnostics.push(diagnostic);
+					}
+				}
+				if (tslintDiagnostics.length === 0) {
+					return [];
+				}
+				let newContext: CodeActionContext = Object.assign({}, context, { diagnostics: tslintDiagnostics } as CodeActionContext);
+				return next(document, range, newContext, token);
+			},
 			workspace: {
 				configuration: (params: Proposed.ConfigurationParams, token: CancellationToken, next: Function): any[] => {
 					if (!params.items) {
