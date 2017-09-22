@@ -1,5 +1,5 @@
 {
-  "name": "tslint-issues",
+  "name": "tslint-tests",
   "version": "1.0.0",
   "description": "dummy project containing dummies files to raise tslint problems and check that correction are working fine",
   "main": "index.js",
