@@ -554,12 +554,12 @@ function isJsDocument(document: server.TextDocument) {
 
 function fileIsExcluded(settings: Settings, path: string): boolean {
 	function testForExclusionPattern(path: string, pattern: string): boolean {
-		return minimatch(path, pattern);
+		return minimatch(path, pattern, {dot: true});
 	}
 
 
 	if (settings.ignoreDefinitionFiles) {
-		if (minimatch(path, "**/*.d.ts")) {
+		if (minimatch(path, "**/*.d.ts", {dot: true})) {
 			return true;
 		}
 	}
