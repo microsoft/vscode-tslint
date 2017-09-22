@@ -1,3 +1,7 @@
+## 1.0.9
+- Fix for [#262](https://github.com/Microsoft/vscode-tslint/issues/262) Rule failures reported on .d.ts file
+- Fix for [#269](https://github.com/Microsoft/vscode-tslint/issues/264) Constant yellow TSLint status bar warning in diff editor
+
 ## 1.0.8
 - Fix for [#259](https://github.com/Microsoft/vscode-tslint/issues/259) Support to define tslint.configFile and rulesDirectories with relative paths is broken
 - Fix for [#264](https://github.com/Microsoft/vscode-tslint/issues/264) Support relative nodePath settings
