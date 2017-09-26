@@ -1,3 +1,6 @@
+## 1.0.10
+- Adding setting to control whether the TSLint statusbar item is always shown and not only on error  [#268](https://github.com/Microsoft/vscode-tslint/issues/268)
+
 ## 1.0.9
 - Fix for [#262](https://github.com/Microsoft/vscode-tslint/issues/262) Rule failures reported on .d.ts file
 - Fix for [#269](https://github.com/Microsoft/vscode-tslint/issues/264) Constant yellow TSLint status bar warning in diff editor

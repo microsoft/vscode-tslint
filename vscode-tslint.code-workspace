@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "tslint"
+		},
+		{
+			"path": "tslint-server"
+		},
+		{
+			"path": "tslint-tests"
+		}
+	],
+	"settings": {
+		"editor.formatOnSave": false
+	}
+}

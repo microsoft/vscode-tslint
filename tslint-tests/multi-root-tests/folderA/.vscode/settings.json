@@ -1,10 +1,10 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "tslint.alwaysShowRuleFailuresAsWarnings": true,
+    "tslint.alwaysShowRuleFailuresAsWarnings": true
     // "tslint.autoFixOnSave": false,
     // "tslint.ignoreDefinitionFiles": true,
     // "tslint.jsEnable": false,
-    "tslint.configFile": "tslint.json"
+    // "tslint.configFile": "tslint.json"
     // "tslint.exclude": "",
     // "tslint.rulesDirectory": "",
     // "tslint.nodePath": "",

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder } from 'vscode';
+import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
@@ -60,6 +60,7 @@ interface Settings {
 	nodePath: string | undefined;
 	run: 'onSave' | 'onType';
 	alwaysShowRuleFailuresAsWarnings: boolean;
+	alwaysShowStatus: boolean;
 	autoFixOnSave: boolean | string[];
 	trace: any;
 }
@@ -105,17 +106,17 @@ export function activate(context: ExtensionContext) {
 		udpateStatusBarVisibility(window.activeTextEditor);
 	}
 
-	function isTypeScriptDocument(languageId) {
-		return languageId === 'typescript' || languageId === 'typescriptreact';
+	function isTypeScriptDocument(document: TextDocument) {
+		return document.languageId === 'typescript' || document.languageId === 'typescriptreact';
 	}
 
 	function isJavaScriptDocument(languageId) {
 		return languageId === 'javascript' || languageId === 'javascriptreact';
 	}
 
-	function isEnableForJavaScriptDocument(languageId) {
-		let isJsEnable = workspace.getConfiguration('tslint').get('jsEnable', true);
-		if (isJsEnable && isJavaScriptDocument(languageId)) {
+	function isEnabledForJavaScriptDocument(document: TextDocument) {
+		let isJsEnable = workspace.getConfiguration('tslint', document.uri).get('jsEnable', true);
+		if (isJsEnable && isJavaScriptDocument(document.languageId)) {
 			return true;
 		}
 		return false;
@@ -135,16 +136,18 @@ export function activate(context: ExtensionContext) {
 				break;
 
 		}
+		let uri = editor ? editor.document.uri : undefined;
+		let enabled = workspace.getConfiguration('tslint', uri)['enable'];
+		let alwaysShowStatus = workspace.getConfiguration('tslint', uri)['alwaysShowStatus'];
 
-		let enabled = workspace.getConfiguration('tslint')['enable'];
-
-		if (!editor || !enabled) {
+		if (!editor || !enabled || (tslintStatus === Status.ok && !alwaysShowStatus)) {
 			showStatusBarItem(false);
 			return;
 		}
+
 		showStatusBarItem(
 			serverRunning &&
-			(isTypeScriptDocument(editor.document.languageId) || isEnableForJavaScriptDocument(editor.document.languageId))
+			(isTypeScriptDocument(editor.document) || isEnabledForJavaScriptDocument(editor.document))
 		);
 	}
 
@@ -403,7 +406,7 @@ export function activate(context: ExtensionContext) {
 			willSaveTextDocument = workspace.onWillSaveTextDocument((event) => {
 				let document = event.document;
 				// only auto fix when the document was manually saved by the user
-				if (!(isTypeScriptDocument(document.languageId) || isEnableForJavaScriptDocument(document.languageId))
+				if (!(isTypeScriptDocument(document) || isEnabledForJavaScriptDocument(document))
 					|| event.reason !== TextDocumentSaveReason.Manual) {
 					return;
 				}

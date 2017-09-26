@@ -29,6 +29,7 @@ interface Settings {
 	nodePath: string | undefined;
 	run: 'onSave' | 'onType';
 	alwaysShowRuleFailuresAsWarnings: boolean;
+	alwaysShowStatus: boolean;
 	autoFixOnSave: boolean | string[];
 	trace: any;
 }

@@ -127,6 +127,12 @@
           "description": "Always show rule failures as warnings, independent of the tslint configuration.",
           "scope": "resource"
         },
+        "tslint.alwaysShowStatus": {
+          "type": "boolean",
+          "default": true,
+          "description": "Always show the TSlint status bar item, not only when there are errors.",
+          "scope": "window"
+        },
 				"tslint.trace.server": {
 					"scope": "window",
 					"type": "string",

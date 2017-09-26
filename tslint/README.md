@@ -18,7 +18,7 @@ The recommended way is to run tslint manually on your project from a [task](http
 
 - Linting does not seem to work what can I do?
 
-Click on the `TSlint` status bar item at the bottom left of the status bar to see the output from the vscode-tslint extension.
+Open the tslint output log using the command `TSLint: Show Output`. Verify that there is no error message in the shown log.
 You can enable more tracing output by adding the setting "tslint.trace.server" with a value of "verbose" or "messages". If this doesn't
 help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issues/new) and include the trace output produced when running with the setting "tslint.trace.server" set to "verbose".
 
@@ -36,6 +36,7 @@ help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issu
 - `tslint.validateWithDefaultConfig` - validate a file for which no custom tslint configuration was found. The default is `false`.
 - `tslint.nodePath` - custom path to node modules directory, used to load tslint from a different location than the default of the current workspace or the global node modules directory.
 - `tslint.autoFixOnSave` - fix auto-fixable warnings when a file is saved. **Note:** Auto-fixing is only done when manually saving a file. It is not performed when the file is automatically saved based on the `files.autoSave` setting. Executing a manual save on an already-saved document will trigger auto-fixing.
+- `tslint.alwaysShowStatus` - always show the `TSLint` status bar item and not only when there are errors. The default is true.
 - `tslint.alwaysShowRuleFailuresAsWarnings` - always show rule failures as warnings, ignoring the severity configuration in the `tslint.json` configuration.
 
 # Auto-fixing

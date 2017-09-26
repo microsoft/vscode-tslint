@@ -6,7 +6,7 @@
     // ],
     "tslint.autoFixOnSave": false,
     //"tslint.nodePath": "tmp",
-    "tslint.jsEnable": true,
+    "tslint.jsEnable": true
     //"tslint.rulesDirectory": ["tmp1", "tmp2"],
     //"tslint.enable": true
     //"tslint.configFile": "tslint.json",
