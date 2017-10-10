@@ -1,5 +1,5 @@
 ## 1.0.10
-- Adding setting to control whether the TSLint statusbar item is always shown and not only on error  [#268](https://github.com/Microsoft/vscode-tslint/issues/268)
+- Only show tslint statusbar item when there is an error or warning. Added a setting to control whether the TSLint statusbar item is always shown. The default is false  [#268](https://github.com/Microsoft/vscode-tslint/issues/268)
 
 ## 1.0.9
 - Fix for [#262](https://github.com/Microsoft/vscode-tslint/issues/262) Rule failures reported on .d.ts file

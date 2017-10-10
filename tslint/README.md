@@ -36,12 +36,13 @@ help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issu
 - `tslint.validateWithDefaultConfig` - validate a file for which no custom tslint configuration was found. The default is `false`.
 - `tslint.nodePath` - custom path to node modules directory, used to load tslint from a different location than the default of the current workspace or the global node modules directory.
 - `tslint.autoFixOnSave` - fix auto-fixable warnings when a file is saved. **Note:** Auto-fixing is only done when manually saving a file. It is not performed when the file is automatically saved based on the `files.autoSave` setting. Executing a manual save on an already-saved document will trigger auto-fixing.
-- `tslint.alwaysShowStatus` - always show the `TSLint` status bar item and not only when there are errors. The default is true.
+- `tslint.alwaysShowStatus` - always show the `TSLint` status bar item and not only when there are errors. The default is `false`.
 - `tslint.alwaysShowRuleFailuresAsWarnings` - always show rule failures as warnings, ignoring the severity configuration in the `tslint.json` configuration.
 
 # Auto-fixing
 
 The extension supports automatic fixing of warnings to the extent supported by tslint. For warnings which support an auto-fix, a light bulb is shown when the cursor is positioned inside the warning's range. You can apply the quick fix by either:
+
 * clicking the light bulb appearing or by executing the `Quick Fix`, when the mouse is over the erroneous code
 * or using the command `Fix all auto-fixable problems`.
 
