@@ -129,10 +129,10 @@ export function activate(context: ExtensionContext) {
 				statusBarItem.text = 'TSLint';
 				break;
 			case Status.warn:
-				statusBarItem.text = 'TSLint: Warning';
+				statusBarItem.text = '$(alert) TSLint';
 				break;
 			case Status.error:
-				statusBarItem.text = 'TSLint: Error';
+				statusBarItem.text = '$(issue-opened) TSLint';
 				break;
 
 		}
