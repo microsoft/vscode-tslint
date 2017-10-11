@@ -248,7 +248,7 @@ export function activate(context: ExtensionContext) {
 		});
 		client.onRequest(NoTSLintLibraryRequest.type, (params) => {
 			let uri: Uri = Uri.parse(params.source.uri);
-			if (workspace.rootPath) {
+			if (workspace) { // workspace opened on a folder
 				client.info([
 					'',
 					`Failed to load the TSLint library for the document ${uri.fsPath}`,
