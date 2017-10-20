@@ -76,8 +76,6 @@ export function activate(context: ExtensionContext) {
 
 	statusBarItem.text = 'TSLint';
 	statusBarItem.command = 'tslint.showOutputChannel';
-	let errorColor = new ThemeColor('tslint.error');
-	let warningColor = new ThemeColor('tslint.warning');
 
 	function showStatusBarItem(show: boolean): void {
 		if (show) {
@@ -88,17 +86,6 @@ export function activate(context: ExtensionContext) {
 	}
 
 	function updateStatus(status: Status) {
-		switch (status) {
-			case Status.ok:
-				statusBarItem.color = undefined;
-				break;
-			case Status.warn:
-				statusBarItem.color = warningColor;
-				break;
-			case Status.error:
-				statusBarItem.color = errorColor; // darkred doesn't work
-				break;
-		}
 		if (tslintStatus !== Status.ok && status === Status.ok) { // an error got addressed fix, write to the output that the status is OK
 			client.info('vscode-tslint: Status is OK');
 		}
