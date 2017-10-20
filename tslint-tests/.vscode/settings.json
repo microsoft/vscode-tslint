@@ -4,6 +4,7 @@
     // "tslint.autoFixOnSave": [
     //     "arrow-parens"
     // ],
+    //"tslint.run": "onSave",
     "tslint.autoFixOnSave": false,
     //"tslint.nodePath": "tmp",
     "tslint.jsEnable": true

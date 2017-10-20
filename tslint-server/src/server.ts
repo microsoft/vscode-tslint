@@ -579,10 +579,19 @@ function fileIsExcluded(settings: Settings, path: string): boolean {
 	return false;
 }
 
+documents.onDidOpen(async (event) => {
+	let settings = await settingsCache.get(event.document.uri);
+	triggerValidateDocument(event.document);
+});
+
 documents.onDidChangeContent(async (event) => {
 	let settings = await settingsCache.get(event.document.uri);
 	if (settings && settings.run === 'onType') {
 		triggerValidateDocument(event.document);
+	}
+	// clear the diagnostics when validating on save and when the document is modified
+	else if (settings && settings.run === 'onSave') {
+		connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 	}
 });
 
