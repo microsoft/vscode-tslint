@@ -146,26 +146,6 @@
 				}
       }
     },
-    "colors": [
-      {
-        "id": "tslint.error",
-        "description": "Color for tslint error message in the status bar.",
-        "defaults": {
-          "dark": "#ffff00",
-          "light": "#ffff00",
-          "highContrast": "#ffff00"
-        }
-      },
-      {
-        "id": "tslint.warning",
-        "description": "Color for tslint warning message in the status bar.",
-        "defaults": {
-          "dark": "#ffff00",
-          "light": "#ffff00",
-          "highContrast": "#ffff00"
-        }
-      }
-    ],
     "commands": [
       {
         "title": "Fix all auto-fixable problems",
