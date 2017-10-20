@@ -1,3 +1,9 @@
+## 1.0.12
+- Use icons instead of color to emphasize the tslint status in the status bar.
+- When validateOnSave is on, clear warnings when the user makes changes.
+- Use the new workspace folder picker API when selecting a target folder for tslint.json generation.
+
+
 ## 1.0.11
 - Only show tslint statusbar item when there is an error or warning. Added a setting to control whether the TSLint statusbar item is always shown. The default is false  [#268](https://github.com/Microsoft/vscode-tslint/issues/268)
 - remove last reference to `rootPath`.
