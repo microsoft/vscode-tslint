@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument } from 'vscode';
+import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
@@ -352,23 +352,23 @@ export function activate(context: ExtensionContext) {
 
 	async function createDefaultConfiguration() {
 		let folders = workspace.workspaceFolders;
+		let folder: WorkspaceFolder | undefined = undefined;
 		if (!folders) {
 			window.showErrorMessage('A TSLint configuration file can only be generated if VS Code is opened on a folder.');
 			return;
 		}
-		let folderPicks = folders.map(each => {
-			return {label: each.name, description: each.uri.fsPath};
-		});
-		let selection;
-		if (folderPicks.length === 1) {
-			selection = folderPicks[0];
+		if (folders.length === 1) {
+			folder = folders[0];
 		} else {
-			selection = await window.showQuickPick(folderPicks, {placeHolder: 'Select the target folder for the tslint.json'});
+			const options: WorkspaceFolderPickOptions = {
+				placeHolder: "Select the folder for generating the 'tslint.json' file"
+			}
+			folder = await window.showWorkspaceFolderPick(options);
+			if (!folder) {
+				return;
+			}
 		}
-		if(!selection) {
-			return;
-		}
-		let tslintConfigFile = path.join(selection.description, 'tslint.json');
+		let tslintConfigFile = path.join(folder.uri.fsPath, 'tslint.json');
 
 		if (fs.existsSync(tslintConfigFile)) {
 			window.showInformationMessage('A TSLint configuration file already exists.');
@@ -376,7 +376,7 @@ export function activate(context: ExtensionContext) {
 			window.showTextDocument(document);
 		} else {
 			const cmd = 'tslint --init';
-			const p = exec(cmd, { cwd: selection.description, env: process.env });
+			const p = exec(cmd, { cwd: folder.uri.fsPath, env: process.env });
 			p.on('exit', async (code: number, signal: string) => {
 				if (code === 0) {
 					let document = await workspace.openTextDocument(tslintConfigFile);
