@@ -10,6 +10,13 @@
                 "base": "$tslint5",
                 "fileLocation": "relative"
             }
+        },
+        {
+            "type": "gulp",
+            "task": "tslint",
+            "problemMatcher": [
+                "$tslint5"
+            ]
         }
     ]
 }
