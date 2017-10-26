@@ -5,6 +5,7 @@
     //     "arrow-parens"
     // ],
     //"tslint.run": "onSave",
+    //"tslint.packageManager": "yarn",
     "tslint.autoFixOnSave": false,
     //"tslint.nodePath": "tmp",
     "tslint.jsEnable": true

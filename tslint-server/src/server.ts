@@ -16,6 +16,7 @@ import * as tslint from 'tslint'; // this is a dev dependency only
 
 import { Delayer } from './delayer';
 import { createVscFixForRuleFailure, TSLintAutofixEdit } from './fixer';
+import { resolve } from 'url';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -31,7 +32,10 @@ interface Settings {
 	alwaysShowRuleFailuresAsWarnings: boolean;
 	alwaysShowStatus: boolean;
 	autoFixOnSave: boolean | string[];
+	packageManager: 'npm' | 'yarn';
 	trace: any;
+	didResolveGlobalPackageMangerPath: boolean; // not a setting, bundled with settings for convenience
+	resolvedGlobalPackageManagerPath: string | undefined;  // not a setting, bundled with settings for convenience
 }
 
 interface Configuration {
@@ -41,19 +45,19 @@ interface Configuration {
 
 class ConfigCache {
 	filePath: string | undefined;
-	configuration: Configuration  | undefined;
+	configuration: Configuration | undefined;
 
 	constructor() {
 		this.filePath = undefined;
 		this.configuration = undefined;
 	}
 
-	set(path: string, configuration:Configuration) {
+	set(path: string, configuration: Configuration) {
 		this.filePath = path;
 		this.configuration = configuration;
 	}
 
-	get(forPath:string): Configuration | undefined {
+	get(forPath: string): Configuration | undefined {
 		if (forPath === this.filePath) {
 			return this.configuration;
 		}
@@ -82,7 +86,7 @@ class SettingsCache {
 		this.settings = undefined;
 	}
 
-	async get(uri:string): Promise<Settings | undefined> {
+	async get(uri: string): Promise<Settings | undefined> {
 		if (uri === this.uri) {
 			return this.settings;
 		}
@@ -90,6 +94,7 @@ class SettingsCache {
 			let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
 			let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
 			this.settings = settings[0];
+			resolveGlobalPackageManagerPath(this.settings!);
 			this.uri = uri;
 			return this.settings;
 		}
@@ -104,7 +109,7 @@ class SettingsCache {
 
 let configCache = new ConfigCache();
 let settingsCache = new SettingsCache();
-let globalSettings: Settings = <Settings> {};
+let globalSettings: Settings = <Settings>{};
 let scopedSettingsSupport = false;
 
 class ID {
@@ -151,8 +156,6 @@ interface NoTSLintLibraryResult {
 namespace NoTSLintLibraryRequest {
 	export const type = new server.RequestType<NoTSLintLibraryParams, NoTSLintLibraryResult, void, void>('tslint/noLibrary');
 }
-
-let globalNodePath: string | undefined = undefined;
 
 // if tslint < tslint4 then the linter is the module therefore the type `any`
 let path2Library: Map<string, typeof tslint.Linter | any> = new Map();
@@ -380,7 +383,7 @@ connection.onInitialize((params) => {
 		return !!c;
 	}
 	scopedSettingsSupport = hasClientCapability('workspace.configuration');
-	globalNodePath = server.Files.resolveGlobalNodePath();
+	//globalNodePath = server.Files.resolveGlobalNodePath();
 	return {
 		capabilities: {
 			textDocumentSync: documents.syncKind,
@@ -403,24 +406,29 @@ async function loadLibrary(docUri: string) {
 	let promise: Thenable<string>;
 	let settings = await settingsCache.get(docUri);
 
+	let resolvedGlobalPath: string|undefined = undefined;
+	if (settings) {
+		resolvedGlobalPath = settings.resolvedGlobalPackageManagerPath;
+	}
+
 	if (uri.scheme === 'file') {
 		let file = uri.fsPath;
 		let directory = path.dirname(file);
 		if (settings && settings.nodePath) {
-			 promise = server.Files.resolve('tslint', settings.nodePath, settings.nodePath!, trace).then<string, string>(undefined, () => {
-				 return server.Files.resolve('tslint', globalNodePath, directory, trace);
-			 });
+			promise = server.Files.resolve('tslint', settings.nodePath, settings.nodePath!, trace).then<string, string>(undefined, () => {
+				return server.Files.resolve('tslint', resolvedGlobalPath, directory, trace);
+			});
 		} else {
-			promise = server.Files.resolve('tslint', globalNodePath, directory, trace);
+			promise = server.Files.resolve('tslint', resolvedGlobalPath, directory, trace);
 		}
 	} else {
-		promise = server.Files.resolve('tslint', globalNodePath, undefined!, trace); // cwd argument can be  undefined
+		promise = server.Files.resolve('tslint', resolvedGlobalPath, undefined!, trace); // cwd argument can be  undefined
 	}
 	document2Library.set(docUri, promise.then((path) => {
 		let library;
 		if (!path2Library.has(path)) {
 			library = require(path);
-			connection.console.info(`TSLint library loaded from: ${path}`);
+			connection.console.info(`TSLint library loaded from: ${path} using ${settings!.resolvedGlobalPackageManagerPath}`);
 			path2Library.set(path, library);
 		}
 		return path2Library.get(path);
@@ -555,12 +563,12 @@ function isJsDocument(document: server.TextDocument) {
 
 function fileIsExcluded(settings: Settings, path: string): boolean {
 	function testForExclusionPattern(path: string, pattern: string): boolean {
-		return minimatch(path, pattern, {dot: true});
+		return minimatch(path, pattern, { dot: true });
 	}
 
 
 	if (settings.ignoreDefinitionFiles) {
-		if (minimatch(path, "**/*.d.ts", {dot: true})) {
+		if (minimatch(path, "**/*.d.ts", { dot: true })) {
 			return true;
 		}
 	}
@@ -951,5 +959,30 @@ function traceConfigurationFile(configuration: tslint.Configuration.IConfigurati
 	}
 	trace("tslint configuration:", util.inspect(configuration, undefined, 4));
 }
+
+function resolveGlobalPackageManagerPath(settings: Settings) {
+	if (settings.packageManager === 'npm') {
+		resolveGlobalNpmPath(settings);
+	} else if (settings.packageManager === 'yarn') {
+		resolveGlobalYarnPath(settings);
+	}
+}
+
+function resolveGlobalNpmPath(settings: Settings): string | undefined {
+	if (!settings.didResolveGlobalPackageMangerPath) {
+		settings.didResolveGlobalPackageMangerPath = true;
+		settings.resolvedGlobalPackageManagerPath = server.Files.resolveGlobalNodePath(trace);
+	}
+	return settings.resolvedGlobalPackageManagerPath;
+}
+
+function resolveGlobalYarnPath(settings: Settings): string | undefined {
+	if (!settings.didResolveGlobalPackageMangerPath) {
+		settings.didResolveGlobalPackageMangerPath = true;
+		settings.resolvedGlobalPackageManagerPath = server.Files.resolveGlobalYarnPath(trace);
+	}
+	return settings.resolvedGlobalPackageManagerPath;
+}
+
 
 connection.listen();

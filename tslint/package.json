@@ -133,17 +133,27 @@
           "description": "Always show the TSlint status bar item, not only when there are errors or warnings.",
           "scope": "window"
         },
-				"tslint.trace.server": {
-					"scope": "window",
-					"type": "string",
-					"enum": [
-						"off",
-						"messages",
-						"verbose"
-					],
-					"default": "off",
-					"description": "Traces the communication between VSCode and the tslint linter service."
-				}
+        "tslint.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the tslint linter service."
+        },
+        "tslint.packageManager": {
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "npm",
+            "yarn"
+          ],
+          "default": "npm",
+          "description": "The package manager to use to install node modules."
+        }
       }
     },
     "commands": [
@@ -223,7 +233,7 @@
     "@types/mocha": "^2.2.32"
   },
   "dependencies": {
-    "vscode-languageclient": "^3.4.0",
+    "vscode-languageclient": "^3.5.0-next.4",
     "open": "^0.0.5"
   }
 }

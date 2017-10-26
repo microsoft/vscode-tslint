@@ -62,6 +62,7 @@ interface Settings {
 	alwaysShowRuleFailuresAsWarnings: boolean;
 	alwaysShowStatus: boolean;
 	autoFixOnSave: boolean | string[];
+	packageManager: 'npm' | 'yarn';
 	trace: any;
 }
 
@@ -235,27 +236,41 @@ export function activate(context: ExtensionContext) {
 		});
 		client.onRequest(NoTSLintLibraryRequest.type, (params) => {
 			let uri: Uri = Uri.parse(params.source.uri);
-			if (workspace) { // workspace opened on a folder
-				client.info([
-					'',
-					`Failed to load the TSLint library for the document ${uri.fsPath}`,
-					'',
-					'To use TSLint in this workspace please install tslint using \'npm install tslint\' or globally using \'npm install -g tslint\'.',
-					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
-					'You need to reopen the workspace after installing tslint.',
-				].join('\n'));
-			} else {
-				client.info([
-					`Failed to load the TSLint library for the document ${uri.fsPath}`,
-					'To use TSLint for single file install tslint globally using \'npm install -g tslint\'.',
-					'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
-					'You need to reopen VS Code after installing tslint.',
-				].join('\n'));
-			}
+			let workspaceFolder = workspace.getWorkspaceFolder(uri);
+			let packageManager = workspace.getConfiguration('tslint', uri).get('packageManager', 'npm');
+			client.info(getInstallFailureMessage(uri, workspaceFolder, packageManager));
 			updateStatus(Status.warn);
 			return {};
 		});
 	});
+
+	function getInstallFailureMessage(uri: Uri, workspaceFolder: WorkspaceFolder|undefined, packageManager:string): string {
+		let localCommands = {
+			npm: 'npm install tslint',
+			yarn: 'yard add tslint'
+		};
+		let globalCommands = {
+			npm: 'npm install -g tslint',
+			yarn:'yarn global add tslint'
+		};
+		if (workspaceFolder) { // workspace opened on a folder
+			return [
+				'',
+				`Failed to load the TSLint library for the document ${uri.fsPath}`,
+				'',
+				`To use TSLint in this workspace please install tslint using \'${localCommands[packageManager]}\' or globally using \'${globalCommands[packageManager]}\'.`,
+				'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
+				'You need to reopen the workspace after installing tslint.',
+			].join('\n');
+		} else {
+			return[
+				`Failed to load the TSLint library for the document ${uri.fsPath}`,
+				`To use TSLint for single file install tslint globally using \'${globalCommands[packageManager]}\'.`,
+				'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
+				'You need to reopen VS Code after installing tslint.',
+			].join('\n');
+		}
+	}
 
 	function convertToAbsolutePaths(settings: Settings, folder: WorkspaceFolder) {
 		let configFile = settings.configFile;
@@ -362,7 +377,7 @@ export function activate(context: ExtensionContext) {
 		} else {
 			const options: WorkspaceFolderPickOptions = {
 				placeHolder: "Select the folder for generating the 'tslint.json' file"
-			}
+			};
 			folder = await window.showWorkspaceFolderPick(options);
 			if (!folder) {
 				return;
