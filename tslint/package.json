@@ -2,7 +2,7 @@
   "name": "tslint",
   "displayName": "TSLint",
   "description": "TSLint for Visual Studio Code",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "author": "Microsoft Corporation",
   "license": "MIT",
   "publisher": "eg2",
@@ -21,6 +21,9 @@
   "categories": [
     "Languages",
     "Linters"
+  ],
+  "keywords": [
+    "multi-root ready"
   ],
   "engines": {
     "vscode": "^1.17.0"

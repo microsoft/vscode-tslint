@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.0.13
+## 1.0.14
 
+- Added the the `"multi-root ready"` keyword.
 - Support to load tslint, typescript when they are globally installed using yarn [#178](https://github.com/Microsoft/vscode-tslint/issues/178). To use yarn instead of npm with the tslint extension define `"tslint.packageManager": "yarn"` in your settings. To use npm set the value to `"npm"`.
 
 ## 1.0.12
@@ -9,7 +10,6 @@
 - Use icons instead of color to emphasize the tslint status in the status bar.
 - When validateOnSave is on, clear warnings when the user makes changes.
 - Use the new workspace folder picker API when selecting a target folder for tslint.json generation.
-
 
 ## 1.0.11
 
