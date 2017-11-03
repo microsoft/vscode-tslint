@@ -6,6 +6,7 @@ VSCode extension to support tslint
 ## Development setup
 - run npm install inside the `tslint` and `tslint-server` folders
 - open VS Code on `tslint` and `tslint-server`
+- compile the server once (see developing the server)
 
 ## Developing the server
 - open VS Code on `tslint-server`
