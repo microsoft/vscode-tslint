@@ -88,6 +88,7 @@ class SettingsCache {
 
 	async get(uri: string): Promise<Settings | undefined> {
 		if (uri === this.uri) {
+			trace('SettingsCache hit for ' + this.uri);
 			return this.settings;
 		}
 		if (scopedSettingsSupport) {
@@ -96,6 +97,7 @@ class SettingsCache {
 			this.settings = settings[0];
 			resolveGlobalPackageManagerPath(this.settings!);
 			this.uri = uri;
+			trace('SettingsCache fetch for ' + this.uri);
 			return this.settings;
 		}
 		return globalSettings;
@@ -245,6 +247,8 @@ function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint
 }
 
 async function getConfiguration(uri: string, filePath: string, library: any, configFileName: string | null): Promise<Configuration | undefined> {
+	trace('getConfiguration for' + uri);
+
 	let config = configCache.get(filePath);
 	if (config) {
 		return config;
@@ -330,6 +334,8 @@ function getLinterFromLibrary(library): typeof tslint.Linter {
 }
 
 async function validateTextDocument(connection: server.IConnection, document: server.TextDocument) {
+	trace('start validateTextDocument');
+
 	let uri = document.uri;
 
 	// tslint can only validate files on disk
@@ -402,6 +408,8 @@ function isTsLintVersion4(library) {
 }
 
 async function loadLibrary(docUri: string) {
+	trace('loadLibrary for ' + docUri);
+
 	let uri = Uri.parse(docUri);
 	let promise: Thenable<string>;
 	let settings = await settingsCache.get(docUri);
@@ -439,6 +447,8 @@ async function loadLibrary(docUri: string) {
 }
 
 async function doValidate(conn: server.IConnection, library: any, document: server.TextDocument): Promise<server.Diagnostic[]> {
+	trace('doValidate ' + document.uri);
+
 	let uri = document.uri;
 
 	let diagnostics: server.Diagnostic[] = [];
@@ -593,8 +603,11 @@ documents.onDidOpen(async (event) => {
 });
 
 documents.onDidChangeContent(async (event) => {
+	trace('onDidChangeContent');
 	let settings = await settingsCache.get(event.document.uri);
+	trace('onDidChangeContent: settings' + settings);
 	if (settings && settings.run === 'onType') {
+		trace('onDidChangeContent: triggerValidateDocument');
 		triggerValidateDocument(event.document);
 	}
 	// clear the diagnostics when validating on save and when the document is modified
@@ -612,17 +625,20 @@ documents.onDidSave(async (event) => {
 
 documents.onDidClose((event) => {
 	// A text document was closed we clear the diagnostics
+	trace('onDidClose' + event.document.uri);
 	connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 	document2Library.delete(event.document.uri);
 });
 
 function triggerValidateDocument(document: server.TextDocument) {
 	let d = validationDelayer[document.uri];
+	trace('triggerValidation on ' + document.uri);
 	if (!d) {
 		d = new Delayer<void>(200);
 		validationDelayer[document.uri] = d;
 	}
 	d.trigger(() => {
+		trace('trigger validateTextDocument');
 		validateTextDocument(connection, document);
 		delete validationDelayer[document.uri];
 	});
@@ -646,6 +662,8 @@ function tslintConfigurationValid(): boolean {
 
 // The VS Code tslint settings have changed. Revalidate all documents.
 connection.onDidChangeConfiguration((params) => {
+	trace('onDidChangeConfiguraton');
+
 	globalSettings = params.settings;
 	configCache.flush();
 	settingsCache.flush();
