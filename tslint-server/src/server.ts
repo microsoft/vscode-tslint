@@ -88,7 +88,7 @@ class SettingsCache {
 
 	async get(uri: string): Promise<Settings | undefined> {
 		if (uri === this.uri) {
-			trace('SettingsCache hit for ' + this.uri);
+			trace('SettingsCache: cache hit for ' + this.uri);
 			return this.settings;
 		}
 		if (scopedSettingsSupport) {
@@ -97,7 +97,7 @@ class SettingsCache {
 			this.settings = settings[0];
 			resolveGlobalPackageManagerPath(this.settings!);
 			this.uri = uri;
-			trace('SettingsCache fetch for ' + this.uri);
+			trace('SettingsCache: fetch settings for ' + this.uri);
 			return this.settings;
 		}
 		return globalSettings;
@@ -312,6 +312,7 @@ function showConfigurationFailure(conn: server.IConnection, err: any) {
 }
 
 function validateAllTextDocuments(conn: server.IConnection, documents: server.TextDocument[]): void {
+	trace('validateAllTextDocuments');
 	let tracker = new server.ErrorMessageTracker();
 	documents.forEach(document => {
 		try {
@@ -344,14 +345,17 @@ async function validateTextDocument(connection: server.IConnection, document: se
 	}
 
 	let settings = await settingsCache.get(uri);
+	trace('validateTextDocument: settings fetched');
 
 	if (settings && !settings.enable) {
 		return;
 	}
 
+	trace('validateTextDocument: about to load tslint library');
 	if (!document2Library.has(document.uri)) {
 		await loadLibrary(document.uri);
 	}
+	trace('validateTextDocument: loade tslint library');
 
 	if (!document2Library.has(document.uri)) {
 		return;
@@ -362,6 +366,7 @@ async function validateTextDocument(connection: server.IConnection, document: se
 			return;
 		}
 		try {
+			trace('validateTextDocument: about to validate ' + document.uri);
 			let diagnostics = await doValidate(connection, library, document);
 			connection.sendDiagnostics({ uri, diagnostics });
 		} catch (err) {
@@ -447,7 +452,7 @@ async function loadLibrary(docUri: string) {
 }
 
 async function doValidate(conn: server.IConnection, library: any, document: server.TextDocument): Promise<server.Diagnostic[]> {
-	trace('doValidate ' + document.uri);
+	trace('start doValidate ' + document.uri);
 
 	let uri = document.uri;
 
@@ -477,7 +482,7 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	let configFile = settings.configFile || null;
 
 	let configuration: Configuration | undefined;
-
+	trace('validateTextDocument: about to getConfiguration');
 	try {
 		configuration = await getConfiguration(uri, fsPath, library, configFile);
 	} catch (err) {
@@ -490,11 +495,12 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		trace(`No linting: no tslint configuration`);
 		return diagnostics;
 	}
+	trace('validateTextDocument: configuration fetched');
+
 	if (isJsDocument(document) && !settings.jsEnable) {
 		trace(`No linting: a JS document, but js linting is disabled`);
 		return diagnostics;
 	}
-
 
 	if (settings.validateWithDefaultConfig === false && configCache.configuration!.isDefaultLinterConfig) {
 		trace(`No linting: linting with default tslint configuration is disabled`);
@@ -547,6 +553,8 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 			recordCodeAction(document, diagnostic, problem);
 		});
 	}
+	trace('doValidate: sending diagnostics: '+ result.failures.length);
+
 	connection.sendNotification(StatusNotification.type, { state: Status.ok });
 	return diagnostics;
 }
