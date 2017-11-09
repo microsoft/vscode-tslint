@@ -92,12 +92,17 @@ class SettingsCache {
 			return this.settings;
 		}
 		if (scopedSettingsSupport) {
+			trace('SettingsCache: cache updating cache for' + this.uri);
 			let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
+			trace('SettingsCache: fetch Configuration');
 			let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
+			trace('SettingsCache: received Configuration');
 			this.settings = settings[0];
+			trace('SettingsCache: about to resolveGlobalPackageManagerPath' + this.uri);
 			resolveGlobalPackageManagerPath(this.settings!);
+			trace('SettingsCache: done resolveGlobalPackageManagerPath' + this.uri);
 			this.uri = uri;
-			trace('SettingsCache: fetch settings for ' + this.uri);
+			trace('SettingsCache: settings cache updated ' + this.uri);
 			return this.settings;
 		}
 		return globalSettings;
@@ -606,6 +611,7 @@ function fileIsExcluded(settings: Settings, path: string): boolean {
 }
 
 documents.onDidOpen(async (event) => {
+	trace('onDidOpen');
 	let settings = await settingsCache.get(event.document.uri);
 	triggerValidateDocument(event.document);
 });
