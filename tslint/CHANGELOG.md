@@ -2,7 +2,7 @@
 
 ## 1.0.19
 
-- Fix for [#287](https://github.com/Microsoft/vscode-tslint/issues/187) Huge linting delays
+- Fix for [#287](https://github.com/Microsoft/vscode-tslint/issues/287) Huge linting delays
 
 ## 1.0.15
 
