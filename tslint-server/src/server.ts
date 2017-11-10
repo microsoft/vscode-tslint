@@ -410,23 +410,22 @@ async function loadLibrary(docUri: string) {
 	let promise: Thenable<string>;
 	let settings = await settingsCache.get(docUri);
 
-	let resolvedGlobalPath: string|undefined = undefined;
-	if (settings) {
-		resolvedGlobalPath = globalPackageManagerPath.get(settings.packageManager);
-	}
+	let getGlobalPath = () =>  globalPackageManagerPath.get(settings.packageManager);
 
 	if (uri.scheme === 'file') {
 		let file = uri.fsPath;
 		let directory = path.dirname(file);
 		if (settings && settings.nodePath) {
 			promise = server.Files.resolve('tslint', settings.nodePath, settings.nodePath!, trace).then<string, string>(undefined, () => {
-				return server.Files.resolve('tslint', resolvedGlobalPath, directory, trace);
+				return server.Files.resolve('tslint', getGlobalPath(), directory, trace);
 			});
 		} else {
-			promise = server.Files.resolve('tslint', resolvedGlobalPath, directory, trace);
+			promise = server.Files.resolve('tslint', undefined, directory, trace).then<string, string>(undefined, () => {
+				return promise = server.Files.resolve('tslint', getGlobalPath(), directory, trace);
+			});
 		}
 	} else {
-		promise = server.Files.resolve('tslint', resolvedGlobalPath, undefined!, trace); // cwd argument can be  undefined
+		promise = server.Files.resolve('tslint', getGlobalPath(), undefined!, trace); // cwd argument can be undefined
 	}
 	document2Library.set(docUri, promise.then((path) => {
 		let library;
@@ -984,13 +983,9 @@ async function resolveGlobalPackageManagerPath(packageManager: string) {
 	}
 	let path: string | undefined;
 	if (packageManager === 'npm') {
-		trace("resolveGlobalNodePath: start")
 		path = server.Files.resolveGlobalNodePath(trace);
-		trace("resolveGlobalNodePath: done")
 	} else if (packageManager === 'yarn') {
-		trace("resolveGlobalYarnPath: start")
 		path = server.Files.resolveGlobalYarnPath(trace);
-		trace("resolveGlobalYarnPath: done")
 	}
 	globalPackageManagerPath.set(packageManager, path!);
 }

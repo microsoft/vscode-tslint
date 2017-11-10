@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.18
+## 1.0.19
 
 - Fix for [#287](https://github.com/Microsoft/vscode-tslint/issues/187) Huge linting delays
 
