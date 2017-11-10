@@ -984,9 +984,13 @@ async function resolveGlobalPackageManagerPath(packageManager: string) {
 	}
 	let path: string | undefined;
 	if (packageManager === 'npm') {
+		trace("resolveGlobalNodePath: start")
 		path = server.Files.resolveGlobalNodePath(trace);
+		trace("resolveGlobalNodePath: done")
 	} else if (packageManager === 'yarn') {
+		trace("resolveGlobalYarnPath: start")
 		path = server.Files.resolveGlobalYarnPath(trace);
+		trace("resolveGlobalYarnPath: done")
 	}
 	globalPackageManagerPath.set(packageManager, path!);
 }
