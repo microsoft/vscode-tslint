@@ -6,7 +6,6 @@
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
 import { ConfigurationRequest } from 'vscode-languageserver-protocol/lib/protocol.configuration.proposed';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import Uri from 'vscode-uri';
@@ -16,7 +15,6 @@ import * as tslint from 'tslint'; // this is a dev dependency only
 
 import { Delayer } from './delayer';
 import { createVscFixForRuleFailure, TSLintAutofixEdit } from './fixer';
-import { resolve } from 'url';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -34,8 +32,6 @@ interface Settings {
 	autoFixOnSave: boolean | string[];
 	packageManager: 'npm' | 'yarn';
 	trace: any;
-	didResolveGlobalPackageMangerPath: boolean; // not a setting, bundled with settings for convenience
-	resolvedGlobalPackageManagerPath: string | undefined;  // not a setting, bundled with settings for convenience
 }
 
 interface Configuration {
@@ -79,38 +75,35 @@ class ConfigCache {
 
 class SettingsCache {
 	uri: string | undefined;
-	settings: Settings | undefined;
+	promise: Promise<Settings> | undefined;
 
 	constructor() {
 		this.uri = undefined;
-		this.settings = undefined;
+		this.promise = undefined;
 	}
 
-	async get(uri: string): Promise<Settings | undefined> {
+	async get(uri: string): Promise<Settings> {
 		if (uri === this.uri) {
 			trace('SettingsCache: cache hit for ' + this.uri);
-			return this.settings;
+			return this.promise!;
 		}
 		if (scopedSettingsSupport) {
-			trace('SettingsCache: cache updating cache for' + this.uri);
-			let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
-			trace('SettingsCache: fetch Configuration');
-			let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
-			trace('SettingsCache: received Configuration');
-			this.settings = settings[0];
-			trace('SettingsCache: about to resolveGlobalPackageManagerPath' + this.uri);
-			resolveGlobalPackageManagerPath(this.settings!);
-			trace('SettingsCache: done resolveGlobalPackageManagerPath' + this.uri);
 			this.uri = uri;
-			trace('SettingsCache: settings cache updated ' + this.uri);
-			return this.settings;
+			return this.promise = new Promise<Settings>(async (resolve, _reject) => {
+				trace('SettingsCache: cache updating cache for' + this.uri);
+				let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
+				let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
+				resolveGlobalPackageManagerPath(settings[0].packageManager);
+				resolve(settings[0]);
+			});
 		}
-		return globalSettings;
+		this.promise = Promise.resolve(globalSettings);
+		return this.promise;
 	}
 
 	flush() {
 		this.uri = undefined;
-		this.settings = undefined;
+		this.promise = undefined;
 	}
 }
 
@@ -118,14 +111,7 @@ let configCache = new ConfigCache();
 let settingsCache = new SettingsCache();
 let globalSettings: Settings = <Settings>{};
 let scopedSettingsSupport = false;
-
-class ID {
-	private static base: string = `${Date.now().toString()}-`;
-	private static counter: number = 0;
-	public static next(): string {
-		return `${ID.base}${ID.counter++}`;
-	}
-}
+let globalPackageManagerPath: Map<string, string> = new Map();  // map stores undefined values to represent failed resolutions
 
 function computeKey(diagnostic: server.Diagnostic): string {
 	let range = diagnostic.range;
@@ -170,7 +156,7 @@ let document2Library: Map<string, Thenable<typeof tslint.Linter | any>> = new Ma
 
 let validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
 
-let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
+//let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
 
 function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFailure): server.Diagnostic {
 	let message = (problem.getRuleName())
@@ -426,7 +412,7 @@ async function loadLibrary(docUri: string) {
 
 	let resolvedGlobalPath: string|undefined = undefined;
 	if (settings) {
-		resolvedGlobalPath = settings.resolvedGlobalPackageManagerPath;
+		resolvedGlobalPath = globalPackageManagerPath.get(settings.packageManager);
 	}
 
 	if (uri.scheme === 'file') {
@@ -446,7 +432,7 @@ async function loadLibrary(docUri: string) {
 		let library;
 		if (!path2Library.has(path)) {
 			library = require(path);
-			connection.console.info(`TSLint library loaded from: ${path} using ${settings!.resolvedGlobalPackageManagerPath}`);
+			connection.console.info(`TSLint library loaded from: ${path}`);
 			path2Library.set(path, library);
 		}
 		return path2Library.get(path);
@@ -612,7 +598,6 @@ function fileIsExcluded(settings: Settings, path: string): boolean {
 
 documents.onDidOpen(async (event) => {
 	trace('onDidOpen');
-	let settings = await settingsCache.get(event.document.uri);
 	triggerValidateDocument(event.document);
 });
 
@@ -992,29 +977,18 @@ function traceConfigurationFile(configuration: tslint.Configuration.IConfigurati
 	trace("tslint configuration:", util.inspect(configuration, undefined, 4));
 }
 
-function resolveGlobalPackageManagerPath(settings: Settings) {
-	if (settings.packageManager === 'npm') {
-		resolveGlobalNpmPath(settings);
-	} else if (settings.packageManager === 'yarn') {
-		resolveGlobalYarnPath(settings);
-	}
-}
+async function resolveGlobalPackageManagerPath(packageManager: string) {
 
-function resolveGlobalNpmPath(settings: Settings): string | undefined {
-	if (!settings.didResolveGlobalPackageMangerPath) {
-		settings.didResolveGlobalPackageMangerPath = true;
-		settings.resolvedGlobalPackageManagerPath = server.Files.resolveGlobalNodePath(trace);
+	if (globalPackageManagerPath.has(packageManager)) {
+		return;
 	}
-	return settings.resolvedGlobalPackageManagerPath;
-}
-
-function resolveGlobalYarnPath(settings: Settings): string | undefined {
-	if (!settings.didResolveGlobalPackageMangerPath) {
-		settings.didResolveGlobalPackageMangerPath = true;
-		settings.resolvedGlobalPackageManagerPath = server.Files.resolveGlobalYarnPath(trace);
+	let path: string | undefined;
+	if (packageManager === 'npm') {
+		path = server.Files.resolveGlobalNodePath(trace);
+	} else if (packageManager === 'yarn') {
+		path = server.Files.resolveGlobalYarnPath(trace);
 	}
-	return settings.resolvedGlobalPackageManagerPath;
+	globalPackageManagerPath.set(packageManager, path!);
 }
-
 
 connection.listen();

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.17
+
+- Fix for [#287](https://github.com/Microsoft/vscode-tslint/issues/187) Huge linting delays
+
 ## 1.0.15
 
 - Added the the `"multi-root ready"` keyword.
