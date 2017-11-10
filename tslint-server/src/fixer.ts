@@ -41,7 +41,7 @@ let whiteSpaceFixCreator: FixCreator = (problem: tslint.RuleFailure, document: s
 };
 fixes['whitespace'] = whiteSpaceFixCreator;
 
-let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, document: server.TextDocument): FixResult => {
+let tripleEqualsFixCreator: FixCreator = (problem: tslint.RuleFailure, _document: server.TextDocument): FixResult => {
 	// error message: '== should be ===' or '!= should be !=='
 	let contents: string | undefined = undefined;
 	if (problem.getFailure() === '== should be ===') {

@@ -4,6 +4,8 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"allowSyntheticDefaultImports": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"strictNullChecks": true,
 		"sourceMap": true,
 		"outDir": "../../tslint/server",
