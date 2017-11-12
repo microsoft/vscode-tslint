@@ -122,7 +122,7 @@
           },
           "default": false,
           "description": "Turns auto fix on save on or off, or defines which rules (e.g. `no-var-keyword`) to auto fix on save.",
-          "scope": "resource"
+          "scope": "window"
         },
         "tslint.alwaysShowRuleFailuresAsWarnings": {
           "type": "boolean",
