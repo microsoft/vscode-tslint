@@ -93,7 +93,6 @@ class SettingsCache {
 				trace('SettingsCache: cache updating cache for' + this.uri);
 				let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
 				let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
-				resolveGlobalPackageManagerPath(settings[0].packageManager);
 				resolve(settings[0]);
 			});
 		}
@@ -346,7 +345,7 @@ async function validateTextDocument(connection: server.IConnection, document: se
 	if (!document2Library.has(document.uri)) {
 		await loadLibrary(document.uri);
 	}
-	trace('validateTextDocument: loade tslint library');
+	trace('validateTextDocument: loaded tslint library');
 
 	if (!document2Library.has(document.uri)) {
 		return;
@@ -385,7 +384,6 @@ connection.onInitialize((params) => {
 		return !!c;
 	}
 	scopedSettingsSupport = hasClientCapability('workspace.configuration');
-	//globalNodePath = server.Files.resolveGlobalNodePath();
 	return {
 		capabilities: {
 			textDocumentSync: documents.syncKind,
@@ -410,7 +408,7 @@ async function loadLibrary(docUri: string) {
 	let promise: Thenable<string>;
 	let settings = await settingsCache.get(docUri);
 
-	let getGlobalPath = () =>  globalPackageManagerPath.get(settings.packageManager);
+	let getGlobalPath = () => getGlobalPackageManagerPath(settings.packageManager);
 
 	if (uri.scheme === 'file') {
 		let file = uri.fsPath;
@@ -976,18 +974,20 @@ function traceConfigurationFile(configuration: tslint.Configuration.IConfigurati
 	trace("tslint configuration:", util.inspect(configuration, undefined, 4));
 }
 
-async function resolveGlobalPackageManagerPath(packageManager: string) {
+function getGlobalPackageManagerPath(packageManager: string): string | undefined {
+	trace(`Begin - Resolve Global Package Manager Path for: ${packageManager}`);
 
-	if (globalPackageManagerPath.has(packageManager)) {
-		return;
+	if (!globalPackageManagerPath.has(packageManager)) {
+		let path: string | undefined;
+		if (packageManager === 'npm') {
+			path = server.Files.resolveGlobalNodePath(trace);
+		} else if (packageManager === 'yarn') {
+			path = server.Files.resolveGlobalYarnPath(trace);
+		}
+		globalPackageManagerPath.set(packageManager, path!);
 	}
-	let path: string | undefined;
-	if (packageManager === 'npm') {
-		path = server.Files.resolveGlobalNodePath(trace);
-	} else if (packageManager === 'yarn') {
-		path = server.Files.resolveGlobalYarnPath(trace);
-	}
-	globalPackageManagerPath.set(packageManager, path!);
+	trace(`Done - Resolve Global Package Manager Path for: ${packageManager}`);
+	return globalPackageManagerPath.get(packageManager);
 }
 
 connection.listen();
