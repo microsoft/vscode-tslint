@@ -40,7 +40,7 @@ help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issu
 - `tslint.autoFixOnSave` -  turns auto fix on save on or off, or defines an array of rules (e.g. [`no-var-keyword`]) to auto fix on save. **Note:** Auto-fixing is only done when manually saving a file. It is not performed when the file is automatically saved based on the `files.autoSave` setting. Executing a manual save on an already-saved document will trigger auto-fixing.
 - `tslint.alwaysShowStatus` - always show the `TSLint` status bar item and not only when there are errors. The default is `false`.
 - `tslint.alwaysShowRuleFailuresAsWarnings` - always show rule failures as warnings, ignoring the severity configuration in the `tslint.json` configuration.
-- `tslint.packageManager`: defines to package manager to be used to resolve the tslint and typescript modules, when they need to be resolved globally. Valid values are `"npm"` or `"yarn"`.
+- `tslint.packageManager`: use this package manager to locate the `tslint` and `typescript` modules. Valid values are `"npm"` or `"yarn"`. This setting is only consulted when the modules are installed globally.
 
 ## Auto-fixing
 

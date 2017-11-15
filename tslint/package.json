@@ -155,7 +155,7 @@
             "yarn"
           ],
           "default": "npm",
-          "description": "The package manager to use to install node modules."
+          "description": "The package manager to use to locate the tslint module."
         }
       }
     },
