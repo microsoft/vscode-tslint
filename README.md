@@ -1,11 +1,11 @@
 # vscode-tslint
 ![Marketplace Version](http://vsmarketplacebadge.apphb.com/version/eg2.tslint.svg "Current Version") ![Market Place Installs](http://vsmarketplacebadge.apphb.com/installs/eg2.tslint.svg "Number of Installs")
 
-VSCode extension to support tslint
+VSCode extension to support tslint. This README describes the development setup, for information about the published extension refer to the [README](tslint/README.md) in the tslint folder.
 
 ## Development setup
 - run npm install inside the `tslint` and `tslint-server` folders
-- open VS Code on `tslint` and `tslint-server`
+- open VS Code on `tslint` and `tslint-server` or open a workspace with the client and server by opening `vscode-tslint.code-workspace` 
 - compile the server once (see developing the server)
 
 ## Developing the server
@@ -18,4 +18,7 @@ VSCode extension to support tslint
 - open VS Code on `tslint`
 - run F5 to build and debug the extension
 
-> If you want to debug server and extension at the same time; 1st debug extension and then start server debugging
+> If you want to debug server and extension at the same time; 1st debug extension and then start server debugging after you have opened a typescript file that activates the extension.
+
+## Manual Tests
+Manual tests can be found in the `tslint-tests` folder.
