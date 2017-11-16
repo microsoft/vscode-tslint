@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.22
+
+- Fix for [#292](https://github.com/Microsoft/vscode-tslint/issues/292) Relative path using nested extension is broken
+
 ## 1.0.21
 
 - Fix for [#287](https://github.com/Microsoft/vscode-tslint/issues/287) Huge linting delays

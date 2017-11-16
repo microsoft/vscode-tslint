@@ -32,6 +32,7 @@ interface Settings {
 	autoFixOnSave: boolean | string[];
 	packageManager: 'npm' | 'yarn';
 	trace: any;
+	workspaceFolderPath: string | undefined;
 }
 
 interface Configuration {
@@ -466,6 +467,10 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		return diagnostics;
 	}
 
+	if (settings.workspaceFolderPath) {
+		trace(`Changed directory to ${settings.workspaceFolderPath}`);
+		process.chdir(settings.workspaceFolderPath);
+	}
 	let contents = document.getText();
 	let configFile = settings.configFile || null;
 

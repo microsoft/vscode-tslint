@@ -64,6 +64,7 @@ interface Settings {
 	autoFixOnSave: boolean | string[];
 	packageManager: 'npm' | 'yarn';
 	trace: any;
+	workspaceFolderPath: string; // 'virtual' setting sent to the server
 }
 
 let willSaveTextDocument: Disposable | undefined;
@@ -139,21 +140,6 @@ export function activate(context: ExtensionContext) {
 		);
 	}
 
-	function deepClone<T>(obj: T): T {
-		if (!obj || typeof obj !== 'object') {
-			return obj;
-		}
-		const result: any = Array.isArray(obj) ? [] : {};
-		Object.getOwnPropertyNames(obj).forEach((key: keyof T) => {
-			if (obj[key] && typeof obj[key] === 'object') {
-				result[key] = deepClone(obj[key]);
-			} else {
-				result[key] = obj[key];
-			}
-		});
-		return result;
-	}
-
 	window.onDidChangeActiveTextEditor(udpateStatusBarVisibility);
 	udpateStatusBarVisibility(window.activeTextEditor);
 
@@ -205,7 +191,6 @@ export function activate(context: ExtensionContext) {
 						return [];
 					}
 					let result = next(params, token, next);
-					result[0] = deepClone(result[0]); // convertToAbsolutePaths modifies the settings
 					let scopeUri = "";
 
 					for (let item of params.items) {
@@ -219,6 +204,9 @@ export function activate(context: ExtensionContext) {
 					let workspaceFolder = workspace.getWorkspaceFolder(resource);
 					if (workspaceFolder) {
 						convertToAbsolutePaths(result[0], workspaceFolder);
+						if (workspaceFolder.uri.scheme === 'file') {
+							result[0].workspaceFolderPath = workspaceFolder.uri.fsPath;
+						}
 					}
 					return result;
 				}
