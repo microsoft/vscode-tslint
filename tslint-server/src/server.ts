@@ -579,7 +579,7 @@ function fileIsExcluded(settings: Settings, path: string): boolean {
 
 
 	if (settings.ignoreDefinitionFiles) {
-		if (minimatch(path, "**/*.d.ts", { dot: true })) {
+		if (path.endsWith('.d.ts')) {
 			return true;
 		}
 	}
