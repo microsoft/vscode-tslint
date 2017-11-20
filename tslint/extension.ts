@@ -92,7 +92,7 @@ export function activate(context: ExtensionContext) {
 			client.info('vscode-tslint: Status is OK');
 		}
 		tslintStatus = status;
-		udpateStatusBarVisibility(window.activeTextEditor);
+		updateStatusBarVisibility(window.activeTextEditor);
 	}
 
 	function isTypeScriptDocument(document: TextDocument) {
@@ -111,7 +111,7 @@ export function activate(context: ExtensionContext) {
 		return false;
 	}
 
-	function udpateStatusBarVisibility(editor: TextEditor | undefined): void {
+	function updateStatusBarVisibility(editor: TextEditor | undefined): void {
 
 		switch (tslintStatus) {
 			case Status.ok:
@@ -140,8 +140,8 @@ export function activate(context: ExtensionContext) {
 		);
 	}
 
-	window.onDidChangeActiveTextEditor(udpateStatusBarVisibility);
-	udpateStatusBarVisibility(window.activeTextEditor);
+	window.onDidChangeActiveTextEditor(updateStatusBarVisibility);
+	updateStatusBarVisibility(window.activeTextEditor);
 
 	// We need to go one level up since an extension compile the js code into
 	// the output folder.
@@ -230,7 +230,7 @@ export function activate(context: ExtensionContext) {
 			statusBarItem.tooltip = stopped;
 			serverRunning = false;
 		}
-		udpateStatusBarVisibility(window.activeTextEditor);
+		updateStatusBarVisibility(window.activeTextEditor);
 	});
 
 	client.onReady().then(() => {
@@ -430,7 +430,7 @@ export function activate(context: ExtensionContext) {
 			willSaveTextDocument.dispose();
 			willSaveTextDocument = undefined;
 		}
-		udpateStatusBarVisibility(window.activeTextEditor);
+		updateStatusBarVisibility(window.activeTextEditor);
 	}
 
 	configurationChangedListener = workspace.onDidChangeConfiguration(configurationChanged);
