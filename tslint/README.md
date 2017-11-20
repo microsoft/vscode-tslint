@@ -14,14 +14,38 @@ The extension requires that the `tslint` and `typescript` modules are installed 
 
 Since tslint version 5 the rule [no-unused-variable](https://palantir.github.io/tslint/rules/no-unused-variable/) rule requires type information. Rules with type information are currently not supported by vscode-tslint, pls see [issue #70](https://github.com/Microsoft/vscode-tslint/issues/70#issuecomment-241041929). The recommended work around is to enable the TypeScript compiler options `noUnusedLocals` and `noUnusedParameters` in your `tsconfig.json` file.
 
+tsconfig.json
+
+```json
+{
+    "compilerOptions": {
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        ...
+	}
+}
+```
+
 - How can I use tslint rules that require type information
 
 The recommended way is to run tslint manually on your project from a [task](https://code.visualstudio.com/docs/editor/tasks). To see the lint warnings in the Problems panel you can associate the task with a [Problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers) as described in the section [below](#Using-the-extension-with-tasks-running-tslint).
 
-- Linting does not seem to work what can I do?
+- First linting is very slow [#287](https://github.com/Microsoft/vscode-tslint/issues/287)
+
+When you have installed tslint globally using `npm install -g` then you can get hit by a performance issue in npm. The command to determine the location of the global node modules can be very slow with version 5 of npm. This problem could not be reproduce wiht npm version 4.2. You can work around this issue by:
+
+1. installing tslint locally for you project using `npm install tslint`
+
+1. define the location of the global node_modules folder using the `tslint.nodePath` setting.
+
+## Trouble shooting
 
 Open the tslint output log using the command `TSLint: Show Output`. Verify that there is no error message in the shown log.
-You can enable more tracing output by adding the setting "tslint.trace.server" with a value of "verbose" or "messages". If this doesn't
+
+
+You can enable more tracing output by adding the setting "tslint.trace.server" with a value of "verbose" or "messages".
+
+If this doesn't
 help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issues/new) and include the trace output produced when running with the setting "tslint.trace.server" set to "verbose".
 
 ## Configuration options
