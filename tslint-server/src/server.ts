@@ -358,6 +358,7 @@ async function validateTextDocument(connection: server.IConnection, document: se
 		}
 		try {
 			trace('validateTextDocument: about to validate ' + document.uri);
+			connection.sendNotification(StatusNotification.type, { state: Status.ok });
 			let diagnostics = await doValidate(connection, library, document);
 			connection.sendDiagnostics({ uri, diagnostics });
 		} catch (err) {
@@ -512,6 +513,14 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		traceConfigurationFile(configuration.linterConfiguration);
 	}
 
+	// tslint writes warnings using console.warn, capture these warnings and send them to the client
+	let originalConsoleWarn = console.warn;
+	let captureWarnings = (message?: any) => {
+		conn.sendNotification(StatusNotification.type, { state: Status.warn });
+		originalConsoleWarn(message);
+	}
+	console.warn = captureWarnings;
+
 	try { // protect against tslint crashes
 		let linter = getLinterFromLibrary(library);
 		if (isTsLintVersion4(library)) {
@@ -533,6 +542,7 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 			return diagnostics;
 		}
 	} catch (err) {
+		console.warn = originalConsoleWarn;
 		conn.console.info(getErrorMessage(err, document));
 		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		trace(`No linting: tslint exception while linting`);
@@ -548,7 +558,6 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	}
 	trace('doValidate: sending diagnostics: '+ result.failures.length);
 
-	connection.sendNotification(StatusNotification.type, { state: Status.ok });
 	return diagnostics;
 }
 
