@@ -845,7 +845,7 @@ function createDisableRuleFix(problem: tslint.RuleFailure, document: server.Text
 	};
 
 	let disableFix: AutoFix = {
-		label: `Disable rule "${problem.getRuleName()}"`,
+		label: `Disable rule "${problem.getRuleName()}" for this line`,
 		documentVersion: document.version,
 		problem: problem,
 		edits: [disableEdit]
