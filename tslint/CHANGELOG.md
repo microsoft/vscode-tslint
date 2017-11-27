@@ -1,13 +1,13 @@
 # Changelog
 
-
 ## 1.0.24
 
-Capture warnings that tslint emits to the console and indicate them in the status bar item.
+- Capture warnings that tslint emits to the console and indicate them in the status bar item.
+- Improve wording of the "Disable Rule" quick fix [#298](https://github.com/Microsoft/vscode-tslint/issues/298)
 
 ## 1.0.23
 
-Improve the README, document the work arounds for issue [#287](https://github.com/Microsoft/vscode-tslint/issues/287) Huge linting delays
+- Improve the README, document the work arounds for issue [#287](https://github.com/Microsoft/vscode-tslint/issues/287) Huge linting delays
 
 ## 1.0.22
 
