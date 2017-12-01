@@ -28,7 +28,7 @@ tsconfig.json
 
 - How can I use tslint rules that require type information
 
-The recommended way is to run tslint manually on your project from a [task](https://code.visualstudio.com/docs/editor/tasks). To see the lint warnings in the Problems panel you can associate the task with a [Problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers) as described in the section [below](#Using-the-extension-with-tasks-running-tslint).
+The recommended way is to run tslint manually on your project from a [task](https://code.visualstudio.com/docs/editor/tasks). To see the lint warnings in the Problems panel you can associate the task with a [Problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers) as described in the section [below](#using-the-extension-with-tasks-running-tslint).
 
 - First linting is very slow [#287](https://github.com/Microsoft/vscode-tslint/issues/287)
 
