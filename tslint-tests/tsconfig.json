@@ -3,6 +3,8 @@
         "module": "commonjs",
         "target": "es5",
         "noImplicitAny": false,
-        "sourceMap": false
+        "sourceMap": false,
+        "noUnusedLocals": true,
+        "jsx": "preserve"
     }
 }
