@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AutoFix, getAllNonOverlappingFixes } from '../src/server';
+import { AutoFix, getAllNonOverlappingFixes } from '../src/commands';
 import { TSLintAutofixEdit } from '../src/fixer';
 
 import * as server from 'vscode-languageserver';
