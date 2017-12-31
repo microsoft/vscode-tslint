@@ -13,12 +13,10 @@ import { getSettingsSupport, settingsCache, configCache, setGlobalSettings } fro
 
 const validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
 
-
 const connection: server.IConnection = server.createConnection(new server.IPCMessageReader(process), new server.IPCMessageWriter(process));
 const documents: server.TextDocuments = new server.TextDocuments();
 
 documents.listen(connection);
-
 
 connection.onInitialize((params) => {
 	getSettingsSupport(params);
@@ -111,9 +109,6 @@ connection.onDidChangeWatchedFiles((params) => {
 
 connection.onCodeAction(onCodeAction);
 
-
-
 connection.onRequest(AllFixesRequest.type, (params) => onAllFixesRequest(connection, params));
-
 
 connection.listen();

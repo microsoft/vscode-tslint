@@ -42,8 +42,6 @@ let globalPackageManagerPath: Map<string, string> = new Map();  // map stores un
 
 export let document2Library: Map<string, Thenable<typeof tslint.Linter | any>> = new Map();
 
-
-
 export function validateAllTextDocuments(conn: server.IConnection, documents: server.TextDocument[]): void {
 	trace(conn, 'validateAllTextDocuments');
 	let tracker = new server.ErrorMessageTracker();
@@ -151,8 +149,6 @@ async function loadLibrary(connection: server.IConnection, docUri: string) {
 		return undefined;
 	}));
 }
-
-
 
 async function doValidate(conn: server.IConnection, library: any, document: server.TextDocument): Promise<server.Diagnostic[]> {
 	trace(conn, 'start doValidate ' + document.uri);
@@ -324,7 +320,6 @@ function showConfigurationFailure(conn: server.IConnection, err: any) {
 	conn.sendNotification(StatusNotification.type, { state: Status.error });
 }
 
-
 async function getConfiguration(connection: server.IConnection, uri: string, filePath: string, library: any, configFileName: string | null): Promise<Configuration | undefined> {
 	trace(connection, 'getConfiguration for' + uri);
 
@@ -366,8 +361,6 @@ async function getConfiguration(connection: server.IConnection, uri: string, fil
 	return configCache.configuration;
 }
 
-
-
 function getLinterFromLibrary(library): typeof tslint.Linter {
 	let isTsLint4 = isTsLintVersion4(library);
 	let linter;
@@ -378,7 +371,6 @@ function getLinterFromLibrary(library): typeof tslint.Linter {
 	}
 	return linter;
 }
-
 
 function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFailure): server.Diagnostic {
 	let message = (problem.getRuleName())
@@ -414,7 +406,6 @@ function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFail
 	return diagnostic;
 }
 
-
 function isTsLintVersion4(library) {
 	let version = '1.0.0';
 	try {
@@ -423,6 +414,7 @@ function isTsLintVersion4(library) {
 	}
 	return !(semver.satisfies(version, "<= 3.x.x"));
 }
+
 function traceConfigurationFile(connection: server.IConnection, configuration: tslint.Configuration.IConfigurationFile | undefined) {
 	if (!configuration) {
 		trace(connection, "no tslint configuration");

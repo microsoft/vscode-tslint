@@ -94,6 +94,7 @@ class ConfigCache {
 		this.configuration = undefined;
 	}
 }
+
 export let configCache = new ConfigCache();
 export let settingsCache = new SettingsCache();
 let globalSettings: Settings = <Settings>{};

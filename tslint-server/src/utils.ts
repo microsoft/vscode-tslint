@@ -4,7 +4,6 @@ export function trace(connection: server.IConnection, message: string, verbose?:
 	connection.tracer.log(message, verbose);
 }
 
-
 export function getErrorMessage(err: any, document: server.TextDocument): string {
 	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
