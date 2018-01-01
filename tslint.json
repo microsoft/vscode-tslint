@@ -6,7 +6,8 @@
 		"curly": true,
 		"class-name": true,
 		"semicolon": true,
-		"triple-equals": true
+		"triple-equals": true,
+		"no-consecutive-blank-lines": true
 	},
 	"defaultSeverity": "warning"
 }

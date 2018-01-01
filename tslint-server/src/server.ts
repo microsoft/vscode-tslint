@@ -28,7 +28,6 @@ connection.onInitialize((params) => {
 	};
 });
 
-
 documents.onDidOpen(async (event) => {
 	trace(connection, 'onDidOpen');
 	triggerValidateDocument(event.document);

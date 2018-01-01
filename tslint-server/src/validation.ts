@@ -10,7 +10,6 @@ import * as tslint from 'tslint'; // this is a dev dependency only
 import { configCache, Configuration, Settings, settingsCache } from './settings';
 import { recordCodeAction, resetRuleFailures } from './commands';
 
-
 enum Status {
 	ok = 1,
 	warn = 2,
@@ -38,7 +37,6 @@ namespace NoTSLintLibraryRequest {
 // if tslint < tslint4 then the linter is the module therefore the type `any`
 let path2Library: Map<string, typeof tslint.Linter | any> = new Map();
 let globalPackageManagerPath: Map<string, string> = new Map();  // map stores undefined values to represent failed resolutions
-
 
 export let document2Library: Map<string, Thenable<typeof tslint.Linter | any>> = new Map();
 
@@ -294,7 +292,6 @@ function fileIsExcluded(settings: Settings, path: string): boolean {
 		return minimatch(path, pattern, { dot: true });
 	}
 
-
 	if (settings.ignoreDefinitionFiles) {
 		if (path.endsWith('.d.ts')) {
 			return true;
@@ -423,7 +420,6 @@ function traceConfigurationFile(connection: server.IConnection, configuration: t
 	trace(connection, "tslint configuration:", util.inspect(configuration, undefined, 4));
 }
 
-
 function getConfigurationFailureMessage(err: any): string {
 	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
@@ -451,4 +447,3 @@ export function tslintConfigurationValid(
 	}
 	return true;
 }
-

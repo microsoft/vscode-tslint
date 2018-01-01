@@ -4,7 +4,6 @@ import { createVscFixForRuleFailure, TSLintAutofixEdit } from './fixer';
 import { CodeActionParams } from 'vscode-languageserver';
 import { settingsCache } from './settings';
 
-
 export interface AutoFix {
 	label: string;
 	documentVersion: number;
@@ -45,7 +44,6 @@ export function recordCodeAction(document: server.TextDocument, diagnostic: serv
 	documentDisableRuleFixes[computeKey(diagnostic)] = createDisableRuleFix(problem, document);
 
 	let fix: AutoFix | undefined = undefined;
-
 
 	// tslint can return a fix with an empty replacements array, these fixes are ignored
 	if (problem.getFix && problem.getFix() && !replacementsAreEmpty(problem.getFix())) { // tslint fixes are not available in tslint < 3.17
@@ -222,7 +220,6 @@ function createAutoFix(problem: tslint.RuleFailure, document: server.TextDocumen
 	return autofix;
 }
 
-
 function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint.Replacement): TSLintAutofixEdit {
 	let start: server.Position = document.positionAt(repl.start);
 	let end: server.Position = document.positionAt(repl.end);
@@ -253,8 +250,6 @@ function createDisableRuleFix(problem: tslint.RuleFailure, document: server.Text
 	};
 	return disableFix;
 }
-
-
 
 function sortFixes(fixes: AutoFix[]): AutoFix[] {
 	// The AutoFix.edits are sorted, so we sort on the first edit
