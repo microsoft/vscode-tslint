@@ -19,7 +19,7 @@
 
 ## 1.0.15
 
-- Added the the `"multi-root ready"` keyword.
+- Added the `"multi-root ready"` keyword.
 - Support to load tslint, typescript when they are globally installed using yarn [#178](https://github.com/Microsoft/vscode-tslint/issues/178). To use yarn instead of npm with the tslint extension define `"tslint.packageManager": "yarn"` in your settings. To use npm set the value to `"npm"`.
 - Added more trace information to the server
 
