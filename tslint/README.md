@@ -10,9 +10,9 @@ The extension requires that the `tslint` and `typescript` modules are installed 
 
 ## FAQ
 
-- The `no-unused-variable` rule doesn't report warnings any more?
+### The tslint `no-unused-variable` rule doesn't report warnings any more?
 
-Since tslint version 5 the rule [no-unused-variable](https://palantir.github.io/tslint/rules/no-unused-variable/) rule requires type information. Rules with type information are currently not supported by vscode-tslint, pls see [issue #70](https://github.com/Microsoft/vscode-tslint/issues/70#issuecomment-241041929). The recommended work around is to enable the TypeScript compiler options `noUnusedLocals` and `noUnusedParameters` in your `tsconfig.json` file.
+Since tslint version 5 the rule [no-unused-variable](https://palantir.github.io/tslint/rules/no-unused-variable/) requires type information. Rules with type information are currently not supported by vscode-tslint, pls see [issue #70](https://github.com/Microsoft/vscode-tslint/issues/70#issuecomment-241041929). The recommended work around is to enable the TypeScript compiler options `noUnusedLocals` and `noUnusedParameters` in your `tsconfig.json` file.
 
 tsconfig.json
 
@@ -26,7 +26,9 @@ tsconfig.json
 }
 ```
 
-- How can I use tslint rules that require type information
+You can use the TypeScript setting `typescript.reportStyleChecksAsWarnings` to define whether `noUnusedLocals` and `noUnusedParameters` are reported as warnings or errors. By default the setting is true.
+
+### How can I use tslint rules that require type information
 
 The recommended way is to run tslint manually on your project from a [task](https://code.visualstudio.com/docs/editor/tasks). To see the lint warnings in the Problems panel you can associate the task with a [Problem matcher](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers) as described in the section [below](#using-the-extension-with-tasks-running-tslint).
 
