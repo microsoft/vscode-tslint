@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.25
+
+- Improved the FAQ documentation
+
 ## 1.0.24
 
 - Capture warnings that tslint emits to the console and indicate them in the status bar item.
