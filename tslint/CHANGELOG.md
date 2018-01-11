@@ -2,6 +2,7 @@
 
 ## 1.0.25
 
+- Fix for [#312](https://github.com/Microsoft/vscode-tslint/issues/213) Comments in tslint.json marked as errors
 - Improved the FAQ documentation
 
 ## 1.0.24
