@@ -39,6 +39,14 @@
   ],
   "main": "./out/extension",
   "contributes": {
+    "languages": [
+      {
+        "id": "jsonc",
+        "filenames": [
+          "tslint.json"
+        ]
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "TSLint",
