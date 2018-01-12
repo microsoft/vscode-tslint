@@ -47,7 +47,6 @@ export class Delayer<T> {
 		this.task = task;
 		this.cancelTimeout();
 
-
 		if (!this.completionPromise) {
 			this.completionPromise = new Promise<T>((resolve) => {
 				this.onSuccess = resolve;
@@ -59,8 +58,6 @@ export class Delayer<T> {
 				return result;
 			});
 		}
-
-
 
 		if (!this.completionPromise) {
 			this.completionPromise = new Promise<T>((resolve) => {
