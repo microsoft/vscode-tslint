@@ -1,9 +1,10 @@
 # Changelog
 
-## 1.0.25
+## 1.0.26
 
 - Fix for [#312](https://github.com/Microsoft/vscode-tslint/issues/213) Comments in tslint.json marked as errors
 - Improved the FAQ documentation
+- Change the name of the main server file to make it easier recognizable when running code --status
 
 ## 1.0.24
 
