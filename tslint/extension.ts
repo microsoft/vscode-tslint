@@ -145,7 +145,7 @@ export function activate(context: ExtensionContext) {
 
 	// We need to go one level up since an extension compile the js code into
 	// the output folder.
-	let serverModulePath = path.join(__dirname, '..', 'server', 'server.js');
+	let serverModulePath = path.join(__dirname, '..', 'server', 'tslintServer.js');
 	// break on start options
 	//let debugOptions = { execArgv: ["--nolazy", "--debug=6010", "--debug-brk"] };
 	let debugOptions = { execArgv: ["--nolazy", "--inspect=6010"], cwd: process.cwd() };
