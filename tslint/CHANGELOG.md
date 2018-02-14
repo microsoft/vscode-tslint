@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.27
+- Fix for [#260](https://github.com/Microsoft/vscode-tslint/issues/260) TSLint consumes quite some CPU cycles
+
 ## 1.0.26
 
 - Fix for [#312](https://github.com/Microsoft/vscode-tslint/issues/213) Comments in tslint.json marked as errors

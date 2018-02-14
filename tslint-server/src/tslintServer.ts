@@ -542,11 +542,13 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 			return diagnostics;
 		}
 	} catch (err) {
-		console.warn = originalConsoleWarn;
 		conn.console.info(getErrorMessage(err, document));
 		connection.sendNotification(StatusNotification.type, { state: Status.error });
 		trace(`No linting: tslint exception while linting`);
 		return diagnostics;
+	}
+	finally {
+		console.warn = originalConsoleWarn;
 	}
 
 	if (result.failures.length > 0) {
