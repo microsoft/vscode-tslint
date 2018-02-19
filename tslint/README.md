@@ -50,6 +50,8 @@ You can enable more tracing output by adding the setting "tslint.trace.server" w
 If this doesn't
 help then please file an [issue](https://github.com/Microsoft/vscode-tslint/issues/new) and include the trace output produced when running with the setting "tslint.trace.server" set to "verbose".
 
+There were some reports that vscode-tslint could not be started due to missing files [#342](https://github.com/Microsoft/vscode-tslint/issues/324). Please file an issue when this happens and follow the work around described in the issue.
+
 ## Configuration options
 
 **Notice** this configuration settings allow you to configure the behaviour of the vscode-tslint extension. To configure rules and tslint options you should use the `tslint.json` file.
