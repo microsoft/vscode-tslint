@@ -1,4 +1,5 @@
 {
+  // "linterOptions": { "exclude": [ "./**/arrow-parens.ts" ]},
     "rules": {
         "array-type": [
             true,

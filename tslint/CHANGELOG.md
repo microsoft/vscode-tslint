@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.28
+- Added support `linterOptions.exclude` in the `tslint.json` file introduced in version 5.8 of tslint [#326](https://github.com/Microsoft/vscode-tslint/issues/326)
+
 ## 1.0.27
 - Fix for [#260](https://github.com/Microsoft/vscode-tslint/issues/260) TSLint consumes quite some CPU cycles
 

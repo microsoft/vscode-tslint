@@ -403,6 +403,13 @@ function isTsLintVersion4(library) {
 	return !(semver.satisfies(version, "<= 3.x.x"));
 }
 
+function isExcludedFromLinterOptions(config: tslint.Configuration.IConfigurationFile | undefined, fileName: string): boolean {
+	if (config === undefined || config.linterOptions === undefined || config.linterOptions.exclude === undefined) {
+		return false;
+	}
+	return config.linterOptions.exclude.some((pattern) => testForExclusionPattern(fileName, pattern));
+}
+
 async function loadLibrary(docUri: string) {
 	trace('loadLibrary for ' + docUri);
 
@@ -501,6 +508,11 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		return diagnostics;
 	}
 
+	if (isExcludedFromLinterOptions(configuration.linterConfiguration, fsPath)) {
+		trace(`No linting: file is excluded using linterOptions.exclude`);
+		return diagnostics;
+	}
+
 	let result: tslint.LintResult;
 	let options: tslint.ILinterOptions = {
 		formatter: "json",
@@ -518,7 +530,7 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 	let captureWarnings = (message?: any) => {
 		conn.sendNotification(StatusNotification.type, { state: Status.warn });
 		originalConsoleWarn(message);
-	}
+	};
 	console.warn = captureWarnings;
 
 	try { // protect against tslint crashes
@@ -583,10 +595,11 @@ function isJsDocument(document: server.TextDocument) {
 	return (document.languageId === "javascript" || document.languageId === "javascriptreact");
 }
 
+function testForExclusionPattern(path: string, pattern: string): boolean {
+	return minimatch(path, pattern, { dot: true });
+}
+
 function fileIsExcluded(settings: Settings, path: string): boolean {
-	function testForExclusionPattern(path: string, pattern: string): boolean {
-		return minimatch(path, pattern, { dot: true });
-	}
 
 
 	if (settings.ignoreDefinitionFiles) {
