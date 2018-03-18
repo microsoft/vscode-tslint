@@ -61,7 +61,7 @@ There were some reports that vscode-tslint could not be started due to missing f
 - `tslint.run` - run the linter `onSave` or `onType`, default is `onType`.
 - `tslint.rulesDirectory` - an additional rules directory, for user-created rules.
 - `tslint.configFile` - the configuration file that tslint should use instead of the default `tslint.json`.
-- `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored.
+- `tslint.ignoreDefinitionFiles` - control if TypeScript definition files should be ignored, default is `true`.
 - `tslint.exclude` - configure glob patterns of file paths to exclude from linting. The pattern is matched against the **absolute path** of the linted file.
 - `tslint.validateWithDefaultConfig` - validate a file for which no custom tslint configuration was found. The default is `false`.
 - `tslint.nodePath` - custom path to node modules directory, used to load tslint from a different location than the default of the current workspace or the global node modules directory.
