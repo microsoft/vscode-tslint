@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.29
+- Problem matchers now set the source to `tslint` [#331](https://github.com/Microsoft/vscode-tslint/issues/331)
+
 ## 1.0.28
 - Added support `linterOptions.exclude` in the `tslint.json` file introduced in version 5.8 of tslint [#326](https://github.com/Microsoft/vscode-tslint/issues/326)
 
