@@ -214,6 +214,7 @@
         "name": "tslint4",
         "label": "tslint (version 4) warnings",
         "owner": "tslint",
+        "source": "tslint",
         "applyTo": "closedDocuments",
         "fileLocation": "absolute",
         "severity": "warning",
@@ -222,6 +223,7 @@
       {
         "name": "tslint5",
         "owner": "tslint",
+        "source": "tslint",
         "label": "tslint (version 5) warnings",
         "applyTo": "closedDocuments",
         "fileLocation": "absolute",
