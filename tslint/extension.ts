@@ -159,7 +159,7 @@ export function activate(context: ExtensionContext) {
 		documentSelector: ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
 		synchronize: {
 			configurationSection: 'tslint',
-			fileEvents: workspace.createFileSystemWatcher('**/tslint.json')
+			fileEvents: workspace.createFileSystemWatcher('**/tslint.{json,yml,yaml}')
 		},
 		diagnosticCollectionName: 'tslint',
 		initializationFailedHandler: (error) => {
@@ -176,7 +176,7 @@ export function activate(context: ExtensionContext) {
 				let tslintDiagnostics: Diagnostic[] = [];
 				for (let diagnostic of context.diagnostics) {
 					if (diagnostic.source === 'tslint') {
-						tslintDiagnostics.push(diagnostic);
+						tslintDiagnostics.push(diagnostic)
 					}
 				}
 				if (tslintDiagnostics.length === 0) {
