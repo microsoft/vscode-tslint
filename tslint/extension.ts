@@ -250,7 +250,7 @@ export function activate(context: ExtensionContext) {
 	function getInstallFailureMessage(uri: Uri, workspaceFolder: WorkspaceFolder|undefined, packageManager:string): string {
 		let localCommands = {
 			npm: 'npm install tslint',
-			yarn: 'yard add tslint'
+			yarn: 'yarn add tslint'
 		};
 		let globalCommands = {
 			npm: 'npm install -g tslint',
