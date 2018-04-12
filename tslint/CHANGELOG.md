@@ -2,6 +2,8 @@
 
 ## 1.0.29
 - Problem matchers now set the source to `tslint` [#331](https://github.com/Microsoft/vscode-tslint/issues/331)
+- Add support for tslint configuration files as yaml files  [#334](https://github.com/Microsoft/vscode-tslint/issues/334)
+- Restrict the documents synchronized to the language server to documents with the scheme `file` [#338](https://github.com/Microsoft/vscode-tslint/issues/338)
 
 ## 1.0.28
 - Added support `linterOptions.exclude` in the `tslint.json` file introduced in version 5.8 of tslint [#326](https://github.com/Microsoft/vscode-tslint/issues/326)
