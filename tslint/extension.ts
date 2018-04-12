@@ -156,7 +156,12 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
+		documentSelector: [
+			{ language: 'typescript', scheme: 'file' },
+			{ language: 'typescriptreact', scheme: 'file' },
+			{ language: 'javascript', scheme: 'file' },
+			{ language: 'javascriptreact', scheme: 'file' }
+		],
 		synchronize: {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.{json,yml,yaml}')
