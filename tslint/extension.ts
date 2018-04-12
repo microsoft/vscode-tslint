@@ -8,6 +8,7 @@ import {
 } from 'vscode-languageclient';
 import { exec }  from 'child_process';
 import * as open from 'open';
+import flatMap = require("lodash.flatmap");
 
 interface AllFixesParams {
 	readonly textDocument: TextDocumentIdentifier;
@@ -155,8 +156,13 @@ export function activate(context: ExtensionContext) {
 		debug: { module: serverModulePath, transport: TransportKind.ipc, options: debugOptions }
 	};
 
+	const documentSelector = flatMap(['typescript', 'typescriptreact', 'javascript', 'javascriptreact'], language => [
+		{ language, scheme: 'file' },
+		{ language, scheme: 'untitled' }
+	]);
+
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
+		documentSelector,
 		synchronize: {
 			configurationSection: 'tslint',
 			fileEvents: workspace.createFileSystemWatcher('**/tslint.{json,yml,yaml}')
