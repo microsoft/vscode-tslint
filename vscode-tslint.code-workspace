@@ -11,6 +11,7 @@
 		}
 	],
 	"settings": {
-		"editor.formatOnSave": false
+		"editor.formatOnSave": false,
+		"npm.enableScriptExplorer": true,
 	}
 }
