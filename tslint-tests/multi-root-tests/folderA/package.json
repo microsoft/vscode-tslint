@@ -4,7 +4,7 @@
   "description": "dummy project containing dummies files to raise tslint problems and check that correction are working fine",
   "main": "index.js",
   "scripts": {
-    "lint": "tslint tests/*.ts -t verbose"
+    "lint": "tslint ../../tests/*.ts -t verbose"
   },
   "author": "",
   "license": "ISC",
