@@ -7,7 +7,6 @@ import {
 	Proposed, CancellationToken, WorkspaceMiddleware
 } from 'vscode-languageclient';
 import { exec }  from 'child_process';
-import * as open from 'open';
 
 interface AllFixesParams {
 	readonly textDocument: TextDocumentIdentifier;
@@ -351,7 +350,7 @@ export function activate(context: ExtensionContext) {
 		if (!ruleId) {
 			return;
 		}
-		open(tslintDocBaseURL+'/'+ruleId);
+		commands.executeCommand('vscode.open', Uri.parse(tslintDocBaseURL+'/'+ruleId));
 	}
 
 	function fixAllProblems() {
