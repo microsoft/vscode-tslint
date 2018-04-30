@@ -4,8 +4,9 @@ import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBar
 import {
 	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
-	Proposed, CancellationToken, WorkspaceMiddleware
+	CancellationToken, WorkspaceMiddleware, ConfigurationParams
 } from 'vscode-languageclient';
+
 import { exec }  from 'child_process';
 
 interface AllFixesParams {
@@ -190,7 +191,7 @@ export function activate(context: ExtensionContext) {
 				return next(document, range, newContext, token);
 			},
 			workspace: {
-				configuration: (params: Proposed.ConfigurationParams, token: CancellationToken, next: Function): any[] => {
+				configuration: (params: ConfigurationParams, token: CancellationToken, next: Function): any[] => {
 					if (!params.items) {
 						return [];
 					}
