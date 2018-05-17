@@ -13,5 +13,6 @@
 	"settings": {
 		"editor.formatOnSave": false,
 		"npm.enableScriptExplorer": true,
+		"npm.exclude": "**/tslint/server/**"
 	}
 }
