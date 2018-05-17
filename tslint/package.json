@@ -249,6 +249,6 @@
     "global": "^4.3.2",
     "open": "^0.0.5",
     "vsce": "^1.35.0",
-    "vscode-languageclient": "^3.5.0-next.4"
+    "vscode-languageclient": "^4.1.4"
   }
 }

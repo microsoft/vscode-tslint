@@ -5,7 +5,6 @@
 
 import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
-import { ConfigurationRequest } from 'vscode-languageserver-protocol/lib/protocol.configuration.proposed';
 import * as path from 'path';
 import * as semver from 'semver';
 import Uri from 'vscode-uri';
@@ -93,7 +92,7 @@ class SettingsCache {
 			return this.promise = new Promise<Settings>(async (resolve, _reject) => {
 				trace('SettingsCache: cache updating cache for' + this.uri);
 				let configRequestParam = { items: [{ scopeUri: uri, section: 'tslint' }] };
-				let settings = await connection.sendRequest(ConfigurationRequest.type, configRequestParam);
+				let settings = await connection.sendRequest(server.ConfigurationRequest.type, configRequestParam);
 				resolve(settings[0]);
 			});
 		}
