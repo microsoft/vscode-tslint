@@ -403,6 +403,8 @@ export function activate(context: ExtensionContext) {
 				if (code === 0) {
 					let document = await workspace.openTextDocument(tslintConfigFile);
 					window.showTextDocument(document);
+				} else {
+					window.showErrorMessage('Could not run `tslint` to generate a configuration file. Please verify that you have tslint installed.');
 				}
 			});
 		}
