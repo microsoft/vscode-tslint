@@ -1,5 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
+    "gulp.autoDetect": "off",
     "files.autoSave": "off",
     // "tslint.autoFixOnSave": [
     //     "arrow-parens"
