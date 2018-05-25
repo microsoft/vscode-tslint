@@ -661,11 +661,17 @@ function triggerValidateDocument(document: server.TextDocument) {
 		d = new Delayer<void>(200);
 		validationDelayer[document.uri] = d;
 	}
-	d.trigger(() => {
+	d.trigger(async() => {
 		trace('trigger validateTextDocument');
-		validateTextDocument(connection, document);
-		delete validationDelayer[document.uri];
+		forceValidation(connection, document);
 	});
+}
+
+async function forceValidation(connection: server.IConnection, document: server.TextDocument) {
+	if (validationDelayer[document.uri]) {
+		await validateTextDocument(connection, document);
+		delete validationDelayer[document.uri];
+	}
 }
 
 function tslintConfigurationValid(): boolean {
@@ -954,6 +960,14 @@ connection.onRequest(AllFixesRequest.type, async (params) => {
 	let result: AllFixesResult | undefined = undefined;
 	let uri = params.textDocument.uri;
 	let isOnSave = params.isOnSave;
+	let document = documents.get(uri);
+
+	if (!document) {
+		return undefined;
+	}
+
+	await forceValidation(connection, document);
+
 	let documentFixes = codeFixActions[uri];
 	let documentVersion: number = -1;
 	let settings = await settingsCache.get(uri);

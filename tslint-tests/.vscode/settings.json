@@ -3,11 +3,14 @@
     "gulp.autoDetect": "off",
     "files.autoSave": "off",
     // "tslint.autoFixOnSave": [
-    //     "arrow-parens"
+    //     "comment-format"
     // ],
+    // "editor.codeActionsOnSave": {
+    //     "source.organizeImports": true
+    // },
     //"tslint.run": "onSave",
     //"tslint.packageManager": "yarn",
-    "tslint.autoFixOnSave": false,
+    // "tslint.autoFixOnSave": false,
     //"tslint.nodePath": "tmp",
     "tslint.jsEnable": true
     //"tslint.rulesDirectory": ["tmp1", "tmp2"],
