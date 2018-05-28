@@ -1,6 +1,7 @@
 {
   // "linterOptions": { "exclude": [ "./**/arrow-parens.ts" ]},
     "rules": {
+        "no-consecutive-blank-lines": true,
         "array-type": [
             true,
             "array-simple"
