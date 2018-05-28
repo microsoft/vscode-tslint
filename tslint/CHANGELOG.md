@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.30
+- Support multi pass fixing when there are overlapping fixes [#295](https://github.com/Microsoft/vscode-tslint/issues/295)
+- `editor.codeActionsOnSave` conflict with `tslint.autoFixOnSave` [#347](https://github.com/Microsoft/vscode-tslint/issues/347)
+
 ## 1.0.29
 - Problem matchers now set the source to `tslint` [#331](https://github.com/Microsoft/vscode-tslint/issues/331)
 - Add support for tslint configuration files as yaml files  [#334](https://github.com/Microsoft/vscode-tslint/issues/334)
