@@ -17,6 +17,7 @@ interface AllFixesResult {
 	readonly documentVersion: number;
 	readonly edits: TextEdit[];
 	readonly ruleId?: string;
+	readonly overlappingFixes: boolean;
 }
 
 namespace AllFixesRequest {
@@ -311,22 +312,20 @@ export function activate(context: ExtensionContext) {
 		return path.join(folderPath, file);
 	}
 
-	function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]) {
+	async function applyTextEdits(uri: string, documentVersion: number, edits: TextEdit[]): Promise<boolean> {
 		let textEditor = window.activeTextEditor;
 		if (textEditor && textEditor.document.uri.toString() === uri) {
-			if (textEditor.document.version !== documentVersion) {
+			if (documentVersion !== -1 && textEditor.document.version !== documentVersion) {
 				window.showInformationMessage(`TSLint fixes are outdated and can't be applied to the document.`);
+				return true;
 			}
-			textEditor.edit(mutator => {
+			return textEditor.edit(mutator => {
 				for (let edit of edits) {
 					mutator.replace(client.protocol2CodeConverter.asRange(edit.range), edit.newText);
 				}
-			}).then((success) => {
-				if (!success) {
-					window.showErrorMessage('Failed to apply TSLint fixes to the document. Please consider opening an issue with steps to reproduce.');
-				}
 			});
 		}
+		return true;
 	}
 
 	function applyDisableRuleEdit(uri: string, documentVersion: number, edits: TextEdit[]) {
@@ -363,9 +362,12 @@ export function activate(context: ExtensionContext) {
 			return;
 		}
 		let uri: string = textEditor.document.uri.toString();
-		client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then((result) => {
+		client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then(async(result) => {
 			if (result) {
-				applyTextEdits(uri, result.documentVersion, result.edits);
+				let success = await applyTextEdits(uri, result.documentVersion, result.edits);
+				if (!success) {
+					window.showErrorMessage('TSLint could not apply the fixes');
+				}
 			}
 		}, (error) => {
 			window.showErrorMessage('Failed to apply TSLint fixes to the document. Please consider opening an issue with steps to reproduce.');
@@ -421,15 +423,8 @@ export function activate(context: ExtensionContext) {
 					|| event.reason !== TextDocumentSaveReason.Manual) {
 					return;
 				}
-				const version = document.version;
 				event.waitUntil(
-					client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then((result) => {
-						if (result && version === result.documentVersion) {
-							return client.protocol2CodeConverter.asTextEdits(result.edits);
-						} else {
-							return [];
-						}
-					})
+					autoFixOnSave(document)
 				);
 			});
 		} else if (!autoFix && willSaveTextDocument) {
@@ -437,6 +432,37 @@ export function activate(context: ExtensionContext) {
 			willSaveTextDocument = undefined;
 		}
 		updateStatusBarVisibility(window.activeTextEditor);
+	}
+
+	function autoFixOnSave(document: TextDocument): Thenable<any> {
+		let start = Date.now();
+		const timeBudget = 500; // total willSave time budget is 1500
+		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async(result) => {
+			while (true) {
+				if (result) {
+					let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
+					// disable version check by passing -1 as the version, the event loop is blocked during `willSave`
+					let success = await applyTextEdits(document.uri.toString(), -1, edits);
+					if (!success) {
+						window.showErrorMessage("TSLint: Auto fix on save could not apply the edits");
+					}
+					// console.log('duration ', Date.now() - start);
+					if (Date.now() - start > timeBudget) {
+						console.log(`TSLint auto fix on save maximum time budget (${timeBudget}ms) exceeded.`);
+						break;
+					}
+					if (result.overlappingFixes) {
+						result = await client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true });
+					} else {
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+			return null;
+		})
+		return promise;
 	}
 
 	configurationChangedListener = workspace.onDidChangeConfiguration(configurationChanged);

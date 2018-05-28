@@ -2,7 +2,8 @@
 {
     "gulp.autoDetect": "off",
     "files.autoSave": "off",
-    // "tslint.autoFixOnSave": [
+    //"tslint.autoFixOnSave": true,
+    //"tslint.autoFixOnSave": [
     //     "comment-format"
     // ],
     // "editor.codeActionsOnSave": {

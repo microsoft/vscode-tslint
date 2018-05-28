@@ -927,15 +927,18 @@ function getLastEdit(array: AutoFix[]): AutoFix | undefined {
 	return array[length - 1];
 }
 
-export function getAllNonOverlappingFixes(fixes: AutoFix[]): AutoFix[] {
+export function getAllNonOverlappingFixes(fixes: AutoFix[]): [AutoFix[], boolean] {
 	let nonOverlapping: AutoFix[] = [];
+	let hasOverlappingFixes = false;
 	fixes = sortFixes(fixes);
 	for (let autofix of fixes) {
 		if (!overlaps(getLastEdit(nonOverlapping), autofix)) {
 			nonOverlapping.push(autofix);
+		} else {
+			hasOverlappingFixes = true;
 		}
 	}
-	return nonOverlapping;
+	return [nonOverlapping, hasOverlappingFixes];
 }
 
 function createTextEdit(autoFix: AutoFix): server.TextEdit[] {
@@ -950,6 +953,7 @@ interface AllFixesParams {
 interface AllFixesResult {
 	documentVersion: number;
 	edits: server.TextEdit[];
+	overlappingFixes: boolean;
 }
 
 namespace AllFixesRequest {
@@ -991,11 +995,12 @@ connection.onRequest(AllFixesRequest.type, async (params) => {
 		fixes = fixes.filter(fix => autoFixOnSave.indexOf(fix.problem.getRuleName()) > -1);
 	}
 
-	let allFixes = getAllNonOverlappingFixes(fixes);
+	let [allFixes, overlappingEdits] = getAllNonOverlappingFixes(fixes);
 
 	result = {
 		documentVersion: documentVersion,
-		edits: concatenateEdits(allFixes)
+		edits: concatenateEdits(allFixes),
+		overlappingFixes: overlappingEdits
 	};
 	return result;
 });
