@@ -4,6 +4,8 @@
 		"target": "es6",
 		"outDir": "out",
 		"strictNullChecks": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"lib": [
 			"es6"
 		],

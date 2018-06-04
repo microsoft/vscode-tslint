@@ -1,9 +1,9 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, QuickPickItem, ExtensionContext, StatusBarAlignment, TextEditor, ThemeColor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions } from 'vscode';
+import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions } from 'vscode';
 import {
-	LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TextEdit,
-	RequestType, TextDocumentIdentifier, ResponseError, InitializeError, State as ClientState, NotificationType, TransportKind,
+	LanguageClient, LanguageClientOptions,  ServerOptions, TextEdit,
+	RequestType, TextDocumentIdentifier, State as ClientState, NotificationType, TransportKind,
 	CancellationToken, WorkspaceMiddleware, ConfigurationParams
 } from 'vscode-languageclient';
 import { exec }  from 'child_process';
@@ -181,7 +181,7 @@ export function activate(context: ExtensionContext) {
 				let tslintDiagnostics: Diagnostic[] = [];
 				for (let diagnostic of context.diagnostics) {
 					if (diagnostic.source === 'tslint') {
-						tslintDiagnostics.push(diagnostic)
+						tslintDiagnostics.push(diagnostic);
 					}
 				}
 				if (tslintDiagnostics.length === 0) {
@@ -344,7 +344,7 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
-	function showRuleDocumentation(uri: string, documentVersion: number, edits: TextEdit[], ruleId: string) {
+	function showRuleDocumentation(_uri: string, _documentVersion: number, _edits: TextEdit[], ruleId: string) {
 		const tslintDocBaseURL = "https://palantir.github.io/tslint/rules";
 		if (!ruleId) {
 			return;
@@ -369,7 +369,7 @@ export function activate(context: ExtensionContext) {
 					window.showErrorMessage('TSLint could not apply the fixes');
 				}
 			}
-		}, (error) => {
+		}, (_error) => {
 			window.showErrorMessage('Failed to apply TSLint fixes to the document. Please consider opening an issue with steps to reproduce.');
 		});
 	}
@@ -401,7 +401,7 @@ export function activate(context: ExtensionContext) {
 		} else {
 			const cmd = 'tslint --init';
 			const p = exec(cmd, { cwd: folder.uri.fsPath, env: process.env });
-			p.on('exit', async (code: number, signal: string) => {
+			p.on('exit', async (code: number, _signal: string) => {
 				if (code === 0) {
 					let document = await workspace.openTextDocument(tslintConfigFile);
 					window.showTextDocument(document);
@@ -461,7 +461,7 @@ export function activate(context: ExtensionContext) {
 				}
 			}
 			return null;
-		})
+		});
 		return promise;
 	}
 
