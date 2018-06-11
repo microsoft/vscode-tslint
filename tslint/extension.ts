@@ -1,12 +1,12 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions } from 'vscode';
+import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions, TextDocumentWillSaveEvent } from 'vscode';
 import {
-	LanguageClient, LanguageClientOptions,  ServerOptions, TextEdit,
+	LanguageClient, LanguageClientOptions, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, State as ClientState, NotificationType, TransportKind,
 	CancellationToken, WorkspaceMiddleware, ConfigurationParams
 } from 'vscode-languageclient';
-import { exec }  from 'child_process';
+import { exec } from 'child_process';
 
 interface AllFixesParams {
 	readonly textDocument: TextDocumentIdentifier;
@@ -67,7 +67,7 @@ interface Settings {
 	workspaceFolderPath: string; // 'virtual' setting sent to the server
 }
 
-let willSaveTextDocument: Disposable | undefined;
+let willSaveTextDocumentListener: Disposable;
 let configurationChangedListener: Disposable;
 
 export function activate(context: ExtensionContext) {
@@ -149,7 +149,7 @@ export function activate(context: ExtensionContext) {
 	// break on start options
 	//let debugOptions = { execArgv: ["--nolazy", "--debug=6010", "--debug-brk"] };
 	let debugOptions = { execArgv: ["--nolazy", "--inspect=6010"], cwd: process.cwd() };
-	let runOptions = {cwd: process.cwd()};
+	let runOptions = { cwd: process.cwd() };
 	let serverOptions: ServerOptions = {
 		run: { module: serverModulePath, transport: TransportKind.ipc, options: runOptions },
 		debug: { module: serverModulePath, transport: TransportKind.ipc, options: debugOptions }
@@ -252,14 +252,14 @@ export function activate(context: ExtensionContext) {
 		});
 	});
 
-	function getInstallFailureMessage(uri: Uri, workspaceFolder: WorkspaceFolder|undefined, packageManager:string): string {
+	function getInstallFailureMessage(uri: Uri, workspaceFolder: WorkspaceFolder | undefined, packageManager: string): string {
 		let localCommands = {
 			npm: 'npm install tslint',
 			yarn: 'yarn add tslint'
 		};
 		let globalCommands = {
 			npm: 'npm install -g tslint',
-			yarn:'yarn global add tslint'
+			yarn: 'yarn global add tslint'
 		};
 		if (workspaceFolder) { // workspace opened on a folder
 			return [
@@ -271,7 +271,7 @@ export function activate(context: ExtensionContext) {
 				'You need to reopen the workspace after installing tslint.',
 			].join('\n');
 		} else {
-			return[
+			return [
 				`Failed to load the TSLint library for the document ${uri.fsPath}`,
 				`To use TSLint for single file install tslint globally using \'${globalCommands[packageManager]}\'.`,
 				'TSLint has a peer dependency on `typescript`, make sure that `typescript` is installed as well.',
@@ -301,7 +301,7 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
-	function convertAbsolute(file: string, folder: WorkspaceFolder):string {
+	function convertAbsolute(file: string, folder: WorkspaceFolder): string {
 		if (path.isAbsolute(file)) {
 			return file;
 		}
@@ -349,7 +349,7 @@ export function activate(context: ExtensionContext) {
 		if (!ruleId) {
 			return;
 		}
-		commands.executeCommand('vscode.open', Uri.parse(tslintDocBaseURL+'/'+ruleId));
+		commands.executeCommand('vscode.open', Uri.parse(tslintDocBaseURL + '/' + ruleId));
 	}
 
 	function fixAllProblems() {
@@ -362,7 +362,7 @@ export function activate(context: ExtensionContext) {
 			return;
 		}
 		let uri: string = textEditor.document.uri.toString();
-		client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then(async(result) => {
+		client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then(async (result) => {
 			if (result) {
 				let success = await applyTextEdits(uri, result.documentVersion, result.edits);
 				if (!success) {
@@ -412,32 +412,30 @@ export function activate(context: ExtensionContext) {
 		}
 	}
 
-	function configurationChanged() {
-		let config = workspace.getConfiguration('tslint');
+	function willSaveTextDocument(e: TextDocumentWillSaveEvent) {
+		let config = workspace.getConfiguration('tslint', e.document.uri);
 		let autoFix = config.get('autoFixOnSave', false);
-		if (autoFix && !willSaveTextDocument) {
-			willSaveTextDocument = workspace.onWillSaveTextDocument((event) => {
-				let document = event.document;
-				// only auto fix when the document was manually saved by the user
-				if (!(isTypeScriptDocument(document) || isEnabledForJavaScriptDocument(document))
-					|| event.reason !== TextDocumentSaveReason.Manual) {
-					return;
-				}
-				event.waitUntil(
-					autoFixOnSave(document)
-				);
-			});
-		} else if (!autoFix && willSaveTextDocument) {
-			willSaveTextDocument.dispose();
-			willSaveTextDocument = undefined;
+		if (autoFix) {
+			let document = e.document;
+			// only auto fix when the document was manually saved by the user
+			if (!(isTypeScriptDocument(document) || isEnabledForJavaScriptDocument(document))
+				|| e.reason !== TextDocumentSaveReason.Manual) {
+				return;
+			}
+			e.waitUntil(
+				autoFixOnSave(document)
+			);
 		}
+	}
+
+	function configurationChanged() {
 		updateStatusBarVisibility(window.activeTextEditor);
 	}
 
 	function autoFixOnSave(document: TextDocument): Thenable<any> {
 		let start = Date.now();
 		const timeBudget = 500; // total willSave time budget is 1500
-		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async(result) => {
+		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async (result) => {
 			while (true) {
 				if (result) {
 					let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
@@ -466,11 +464,13 @@ export function activate(context: ExtensionContext) {
 	}
 
 	configurationChangedListener = workspace.onDidChangeConfiguration(configurationChanged);
+	willSaveTextDocumentListener = workspace.onWillSaveTextDocument(willSaveTextDocument);
 	configurationChanged();
 
 	context.subscriptions.push(
 		client.start(),
 		configurationChangedListener,
+		willSaveTextDocumentListener,
 		// internal commands
 		commands.registerCommand('_tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('_tslint.applySameFixes', applyTextEdits),
@@ -486,8 +486,5 @@ export function activate(context: ExtensionContext) {
 }
 
 export function deactivate() {
-	if (willSaveTextDocument) {
-		willSaveTextDocument.dispose();
-		willSaveTextDocument = undefined;
-	}
+
 }
