@@ -439,14 +439,16 @@ export function activate(context: ExtensionContext) {
 		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async (result) => {
 			while (true) {
 				if (result) {
-					if (lastVersion !== document.version) {
+					// ensure that document versions on the client and the server are in sync
+					if (lastVersion !== document.version || lastVersion !== result.documentVersion) {
+						window.showInformationMessage("TSLint: Auto fix on save, fixes could not be applied.");
 						break;
 					}
 					let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
 					// disable version check by passing -1 as the version, the event loop is blocked during `willSave`
 					let success = await applyTextEdits(document.uri.toString(), -1, edits);
 					if (!success) {
-						window.showInformationMessage("TSLint: Auto fix on save, fixes could not be applied");
+						window.showInformationMessage("TSLint: Auto fix on save, edits could not be applied");
 						break;
 					}
 					lastVersion = document.version;

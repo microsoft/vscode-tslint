@@ -1,5 +1,5 @@
 # Changelog
-## 1.0.31
+## 1.0.32
 - Support [#309](https://github.com/Microsoft/vscode-tslint/issues/309) autoFixOnSave as a resource setting
 - Fix for [#356](https://github.com/Microsoft/vscode-tslint/issues/356) auto save mangles text.
 
