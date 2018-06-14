@@ -1,4 +1,7 @@
 # Changelog
+## 1.0.31
+- Support [#309](https://github.com/Microsoft/vscode-tslint/issues/309) autoFixOnSave as a resource setting
+- Fix for [#356](https://github.com/Microsoft/vscode-tslint/issues/356) auto save mangles text.
 
 ## 1.0.30
 - Support multi pass fixing when there are overlapping fixes [#295](https://github.com/Microsoft/vscode-tslint/issues/295)
