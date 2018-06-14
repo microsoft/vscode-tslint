@@ -435,15 +435,21 @@ export function activate(context: ExtensionContext) {
 	function autoFixOnSave(document: TextDocument): Thenable<any> {
 		let start = Date.now();
 		const timeBudget = 500; // total willSave time budget is 1500
+		let lastVersion = document.version;
 		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async (result) => {
 			while (true) {
 				if (result) {
+					if (lastVersion !== document.version) {
+						break;
+					}
 					let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
 					// disable version check by passing -1 as the version, the event loop is blocked during `willSave`
 					let success = await applyTextEdits(document.uri.toString(), -1, edits);
 					if (!success) {
-						window.showErrorMessage("TSLint: Auto fix on save could not apply the edits");
+						window.showInformationMessage("TSLint: Auto fix on save, fixes could not be applied");
+						break;
 					}
+					lastVersion = document.version;
 					// console.log('duration ', Date.now() - start);
 					if (Date.now() - start > timeBudget) {
 						console.log(`TSLint auto fix on save maximum time budget (${timeBudget}ms) exceeded.`);
