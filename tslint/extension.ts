@@ -374,6 +374,25 @@ export function activate(context: ExtensionContext) {
 		});
 	}
 
+	function exists(file: string): Promise<boolean> {
+		return new Promise<boolean>((resolve, _reject) => {
+			fs.exists(file, (value) => {
+				resolve(value);
+			});
+		});
+	}
+
+	async function findTslint(rootPath: string): Promise<string> {
+		const platform = process.platform;
+		if (platform === 'win32' && await exists(path.join(rootPath, 'node_modules', '.bin', 'tslint.cmd'))) {
+			return path.join('.', 'node_modules', '.bin', 'tslint.cmd');
+		} else if ((platform === 'linux' || platform === 'darwin') && await exists(path.join(rootPath, 'node_modules', '.bin', 'tslint'))) {
+			return path.join('.', 'node_modules', '.bin', 'tslint');
+		} else {
+			return 'tslint';
+		}
+	}
+
 	async function createDefaultConfiguration() {
 		let folders = workspace.workspaceFolders;
 		let folder: WorkspaceFolder | undefined = undefined;
@@ -392,21 +411,23 @@ export function activate(context: ExtensionContext) {
 				return;
 			}
 		}
-		let tslintConfigFile = path.join(folder.uri.fsPath, 'tslint.json');
+		const folderPath = folder.uri.fsPath;
+		const tslintConfigFile = path.join(folderPath, 'tslint.json');
 
 		if (fs.existsSync(tslintConfigFile)) {
 			window.showInformationMessage('A TSLint configuration file already exists.');
 			let document = await workspace.openTextDocument(tslintConfigFile);
 			window.showTextDocument(document);
 		} else {
-			const cmd = 'tslint --init';
-			const p = exec(cmd, { cwd: folder.uri.fsPath, env: process.env });
+			const tslintCmd = await findTslint(folderPath);
+			const cmd = `${tslintCmd} --init`;
+			const p = exec(cmd, { cwd: folderPath, env: process.env });
 			p.on('exit', async (code: number, _signal: string) => {
 				if (code === 0) {
 					let document = await workspace.openTextDocument(tslintConfigFile);
 					window.showTextDocument(document);
 				} else {
-					window.showErrorMessage('Could not run `tslint` to generate a configuration file. Please verify that you have tslint installed.');
+					window.showErrorMessage('Could not run `tslint` to generate a configuration file. Please verify that you have `tslint` and `typescript` installed.');
 				}
 			});
 		}
