@@ -1,6 +1,10 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri, ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions, TextDocumentWillSaveEvent } from 'vscode';
+import {
+	workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri,
+	ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions,
+	TextDocumentWillSaveEvent
+} from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, ServerOptions, TextEdit,
 	RequestType, TextDocumentIdentifier, State as ClientState, NotificationType, TransportKind,
@@ -456,29 +460,45 @@ export function activate(context: ExtensionContext) {
 	function autoFixOnSave(document: TextDocument): Thenable<any> {
 		let start = Date.now();
 		const timeBudget = 500; // total willSave time budget is 1500
+		let retryCount = 0;
 		let lastVersion = document.version;
+
 		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async (result) => {
 			while (true) {
+				// console.log('duration ', Date.now() - start);
+				if (Date.now() - start > timeBudget) {
+					console.log(`TSLint auto fix on save maximum time budget (${timeBudget}ms) exceeded.`);
+					break;
+				}
+				if (retryCount > 10) {
+					console.log(`TSLint auto fix on save maximum retries exceeded.`);
+				}
 				if (result) {
-					// ensure that document versions on the client and the server are in sync
-					if (lastVersion !== document.version || lastVersion !== result.documentVersion) {
-						window.showInformationMessage("TSLint: Auto fix on save, fixes could not be applied.");
+					// ensure that document versions on the client are in sync
+					if (lastVersion !== document.version) {
+						window.showInformationMessage("TSLint: Auto fix on save, fixes could not be applied (client version mismatch).");
 						break;
 					}
-					let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
-					// disable version check by passing -1 as the version, the event loop is blocked during `willSave`
-					let success = await applyTextEdits(document.uri.toString(), -1, edits);
-					if (!success) {
-						window.showInformationMessage("TSLint: Auto fix on save, edits could not be applied");
-						break;
+					let retry = false;
+					if (lastVersion !== result.documentVersion) {
+						retry = true;  // retry to get the fixes matching the document
+					} else {
+						let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
+
+						// disable version check by passing -1 as the version, the event loop is blocked during `willSave`
+						let success = await applyTextEdits(document.uri.toString(), -1, edits);
+						if (!success) {
+							window.showInformationMessage("TSLint: Auto fix on save, edits could not be applied");
+							break;
+						}
 					}
+
 					lastVersion = document.version;
-					// console.log('duration ', Date.now() - start);
-					if (Date.now() - start > timeBudget) {
-						console.log(`TSLint auto fix on save maximum time budget (${timeBudget}ms) exceeded.`);
-						break;
-					}
-					if (result.overlappingFixes) {
+
+					if (result.overlappingFixes || retry) {
+						if (retry) {
+							retryCount++;
+						}
 						result = await client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true });
 					} else {
 						break;
