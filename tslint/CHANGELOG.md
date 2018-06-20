@@ -1,4 +1,8 @@
 # Changelog
+## 1.0.33
+- Fix for [#343](https://github.com/Microsoft/vscode-tslint/issues/343) Create a 'tslint.json' file" doesn´t work with local tslint install.
+- Adopt [#316](https://github.com/Microsoft/vscode-tslint/issues/316) VSCode 1.20's new CodeAction type
+
 ## 1.0.32
 - Support [#309](https://github.com/Microsoft/vscode-tslint/issues/309) autoFixOnSave as a resource setting
 - Fix for [#356](https://github.com/Microsoft/vscode-tslint/issues/356) auto save mangles text.

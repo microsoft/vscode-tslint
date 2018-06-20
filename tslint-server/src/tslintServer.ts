@@ -569,7 +569,7 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 			recordCodeAction(document, diagnostic, problem);
 		});
 	}
-	trace('doValidate: sending diagnostics: '+ result.failures.length);
+	trace('doValidate: sending diagnostics: ' + result.failures.length);
 
 	return diagnostics;
 }
@@ -661,7 +661,7 @@ function triggerValidateDocument(document: server.TextDocument) {
 		d = new Delayer<void>(200);
 		validationDelayer[document.uri] = d;
 	}
-	d.trigger(async() => {
+	d.trigger(async () => {
 		trace('trigger validateTextDocument');
 		forceValidation(connection, document);
 	});
@@ -722,7 +722,7 @@ connection.onDidChangeWatchedFiles((params) => {
 });
 
 connection.onCodeAction((params) => {
-	let result: server.Command[] = [];
+	let result: server.CodeAction[] = [];
 	let uri = params.textDocument.uri;
 	let documentVersion: number = -1;
 	let ruleId: string | undefined = undefined;
@@ -734,7 +734,12 @@ connection.onCodeAction((params) => {
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				ruleId = autoFix.problem.getRuleName();
-				result.push(server.Command.create(autoFix.label, '_tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix)));
+				let command = server.Command.create(autoFix.label, '_tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix));
+				result.push(server.CodeAction.create(
+					autoFix.label,
+					command,
+					server.CodeActionKind.QuickFix
+				));
 			}
 		}
 		if (result.length > 0) {
@@ -758,23 +763,39 @@ connection.onCodeAction((params) => {
 
 			// if the same rule warning exists more than once, provide a command to fix all these warnings
 			if (same.length > 1) {
+				let label = `Fix all: ${same[0].problem.getFailure()}`;
+				let command = server.Command.create(
+					label,
+					'_tslint.applySameFixes',
+					uri,
+					documentVersion, concatenateEdits(same)
+				);
 				result.push(
-					server.Command.create(
-						`Fix all: ${same[0].problem.getFailure()}`,
-						'_tslint.applySameFixes',
-						uri,
-						documentVersion, concatenateEdits(same)));
+					server.CodeAction.create(
+						label,
+						command,
+						server.CodeActionKind.QuickFix
+					)
+				);
 			}
 
 			// create a command to fix all the warnings with fixes
 			if (all.length > 1) {
+				let label = `Fix all auto-fixable problems`;
+				let command = server.Command.create(
+					label,
+					'_tslint.applyAllFixes',
+					uri,
+					documentVersion,
+					concatenateEdits(all)
+				);
 				result.push(
-					server.Command.create(
-						`Fix all auto-fixable problems`,
-						'_tslint.applyAllFixes',
-						uri,
-						documentVersion,
-						concatenateEdits(all)));
+					server.CodeAction.create(
+						label,
+						command,
+						server.CodeActionKind.QuickFix
+					)
+				);
 			}
 		}
 	}
@@ -786,7 +807,20 @@ connection.onCodeAction((params) => {
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				ruleId = autoFix.problem.getRuleName();
-				result.push(server.Command.create(autoFix.label, '_tslint.applyDisableRule', uri, documentVersion, createTextEdit(autoFix)));
+				let command = server.Command.create(
+					autoFix.label,
+					'_tslint.applyDisableRule',
+					uri,
+					documentVersion,
+					createTextEdit(autoFix)
+				);
+				result.push(
+					server.CodeAction.create(
+						autoFix.label,
+						command,
+						server.CodeActionKind.QuickFix
+					)
+				);
 			}
 		}
 	}
@@ -797,7 +831,22 @@ connection.onCodeAction((params) => {
 			if (autoFix) {
 				documentVersion = autoFix.documentVersion;
 				let ruleId = autoFix.problem.getRuleName();
-				result.push(server.Command.create(`Show documentation for "${ruleId}"`, '_tslint.showRuleDocumentation', uri, documentVersion, undefined, ruleId));
+				let label = `Show documentation for "${ruleId}"`;
+				let command = server.Command.create(
+					label,
+					'_tslint.showRuleDocumentation',
+					uri,
+					documentVersion,
+					undefined,
+					ruleId
+				);
+				result.push(
+					server.CodeAction.create(
+						label,
+						command,
+						server.CodeActionKind.QuickFix
+					)
+				);
 			}
 		}
 	}

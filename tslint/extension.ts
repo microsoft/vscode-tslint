@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import {
 	workspace, window, commands, ExtensionContext, StatusBarAlignment, TextEditor, Disposable, TextDocumentSaveReason, Uri,
 	ProviderResult, Command, Diagnostic, CodeActionContext, WorkspaceFolder, TextDocument, WorkspaceFolderPickOptions,
-	TextDocumentWillSaveEvent
+	TextDocumentWillSaveEvent, CodeAction
 } from 'vscode';
 import {
 	LanguageClient, LanguageClientOptions, ServerOptions, TextEdit,
@@ -177,7 +177,7 @@ export function activate(context: ExtensionContext) {
 			return false;
 		},
 		middleware: {
-			provideCodeActions: (document, range, context, token, next): ProviderResult<Command[]> => {
+			provideCodeActions: (document, range, context, token, next): ProviderResult<(Command | CodeAction)[]> => {
 				// do not ask server for code action when the diagnostic isn't from tslint
 				if (!context.diagnostics || context.diagnostics.length === 0) {
 					return [];
