@@ -461,6 +461,7 @@ export function activate(context: ExtensionContext) {
 		let start = Date.now();
 		const timeBudget = 500; // total willSave time budget is 1500
 		let retryCount = 0;
+		let retry = false;
 		let lastVersion = document.version;
 
 		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async (result) => {
@@ -479,12 +480,13 @@ export function activate(context: ExtensionContext) {
 						window.showInformationMessage("TSLint: Auto fix on save, fixes could not be applied (client version mismatch).");
 						break;
 					}
-					let retry = false;
+					retry = false;
 					if (lastVersion !== result.documentVersion) {
+						console.log('TSLint auto fix on save, server document version different than client version');
 						retry = true;  // retry to get the fixes matching the document
 					} else {
+						// try to apply the edits from the server
 						let edits = client.protocol2CodeConverter.asTextEdits(result.edits);
-
 						// disable version check by passing -1 as the version, the event loop is blocked during `willSave`
 						let success = await applyTextEdits(document.uri.toString(), -1, edits);
 						if (!success) {
@@ -496,6 +498,7 @@ export function activate(context: ExtensionContext) {
 					lastVersion = document.version;
 
 					if (result.overlappingFixes || retry) {
+						// ask for more non overlapping fixes
 						if (retry) {
 							retryCount++;
 						}
