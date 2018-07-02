@@ -793,7 +793,7 @@ connection.onCodeAction((params) => {
 				// action appears in the light bulb (for backward compatibility) and the Source... quick pick.
 				result.push(
 					server.CodeAction.create(
-						`tslint: ${label}`,
+						`${label} (tslint)`,
 						command,
 						server.CodeActionKind.Source
 					),
