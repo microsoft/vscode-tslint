@@ -334,12 +334,7 @@ async function validateTextDocument(connection: server.IConnection, document: se
 		return;
 	}
 
-	let settings = await settingsCache.get(uri);
 	trace('validateTextDocument: settings fetched');
-
-	if (settings && !settings.enable) {
-		return;
-	}
 
 	trace('validateTextDocument: about to load tslint library');
 	if (!document2Library.has(document.uri)) {
@@ -468,7 +463,10 @@ async function doValidate(conn: server.IConnection, library: any, document: serv
 		trace('No linting: settings could not be loaded');
 		return diagnostics;
 	}
-
+	if (!settings.enable) {
+		trace('No linting: tslint is disabled');
+		return diagnostics;
+	}
 	if (fileIsExcluded(settings, fsPath)) {
 		trace(`No linting: file ${fsPath} is excluded`);
 		return diagnostics;
