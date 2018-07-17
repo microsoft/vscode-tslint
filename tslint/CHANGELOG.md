@@ -1,4 +1,9 @@
 # Changelog
+
+## 1.0.34
+- Enable quick fix indicaton in Problems view [#366](https://github.com/Microsoft/vscode-tslint/issues/366)
+- Contribute fix all quick fixes as a code action available from the Source menu.
+
 ## 1.0.33
 - Fix for [#343](https://github.com/Microsoft/vscode-tslint/issues/343) Create a 'tslint.json' file" doesn´t work with local tslint install.
 - Adopt [#316](https://github.com/Microsoft/vscode-tslint/issues/316) VSCode 1.20's new CodeAction type
