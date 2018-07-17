@@ -733,11 +733,13 @@ connection.onCodeAction((params) => {
 				documentVersion = autoFix.documentVersion;
 				ruleId = autoFix.problem.getRuleName();
 				let command = server.Command.create(autoFix.label, '_tslint.applySingleFix', uri, documentVersion, createTextEdit(autoFix));
-				result.push(server.CodeAction.create(
+				let codeAction = server.CodeAction.create(
 					autoFix.label,
 					command,
 					server.CodeActionKind.QuickFix
-				));
+				);
+				codeAction.diagnostics = [diagnostic];
+				result.push(codeAction);
 			}
 		}
 		if (result.length > 0) {
@@ -820,12 +822,14 @@ connection.onCodeAction((params) => {
 					documentVersion,
 					createTextEdit(autoFix)
 				);
+				let codeAction = server.CodeAction.create(
+					autoFix.label,
+					command,
+					server.CodeActionKind.QuickFix
+				);
+				codeAction.diagnostics = [diagnostic];
 				result.push(
-					server.CodeAction.create(
-						autoFix.label,
-						command,
-						server.CodeActionKind.QuickFix
-					)
+					codeAction
 				);
 			}
 		}
@@ -846,12 +850,14 @@ connection.onCodeAction((params) => {
 					undefined,
 					ruleId
 				);
+				let codeAction = server.CodeAction.create(
+					label,
+					command,
+					server.CodeActionKind.QuickFix
+				);
+				codeAction.diagnostics = [diagnostic];
 				result.push(
-					server.CodeAction.create(
-						label,
-						command,
-						server.CodeActionKind.QuickFix
-					)
+					codeAction
 				);
 			}
 		}
