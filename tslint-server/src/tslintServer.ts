@@ -333,8 +333,13 @@ async function validateTextDocument(connection: server.IConnection, document: se
 	if (Uri.parse(uri).scheme !== 'file') {
 		return;
 	}
-
+	let settings = await settingsCache.get(uri);
 	trace('validateTextDocument: settings fetched');
+	if (settings && !settings.enable) {
+		// send diagnostics event to flush existing warnings
+		connection.sendDiagnostics({ uri: uri, diagnostics: [] });
+		return;
+	}
 
 	trace('validateTextDocument: about to load tslint library');
 	if (!document2Library.has(document.uri)) {
