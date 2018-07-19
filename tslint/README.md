@@ -40,6 +40,12 @@ When you have installed tslint globally using `npm install -g` then you can get 
 
 1. define the location of the global node_modules folder using the `tslint.nodePath` setting.
 
+### How can I distinguish errors warnings from tslint and TypeScript and how can I suppress them?
+
+Error or warnings from TypeScript have the prefix `[ts]`, error or warnings from tslint have the prefix `[tslint]`. You can suppress warnings as follows:
+- typescript - use the `// @ts-ignore` comment.
+- tslint - use the `// tslint:rulename` comment.
+
 ## Trouble shooting
 
 Open the tslint output log using the command `TSLint: Show Output`. Verify that there is no error message in the shown log.
