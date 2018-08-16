@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as semver from 'semver';
 import Uri from 'vscode-uri';
 import * as util from 'util';
+import * as fs from 'fs';
 
 import * as tslint from 'tslint'; // this is a dev dependency only
 
@@ -409,6 +410,14 @@ function isExcludedFromLinterOptions(config: tslint.Configuration.IConfiguration
 	return config.linterOptions.exclude.some((pattern) => testForExclusionPattern(fileName, pattern));
 }
 
+async function nodePathExists(file: string): Promise<boolean> {
+	return new Promise<boolean>((resolve, _reject) => {
+		fs.exists(file, (value) => {
+			resolve(value);
+		});
+	});
+}
+
 async function loadLibrary(docUri: string) {
 	trace('loadLibrary for ' + docUri);
 
@@ -421,8 +430,18 @@ async function loadLibrary(docUri: string) {
 	if (uri.scheme === 'file') {
 		let file = uri.fsPath;
 		let directory = path.dirname(file);
+
+		let np: string | undefined = undefined;
 		if (settings && settings.nodePath) {
-			promise = server.Files.resolve('tslint', settings.nodePath, settings.nodePath!, trace).then<string, string>(undefined, () => {
+			let exists = await nodePathExists(settings.nodePath);
+			if (exists) {
+				np = settings.nodePath;
+			} else {
+				connection.window.showErrorMessage(`The setting 'tslint.nodePath' refers to '${settings.nodePath}', but this path does not exist. The setting will be ignored.`);
+			}
+		}
+		if (np) {
+			promise = server.Files.resolve('tslint', np, np!, trace).then<string, string>(undefined, () => {
 				return server.Files.resolve('tslint', getGlobalPath(), directory, trace);
 			});
 		} else {
