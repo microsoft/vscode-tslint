@@ -34,7 +34,7 @@ The recommended way is to run tslint manually on your project from a [task](http
 
 - First linting is very slow [#287](https://github.com/Microsoft/vscode-tslint/issues/287)
 
-When you have installed tslint globally using `npm install -g` then you can get hit by a performance issue in npm. The command to determine the location of the global node modules can be very slow with version 5 of npm. This problem could not be reproduce wiht npm version 4.2. You can work around this issue by:
+When you have installed tslint globally using `npm install -g` then you can get hit by a performance issue in npm. The command to determine the location of the global node modules can be very slow with version 5 of npm. This problem could not be reproduce with npm version 4.2. You can work around this issue by:
 
 1. installing tslint locally for you project using `npm install tslint`
 
