@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.35
+- Fix [#376](https://github.com/Microsoft/vscode-tslint/issues/376) TS Lint Server crashes when tslint.nodePath does not exist
+
 ## 1.0.34
 - Enable quick fix indicaton in Problems view [#366](https://github.com/Microsoft/vscode-tslint/issues/366)
 - Contribute fix all quick fixes as a code action available from the Source menu.
