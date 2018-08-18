@@ -113,6 +113,10 @@ let globalSettings: Settings = <Settings>{};
 let scopedSettingsSupport = false;
 let globalPackageManagerPath: Map<string, string> = new Map();  // map stores undefined values to represent failed resolutions
 
+process.on('unhandledRejection', (reason, p) => {
+	connection.console.info(`Unhandled Rejection at: Promise ${p} reason:, ${reason}`);
+});
+
 function computeKey(diagnostic: server.Diagnostic): string {
 	let range = diagnostic.range;
 	return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}`;
@@ -455,7 +459,13 @@ async function loadLibrary(docUri: string) {
 	document2Library.set(docUri, promise.then((path) => {
 		let library;
 		if (!path2Library.has(path)) {
-			library = require(path);
+			try {
+				library = require(path);
+			} catch (e) {
+				connection.console.info(`TSLint failed to load tslint`);
+				connection.sendRequest(NoTSLintLibraryRequest.type, { source: { uri: docUri } });
+				return undefined;
+			}
 			connection.console.info(`TSLint library loaded from: ${path}`);
 			path2Library.set(path, library);
 		}
