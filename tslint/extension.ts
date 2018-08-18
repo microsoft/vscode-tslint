@@ -151,7 +151,7 @@ export function activate(context: ExtensionContext) {
 	// the output folder.
 	let serverModulePath = path.join(__dirname, '..', 'server', 'tslintServer.js');
 	// break on start options
-	//let debugOptions = { execArgv: ["--nolazy", "--debug=6010", "--debug-brk"] };
+	//let debugOptions = { execArgv: ["--nolazy", "--inspect-brk=6010", "--trace-warnings"] };
 	let debugOptions = { execArgv: ["--nolazy", "--inspect=6010"], cwd: process.cwd() };
 	let runOptions = { cwd: process.cwd() };
 	let serverOptions: ServerOptions = {
