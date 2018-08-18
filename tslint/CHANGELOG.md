@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.36
+- Fix [#379](https://github.com/Microsoft/vscode-tslint/issues/379) Unhandled Promise Reject warning when typescript module is not installed
+- Updating the dependencies to use the latest version of the vscode-language libraries
+
 ## 1.0.35
 - Fix [#376](https://github.com/Microsoft/vscode-tslint/issues/376) TS Lint Server crashes when tslint.nodePath does not exist
 
