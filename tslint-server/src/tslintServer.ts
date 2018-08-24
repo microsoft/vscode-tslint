@@ -3,18 +3,14 @@
  *--------------------------------------------------------*/
 'use strict';
 
-import * as minimatch from 'minimatch';
 import * as server from 'vscode-languageserver';
-import * as path from 'path';
-import * as semver from 'semver';
 import Uri from 'vscode-uri';
-import * as util from 'util';
-import * as fs from 'fs';
 
 import * as tslint from 'tslint'; // this is a dev dependency only
 
 import { Delayer } from './delayer';
 import { createVscFixForRuleFailure, TSLintAutofixEdit } from './fixer';
+import { TsLintRunner, RunConfiguration} from './runner';
 
 // Settings as defined in VS Code
 interface Settings {
@@ -33,45 +29,6 @@ interface Settings {
 	packageManager: 'npm' | 'yarn';
 	trace: any;
 	workspaceFolderPath: string | undefined;
-}
-
-interface Configuration {
-	linterConfiguration: tslint.Configuration.IConfigurationFile | undefined;
-	isDefaultLinterConfig: boolean;
-}
-
-class ConfigCache {
-	filePath: string | undefined;
-	configuration: Configuration | undefined;
-
-	constructor() {
-		this.filePath = undefined;
-		this.configuration = undefined;
-	}
-
-	set(path: string, configuration: Configuration) {
-		this.filePath = path;
-		this.configuration = configuration;
-	}
-
-	get(forPath: string): Configuration | undefined {
-		if (forPath === this.filePath) {
-			return this.configuration;
-		}
-		return undefined;
-	}
-
-	isDefaultLinterConfig(): boolean {
-		if (this.configuration) {
-			return this.configuration.isDefaultLinterConfig;
-		}
-		return false;
-	}
-
-	flush() {
-		this.filePath = undefined;
-		this.configuration = undefined;
-	}
 }
 
 class SettingsCache {
@@ -107,11 +64,9 @@ class SettingsCache {
 	}
 }
 
-let configCache = new ConfigCache();
 let settingsCache = new SettingsCache();
 let globalSettings: Settings = <Settings>{};
 let scopedSettingsSupport = false;
-let globalPackageManagerPath: Map<string, string> = new Map();  // map stores undefined values to represent failed resolutions
 
 process.on('unhandledRejection', (reason, p) => {
 	connection.console.info(`Unhandled Rejection at: Promise ${p} reason:, ${reason}`);
@@ -143,24 +98,7 @@ namespace StatusNotification {
 	export const type = new server.NotificationType<StatusParams, void>('tslint/status');
 }
 
-interface NoTSLintLibraryParams {
-	source: server.TextDocumentIdentifier;
-}
-
-interface NoTSLintLibraryResult {
-}
-
-namespace NoTSLintLibraryRequest {
-	export const type = new server.RequestType<NoTSLintLibraryParams, NoTSLintLibraryResult, void, void>('tslint/noLibrary');
-}
-
-// if tslint < tslint4 then the linter is the module therefore the type `any`
-let path2Library: Map<string, typeof tslint.Linter | any> = new Map();
-let document2Library: Map<string, Thenable<typeof tslint.Linter | any>> = new Map();
-
 let validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
-
-//let configFileWatchers: Map<string, fs.FSWatcher> = new Map();
 
 function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFailure): server.Diagnostic {
 	let message = (problem.getRuleName())
@@ -241,47 +179,6 @@ function convertReplacementToAutoFix(document: server.TextDocument, repl: tslint
 	};
 }
 
-async function getConfiguration(uri: string, filePath: string, library: any, configFileName: string | null): Promise<Configuration | undefined> {
-	trace('getConfiguration for' + uri);
-
-	let config = configCache.get(filePath);
-	if (config) {
-		return config;
-	}
-
-	let isDefaultConfig = false;
-	let linterConfiguration: tslint.Configuration.IConfigurationFile | undefined;
-
-	let linter = getLinterFromLibrary(library);
-	if (isTsLintVersion4(library)) {
-		if (linter.findConfigurationPath) {
-			isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
-		}
-		let configurationResult = linter.findConfiguration(configFileName, filePath);
-
-		// between tslint 4.0.1 and tslint 4.0.2 the attribute 'error' has been removed from IConfigurationLoadResult
-		// in 4.0.2 findConfiguration throws an exception as in version ^3.0.0
-		if ((<any>configurationResult).error) {
-			throw (<any>configurationResult).error;
-		}
-		linterConfiguration = configurationResult.results;
-	} else {
-		// prior to tslint 4.0 the findconfiguration functions where attached to the linter function
-		if (linter.findConfigurationPath) {
-			isDefaultConfig = linter.findConfigurationPath(configFileName, filePath) === undefined;
-		}
-		linterConfiguration = <tslint.Configuration.IConfigurationFile>linter.findConfiguration(configFileName, filePath);
-	}
-
-	let configuration: Configuration = {
-		isDefaultLinterConfig: isDefaultConfig,
-		linterConfiguration: linterConfiguration,
-	};
-
-	configCache.set(filePath, configuration);
-	return configCache.configuration;
-}
-
 function getErrorMessage(err: any, document: server.TextDocument): string {
 	let errorMessage = `unknown error`;
 	if (typeof err.message === 'string' || err.message instanceof String) {
@@ -301,11 +198,6 @@ function getConfigurationFailureMessage(err: any): string {
 
 }
 
-function showConfigurationFailure(conn: server.IConnection, err: any) {
-	conn.console.info(getConfigurationFailureMessage(err));
-	conn.sendNotification(StatusNotification.type, { state: Status.error });
-}
-
 function validateAllTextDocuments(conn: server.IConnection, documents: server.TextDocument[]): void {
 	trace('validateAllTextDocuments');
 	let tracker = new server.ErrorMessageTracker();
@@ -318,26 +210,13 @@ function validateAllTextDocuments(conn: server.IConnection, documents: server.Te
 	});
 }
 
-function getLinterFromLibrary(library): typeof tslint.Linter {
-	let isTsLint4 = isTsLintVersion4(library);
-	let linter;
-	if (!isTsLint4) {
-		linter = library;
-	} else {
-		linter = library.Linter;
-	}
-	return linter;
-}
+let tslintRunner: TsLintRunner | undefined = undefined;
 
 async function validateTextDocument(connection: server.IConnection, document: server.TextDocument) {
 	trace('start validateTextDocument');
 
 	let uri = document.uri;
 
-	// tslint can only validate files on disk
-	if (Uri.parse(uri).scheme !== 'file') {
-		return;
-	}
 	let settings = await settingsCache.get(uri);
 	trace('validateTextDocument: settings fetched');
 	if (settings && !settings.enable) {
@@ -346,29 +225,68 @@ async function validateTextDocument(connection: server.IConnection, document: se
 		return;
 	}
 
-	trace('validateTextDocument: about to load tslint library');
-	if (!document2Library.has(document.uri)) {
-		await loadLibrary(document.uri);
-	}
-	trace('validateTextDocument: loaded tslint library');
+	let diagnostics: server.Diagnostic[] = [];
+	delete codeFixActions[uri];
+	delete codeDisableRuleActions[uri];
 
-	if (!document2Library.has(document.uri)) {
-		return;
+	// tslint can only validate files on disk
+	if (Uri.parse(uri).scheme !== 'file') {
+		trace(`No linting: file is not saved on disk`);
+		return diagnostics;
 	}
 
-	document2Library.get(document.uri)!.then(async (library) => {
-		if (!library) {
-			return;
-		}
-		try {
-			trace('validateTextDocument: about to validate ' + document.uri);
-			connection.sendNotification(StatusNotification.type, { state: Status.ok });
-			let diagnostics = await doValidate(connection, library, document);
-			connection.sendDiagnostics({ uri, diagnostics });
-		} catch (err) {
-			connection.window.showErrorMessage(getErrorMessage(err, document));
-		}
+	let fsPath = server.Files.uriToFilePath(uri);
+
+	if (!settings) {
+		trace('No linting: settings could not be loaded');
+		return diagnostics;
+	}
+	if (!settings.enable) {
+		trace('No linting: tslint is disabled');
+		return diagnostics;
+	}
+
+	if (!tslintRunner) {
+		tslintRunner = new TsLintRunner(trace);
+	}
+
+	let traceLevel: 'normal' | 'verbose' = 'normal';
+	if (settings.trace && settings.trace.server && settings.trace.server === 'verbose') {
+		traceLevel = 'verbose';
+	}
+
+	let runConfiguration: RunConfiguration = {
+		workspaceFolderPath: settings.workspaceFolderPath,
+		configFile: settings.configFile,
+		jsEnable: settings.jsEnable,
+		exclude: settings.exclude,
+		ignoreDefinitionFiles: settings.ignoreDefinitionFiles,
+		nodePath: settings.nodePath,
+		packageManager: settings.packageManager,
+		rulesDirectory: settings.rulesDirectory,
+		validateWithDefaultConfig: settings.validateWithDefaultConfig,
+		traceLevel: traceLevel
+	};
+
+	let result = tslintRunner.runTsLint(fsPath!, document.getText(), runConfiguration);
+
+	if (result.warnings.length > 0) {
+		connection.sendNotification(StatusNotification.type, { state: Status.warn });
+		result.warnings.forEach(each => {
+			connection.console.warn(each);
+		});
+	}
+
+	let filterdFailures = tslintRunner.filterProblemsForFile(fsPath!, result.lintResult.failures);
+
+	diagnostics = filterdFailures.map(each => makeDiagnostic(settings, each));
+	filterdFailures.forEach(each => {
+		let diagnostic = makeDiagnostic(settings, each);
+		diagnostics.push(diagnostic);
+		recordCodeAction(document, diagnostic, each);
+
 	});
+	connection.sendDiagnostics({ uri, diagnostics });
 }
 
 let connection: server.IConnection = server.createConnection(new server.IPCMessageReader(process), new server.IPCMessageWriter(process));
@@ -397,261 +315,6 @@ connection.onInitialize((params) => {
 		}
 	};
 });
-
-function isTsLintVersion4(library) {
-	let version = '1.0.0';
-	try {
-		version = library.Linter.VERSION;
-	} catch (e) {
-	}
-	return !(semver.satisfies(version, "<= 3.x.x"));
-}
-
-function isExcludedFromLinterOptions(config: tslint.Configuration.IConfigurationFile | undefined, fileName: string): boolean {
-	if (config === undefined || config.linterOptions === undefined || config.linterOptions.exclude === undefined) {
-		return false;
-	}
-	return config.linterOptions.exclude.some((pattern) => testForExclusionPattern(fileName, pattern));
-}
-
-async function nodePathExists(file: string): Promise<boolean> {
-	return new Promise<boolean>((resolve, _reject) => {
-		fs.exists(file, (value) => {
-			resolve(value);
-		});
-	});
-}
-
-async function loadLibrary(docUri: string) {
-	trace('loadLibrary for ' + docUri);
-
-	let uri = Uri.parse(docUri);
-	let promise: Thenable<string>;
-	let settings = await settingsCache.get(docUri);
-
-	let getGlobalPath = () => getGlobalPackageManagerPath(settings.packageManager);
-
-	if (uri.scheme === 'file') {
-		let file = uri.fsPath;
-		let directory = path.dirname(file);
-
-		let np: string | undefined = undefined;
-		if (settings && settings.nodePath) {
-			let exists = await nodePathExists(settings.nodePath);
-			if (exists) {
-				np = settings.nodePath;
-			} else {
-				connection.window.showErrorMessage(`The setting 'tslint.nodePath' refers to '${settings.nodePath}', but this path does not exist. The setting will be ignored.`);
-			}
-		}
-		if (np) {
-			promise = server.Files.resolve('tslint', np, np!, trace).then<string, string>(undefined, () => {
-				return server.Files.resolve('tslint', getGlobalPath(), directory, trace);
-			});
-		} else {
-			promise = server.Files.resolve('tslint', undefined, directory, trace).then<string, string>(undefined, () => {
-				return promise = server.Files.resolve('tslint', getGlobalPath(), directory, trace);
-			});
-		}
-	} else {
-		promise = server.Files.resolve('tslint', getGlobalPath(), undefined!, trace); // cwd argument can be undefined
-	}
-	document2Library.set(docUri, promise.then((path) => {
-		let library;
-		if (!path2Library.has(path)) {
-			try {
-				library = require(path);
-			} catch (e) {
-				connection.console.info(`TSLint failed to load tslint`);
-				connection.sendRequest(NoTSLintLibraryRequest.type, { source: { uri: docUri } });
-				return undefined;
-			}
-			connection.console.info(`TSLint library loaded from: ${path}`);
-			path2Library.set(path, library);
-		}
-		return path2Library.get(path);
-	}, () => {
-		connection.sendRequest(NoTSLintLibraryRequest.type, { source: { uri: docUri } });
-		return undefined;
-	}));
-}
-
-async function doValidate(conn: server.IConnection, library: any, document: server.TextDocument): Promise<server.Diagnostic[]> {
-	trace('start doValidate ' + document.uri);
-
-	let uri = document.uri;
-
-	let diagnostics: server.Diagnostic[] = [];
-	delete codeFixActions[uri];
-	delete codeDisableRuleActions[uri];
-
-	let fsPath = server.Files.uriToFilePath(uri);
-	if (!fsPath) {
-		// tslint can only lint files on disk
-		trace(`No linting: file is not saved on disk`);
-		return diagnostics;
-	}
-
-	let settings = await settingsCache.get(uri);
-	if (!settings) {
-		trace('No linting: settings could not be loaded');
-		return diagnostics;
-	}
-	if (!settings.enable) {
-		trace('No linting: tslint is disabled');
-		return diagnostics;
-	}
-	if (fileIsExcluded(settings, fsPath)) {
-		trace(`No linting: file ${fsPath} is excluded`);
-		return diagnostics;
-	}
-
-	if (settings.workspaceFolderPath) {
-		trace(`Changed directory to ${settings.workspaceFolderPath}`);
-		process.chdir(settings.workspaceFolderPath);
-	}
-	let contents = document.getText();
-	let configFile = settings.configFile || null;
-
-	let configuration: Configuration | undefined;
-	trace('validateTextDocument: about to getConfiguration');
-	try {
-		configuration = await getConfiguration(uri, fsPath, library, configFile);
-	} catch (err) {
-		// this should not happen since we guard against incorrect configurations
-		showConfigurationFailure(conn, err);
-		trace(`No linting: exception when getting tslint configuration for ${fsPath}, configFile= ${configFile}`);
-		return diagnostics;
-	}
-	if (!configuration) {
-		trace(`No linting: no tslint configuration`);
-		return diagnostics;
-	}
-	trace('validateTextDocument: configuration fetched');
-
-	if (isJsDocument(document) && !settings.jsEnable) {
-		trace(`No linting: a JS document, but js linting is disabled`);
-		return diagnostics;
-	}
-
-	if (settings.validateWithDefaultConfig === false && configCache.configuration!.isDefaultLinterConfig) {
-		trace(`No linting: linting with default tslint configuration is disabled`);
-		return diagnostics;
-	}
-
-	if (isExcludedFromLinterOptions(configuration.linterConfiguration, fsPath)) {
-		trace(`No linting: file is excluded using linterOptions.exclude`);
-		return diagnostics;
-	}
-
-	let result: tslint.LintResult;
-	let options: tslint.ILinterOptions = {
-		formatter: "json",
-		fix: false,
-		rulesDirectory: settings.rulesDirectory || undefined,
-		formattersDirectory: undefined
-	};
-
-	if (settings.trace && settings.trace.server === 'verbose') {
-		traceConfigurationFile(configuration.linterConfiguration);
-	}
-
-	// tslint writes warnings using console.warn, capture these warnings and send them to the client
-	let originalConsoleWarn = console.warn;
-	let captureWarnings = (message?: any) => {
-		conn.sendNotification(StatusNotification.type, { state: Status.warn });
-		originalConsoleWarn(message);
-	};
-	console.warn = captureWarnings;
-
-	try { // protect against tslint crashes
-		let linter = getLinterFromLibrary(library);
-		if (isTsLintVersion4(library)) {
-			let tslint = new linter(options);
-			trace(`Linting: start linting with tslint > version 4`);
-			tslint.lint(fsPath, contents, configuration.linterConfiguration);
-			result = tslint.getResult();
-			trace(`Linting: ended linting`);
-		}
-		// support for linting js files is only available in tslint > 4.0
-		else if (!isJsDocument(document)) {
-			(<any>options).configuration = configuration.linterConfiguration;
-			trace(`Linting: with tslint < version 4`);
-			let tslint = new (<any>linter)(fsPath, contents, options);
-			result = tslint.lint();
-			trace(`Linting: ended linting`);
-		} else {
-			trace(`No linting: JS linting not supported in tslint < version 4`);
-			return diagnostics;
-		}
-	} catch (err) {
-		conn.console.info(getErrorMessage(err, document));
-		connection.sendNotification(StatusNotification.type, { state: Status.error });
-		trace(`No linting: tslint exception while linting`);
-		return diagnostics;
-	}
-	finally {
-		console.warn = originalConsoleWarn;
-	}
-
-	if (result.failures.length > 0) {
-		filterProblemsForDocument(fsPath, result.failures).forEach(problem => {
-			let diagnostic = makeDiagnostic(settings, problem);
-			diagnostics.push(diagnostic);
-			recordCodeAction(document, diagnostic, problem);
-		});
-	}
-	trace('doValidate: sending diagnostics: ' + result.failures.length);
-
-	return diagnostics;
-}
-
-/**
- * Filter failures for the given document
- */
-function filterProblemsForDocument(documentPath: string, failures: tslint.RuleFailure[]): tslint.RuleFailure[] {
-	let normalizedPath = path.normalize(documentPath);
-	// we only show diagnostics targetting this open document, some tslint rule return diagnostics for other documents/files
-	let normalizedFiles = {};
-	return failures.filter(each => {
-		let fileName = each.getFileName();
-		if (!normalizedFiles[fileName]) {
-			normalizedFiles[fileName] = path.normalize(fileName);
-		}
-		return normalizedFiles[fileName] === normalizedPath;
-	});
-}
-
-function isJsDocument(document: server.TextDocument) {
-	return (document.languageId === "javascript" || document.languageId === "javascriptreact");
-}
-
-function testForExclusionPattern(path: string, pattern: string): boolean {
-	return minimatch(path, pattern, { dot: true });
-}
-
-function fileIsExcluded(settings: Settings, path: string): boolean {
-
-
-	if (settings.ignoreDefinitionFiles) {
-		if (path.endsWith('.d.ts')) {
-			return true;
-		}
-	}
-
-	if (settings.exclude) {
-		if (Array.isArray(settings.exclude)) {
-			for (let pattern of settings.exclude) {
-				if (testForExclusionPattern(path, pattern)) {
-					return true;
-				}
-			}
-		} else if (testForExclusionPattern(path, <string>settings.exclude)) {
-			return true;
-		}
-	}
-	return false;
-}
 
 documents.onDidOpen(async (event) => {
 	trace('onDidOpen');
@@ -683,7 +346,6 @@ documents.onDidClose((event) => {
 	// A text document was closed we clear the diagnostics
 	trace('onDidClose' + event.document.uri);
 	connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
-	document2Library.delete(event.document.uri);
 });
 
 function triggerValidateDocument(document: server.TextDocument) {
@@ -727,7 +389,9 @@ connection.onDidChangeConfiguration((params) => {
 	trace('onDidChangeConfiguraton');
 
 	globalSettings = params.settings;
-	configCache.flush();
+	if (tslintRunner) {
+		tslintRunner.onConfigFileChange('');
+	}
 	settingsCache.flush();
 	validateAllTextDocuments(connection, documents.all());
 });
@@ -747,7 +411,9 @@ connection.onDidChangeWatchedFiles((params) => {
 		}
 	});
 
-	configCache.flush();
+	if (tslintRunner) {
+		tslintRunner.onConfigFileChange('');
+	}
 	if (tslintConfigurationValid()) {
 		validateAllTextDocuments(connection, documents.all());
 	}
@@ -1106,30 +772,6 @@ function concatenateEdits(fixes: AutoFix[]): server.TextEdit[] {
 		textEdits = textEdits.concat(createTextEdit(each));
 	});
 	return textEdits;
-}
-
-function traceConfigurationFile(configuration: tslint.Configuration.IConfigurationFile | undefined) {
-	if (!configuration) {
-		trace("no tslint configuration");
-		return;
-	}
-	trace("tslint configuration:", util.inspect(configuration, undefined, 4));
-}
-
-function getGlobalPackageManagerPath(packageManager: string): string | undefined {
-	trace(`Begin - Resolve Global Package Manager Path for: ${packageManager}`);
-
-	if (!globalPackageManagerPath.has(packageManager)) {
-		let path: string | undefined;
-		if (packageManager === 'npm') {
-			path = server.Files.resolveGlobalNodePath(trace);
-		} else if (packageManager === 'yarn') {
-			path = server.Files.resolveGlobalYarnPath(trace);
-		}
-		globalPackageManagerPath.set(packageManager, path!);
-	}
-	trace(`Done - Resolve Global Package Manager Path for: ${packageManager}`);
-	return globalPackageManagerPath.get(packageManager);
 }
 
 connection.listen();
