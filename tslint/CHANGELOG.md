@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.0.382
+## 1.0.38
+- Fix [#384](https://github.com/Microsoft/vscode-tslint/issues/384) Failed to load the TSLint library for the document, when tslint is installed globally
+
+## 1.0.37
 - Fix [#382](https://github.com/Microsoft/vscode-tslint/issues/382) Fix all auto-fixable problems not fixing all problems (must be applied multiple times)
 
 ## 1.0.36
