@@ -356,7 +356,7 @@ export function activate(context: ExtensionContext) {
 		commands.executeCommand('vscode.open', Uri.parse(tslintDocBaseURL + '/' + ruleId));
 	}
 
-	function fixAllProblems() {
+	function fixAllProblems(): Thenable<any> | undefined {
 		// server is not running so there can be no problems to fix
 		if (!serverRunning) {
 			return;
@@ -365,17 +365,7 @@ export function activate(context: ExtensionContext) {
 		if (!textEditor) {
 			return;
 		}
-		let uri: string = textEditor.document.uri.toString();
-		client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then(async (result) => {
-			if (result) {
-				let success = await applyTextEdits(uri, result.documentVersion, result.edits);
-				if (!success) {
-					window.showErrorMessage('TSLint could not apply the fixes');
-				}
-			}
-		}, (_error) => {
-			window.showErrorMessage('Failed to apply TSLint fixes to the document. Please consider opening an issue with steps to reproduce.');
-		});
+		return doFixAllProblems(textEditor.document, undefined); // no time budget
 	}
 
 	function exists(file: string): Promise<boolean> {
@@ -448,7 +438,7 @@ export function activate(context: ExtensionContext) {
 				return;
 			}
 			e.waitUntil(
-				autoFixOnSave(document)
+				doFixAllProblems(document, 500) // total willSave time budget is 1500
 			);
 		}
 	}
@@ -457,9 +447,8 @@ export function activate(context: ExtensionContext) {
 		updateStatusBarVisibility(window.activeTextEditor);
 	}
 
-	function autoFixOnSave(document: TextDocument): Thenable<any> {
+	function doFixAllProblems(document: TextDocument, timeBudget: number | undefined): Thenable<any> {
 		let start = Date.now();
-		const timeBudget = 500; // total willSave time budget is 1500
 		let retryCount = 0;
 		let retry = false;
 		let lastVersion = document.version;
@@ -467,7 +456,7 @@ export function activate(context: ExtensionContext) {
 		let promise = client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true }).then(async (result) => {
 			while (true) {
 				// console.log('duration ', Date.now() - start);
-				if (Date.now() - start > timeBudget) {
+				if (timeBudget && Date.now() - start > timeBudget) {
 					console.log(`TSLint auto fix on save maximum time budget (${timeBudget}ms) exceeded.`);
 					break;
 				}
@@ -526,7 +515,7 @@ export function activate(context: ExtensionContext) {
 		// internal commands
 		commands.registerCommand('_tslint.applySingleFix', applyTextEdits),
 		commands.registerCommand('_tslint.applySameFixes', applyTextEdits),
-		commands.registerCommand('_tslint.applyAllFixes', applyTextEdits),
+		commands.registerCommand('_tslint.applyAllFixes', fixAllProblems),
 		commands.registerCommand('_tslint.applyDisableRule', applyDisableRuleEdit),
 		commands.registerCommand('_tslint.showRuleDocumentation', showRuleDocumentation),
 		// user commands
