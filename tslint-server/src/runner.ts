@@ -213,12 +213,18 @@ export class TsLintRunner {
         if (np) {
             try {
                 tsLintPath = this.resolveTsLint(np, np!);
+                if (tsLintPath.length === 0) {
+                    tsLintPath = this.resolveTsLint(getGlobalPath(), directory);
+                }
             } catch {
                 tsLintPath = this.resolveTsLint(getGlobalPath(), directory);
             }
         } else {
             try {
                 tsLintPath = this.resolveTsLint(undefined, directory);
+                if (tsLintPath.length === 0) {
+                    tsLintPath = this.resolveTsLint(getGlobalPath(), directory);
+                }
             } catch {
                 tsLintPath = this.resolveTsLint(getGlobalPath(), directory);
             }
