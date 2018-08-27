@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.382
+- Fix [#382](https://github.com/Microsoft/vscode-tslint/issues/382) Fix all auto-fixable problems not fixing all problems (must be applied multiple times)
+
 ## 1.0.36
 - Fix [#379](https://github.com/Microsoft/vscode-tslint/issues/379) Unhandled Promise Reject warning when typescript module is not installed
 - Updating the dependencies to use the latest version of the vscode-language libraries
