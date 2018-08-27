@@ -279,12 +279,10 @@ async function validateTextDocument(connection: server.IConnection, document: se
 
 	let filterdFailures = tslintRunner.filterProblemsForFile(fsPath!, result.lintResult.failures);
 
-	diagnostics = filterdFailures.map(each => makeDiagnostic(settings, each));
 	filterdFailures.forEach(each => {
 		let diagnostic = makeDiagnostic(settings, each);
 		diagnostics.push(diagnostic);
 		recordCodeAction(document, diagnostic, each);
-
 	});
 	connection.sendDiagnostics({ uri, diagnostics });
 }
