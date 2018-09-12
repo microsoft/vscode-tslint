@@ -449,7 +449,7 @@ export function activate(context: ExtensionContext) {
 
 	function doFixAllProblems(document: TextDocument, timeBudget: number | undefined): Thenable<any> {
 		let start = Date.now();
-		let retryCount = 0;
+		let loopCount = 0;
 		let retry = false;
 		let lastVersion = document.version;
 
@@ -460,8 +460,9 @@ export function activate(context: ExtensionContext) {
 					console.log(`TSLint auto fix on save maximum time budget (${timeBudget}ms) exceeded.`);
 					break;
 				}
-				if (retryCount > 10) {
+				if (loopCount++ > 10) {
 					console.log(`TSLint auto fix on save maximum retries exceeded.`);
+					break;
 				}
 				if (result) {
 					// ensure that document versions on the client are in sync
@@ -488,9 +489,6 @@ export function activate(context: ExtensionContext) {
 
 					if (result.overlappingFixes || retry) {
 						// ask for more non overlapping fixes
-						if (retry) {
-							retryCount++;
-						}
 						result = await client.sendRequest(AllFixesRequest.type, { textDocument: { uri: document.uri.toString() }, isOnSave: true });
 					} else {
 						break;
