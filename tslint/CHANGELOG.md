@@ -1,5 +1,9 @@
 # Changelog
 
+
+## 1.0.39
+- Fix [#387](https://github.com/Microsoft/vscode-tslint/issues/387) Infinite loop when auto fixing does not converge
+
 ## 1.0.38
 - Fix [#384](https://github.com/Microsoft/vscode-tslint/issues/384) Failed to load the TSLint library for the document, when tslint is installed globally
 
