@@ -21,4 +21,4 @@ VSCode extension to support tslint. This README describes the development setup,
 > If you want to debug server and extension at the same time; 1st debug extension and then start server debugging after you have opened a typescript file that activates the extension.
 
 ## Manual Tests
-Manual tests can be found in the `tslint-tests` folder.
+Manual tests can be found in the `tslint-tests` folder.  // test
