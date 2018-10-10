@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.0.40
+- Fix [#398](https://github.com/Microsoft/vscode-tslint/issues/398) Avoid that the tslint rule name is shown twice in diagnostic messages.
 
 ## 1.0.39
 - Fix [#387](https://github.com/Microsoft/vscode-tslint/issues/387) Infinite loop when auto fixing does not converge

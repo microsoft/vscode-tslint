@@ -101,10 +101,6 @@ namespace StatusNotification {
 let validationDelayer = new Map<string, Delayer<void>>(); // key is the URI of the document
 
 function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFailure): server.Diagnostic {
-	let message = (problem.getRuleName())
-		? `${problem.getFailure()} (${problem.getRuleName()})`
-		: `${problem.getFailure()}`;
-
 	let severity;
 	let alwaysWarning = settings && settings.alwaysShowRuleFailuresAsWarnings;
 	// tslint5 supports to assign severities to rules
@@ -116,7 +112,7 @@ function makeDiagnostic(settings: Settings | undefined, problem: tslint.RuleFail
 
 	let diagnostic: server.Diagnostic = {
 		severity: severity,
-		message: message,
+		message: problem.getFailure(),
 		range: {
 			start: {
 				line: problem.getStartPosition().getLineAndCharacter().line,
