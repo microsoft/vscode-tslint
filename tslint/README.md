@@ -1,5 +1,10 @@
 # vscode-tslint
 
+
+**Note:** We are about to deprecate this extension in favor of the [vscode-typescript-tslint-plugin](https://github.com/Microsoft/vscode-typescript-tslint-plugin). To learn about the differences between vscode-tslint and the new extension please refer to this [document](https://github.com/Microsoft/vscode-typescript-tslint-plugin#differences-with-the-vscode-tslint-extension).
+
+---
+
 Integrates the [tslint](https://github.com/palantir/tslint) linter for the TypeScript language into VS Code.
 
 Please refer to the tslint [documentation](https://github.com/palantir/tslint) for how to configure the linting rules.

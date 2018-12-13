@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.41
+- Announce deprecation of vscode-tslint in favor of the [vscode-typescript-tslint-plugin](https://github.com/Microsoft/vscode-typescript-tslint-plugin)
+
 ## 1.0.40
 - Fix [#398](https://github.com/Microsoft/vscode-tslint/issues/398) Avoid that the tslint rule name is shown twice in diagnostic messages.
 
