@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.42
+- Fix [#416](https://github.com/Microsoft/vscode-tslint/issues/416) New default for autoFixOnSave broke "Fix-all auto fixable problems"
+
 ## 1.0.41
 - Announce deprecation of vscode-tslint in favor of the [vscode-typescript-tslint-plugin](https://github.com/Microsoft/vscode-typescript-tslint-plugin)
 
