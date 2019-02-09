@@ -1,7 +1,6 @@
-# vscode-tslint
+# vscode-tslint (deprecated)
 
-
-**Note:** We are about to deprecate this extension in favor of the [vscode-typescript-tslint-plugin](https://github.com/Microsoft/vscode-typescript-tslint-plugin). To learn about the differences between vscode-tslint and the new extension please refer to this [document](https://github.com/Microsoft/vscode-typescript-tslint-plugin#differences-with-the-vscode-tslint-extension).
+**Note:** This extension has been deprecated in favor of the [vscode-typescript-tslint-plugin](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin). To learn about the differences between vscode-tslint and the new extension please refer to this [document](https://github.com/Microsoft/vscode-typescript-tslint-plugin#differences-with-the-vscode-tslint-extension).
 
 ---
 

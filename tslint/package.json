@@ -1,6 +1,6 @@
 {
   "name": "tslint",
-  "displayName": "TSLint",
+  "displayName": "TSLint (deprecated)",
   "description": "TSLint for Visual Studio Code",
   "version": "1.0.42",
   "author": "Microsoft Corporation",
