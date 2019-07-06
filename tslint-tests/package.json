@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-tslint": "^8.1.2",
     "tslint": "^5.11.0",
     "typescript": "^2.6.2"
