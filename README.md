@@ -1,4 +1,4 @@
-# vscode-tslint
+# vscode-tslint (depreacted)
 ![Marketplace Version](http://vsmarketplacebadge.apphb.com/version/eg2.tslint.svg "Current Version") ![Market Place Installs](http://vsmarketplacebadge.apphb.com/installs/eg2.tslint.svg "Number of Installs")
 
 VSCode extension to support tslint. This README describes the development setup, for information about the published extension refer to the [README](tslint/README.md) in the tslint folder.
