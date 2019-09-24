@@ -1,7 +1,3 @@
-- tslint Version:
-- typescript Version:
+## This extension is deprecated
 
-Steps to Reproduce:
-
-1.
-2.
+Please migrate to https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin
