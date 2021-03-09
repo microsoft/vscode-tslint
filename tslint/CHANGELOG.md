@@ -1,7 +1,10 @@
 # Changelog
 
+## 1.0.45
+- Fix dependabot reported security vulnerabilities
+
 ## 1.0.44
-- Fix github reported security vulnerabilities
+- Fix dependabot reported security vulnerabilities
 
 ## 1.0.42
 - Fix [#416](https://github.com/Microsoft/vscode-tslint/issues/416) New default for autoFixOnSave broke "Fix-all auto fixable problems"

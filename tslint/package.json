@@ -2,7 +2,7 @@
   "name": "tslint",
   "displayName": "TSLint (deprecated)",
   "description": "TSLint for Visual Studio Code",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "author": "Microsoft Corporation",
   "license": "MIT",
   "publisher": "eg2",
@@ -26,7 +26,7 @@
     "multi-root ready"
   ],
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.54.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
@@ -118,7 +118,7 @@
           "type": "string",
           "default": "",
           "description": "A path added to NODE_PATH when resolving the tslint module.",
-          "scope": "resource"
+          "scope": "machine"
         },
         "tslint.autoFixOnSave": {
           "type": [
@@ -233,17 +233,22 @@
     ]
   },
   "scripts": {
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "vscode:prepublish": "cd ../tslint-server && npm run compile && cd ../tslint && tsc -p ./",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "update-vscode": "node ./node_modules/vscode/bin/install"
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.1",
-    "@types/node": "^10.3.0",
-    "typescript": "^2.9.1",
-    "vscode": "^1.1.35"
+    "@types/vscode": "^1.54.0",
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^12.11.7",
+    "eslint": "^7.19.0",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "@typescript-eslint/parser": "^4.14.1",
+    "glob": "^7.1.6",
+    "mocha": "^8.2.1",
+    "typescript": "^4.1.3",
+    "vscode-test": "^1.5.0"
   },
   "dependencies": {
     "global": "^4.3.2",
