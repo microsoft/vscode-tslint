@@ -2,7 +2,7 @@
   "name": "tslint",
   "displayName": "TSLint (deprecated)",
   "description": "TSLint for Visual Studio Code",
-  "version": "1.0.45",
+  "version": "1.0.46",
   "author": "Microsoft Corporation",
   "license": "MIT",
   "publisher": "eg2",
@@ -10,6 +10,10 @@
   "galleryBanner": {
     "color": "#5c2d91",
     "theme": "dark"
+  },
+  "workspaceTrust": {
+    "request": "onStart",
+    "description": "Custom tslint rules can run arbitrary code from the workspace."
   },
   "repository": {
     "type": "git",
@@ -28,6 +32,7 @@
   "engines": {
     "vscode": "^1.54.0"
   },
+
   "activationEvents": [
     "onLanguage:typescript",
     "onLanguage:typescriptreact",

@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.0.46
+- Declare that the extension requires workspace trust.
 ## 1.0.45
 - Fix dependabot reported security vulnerabilities
 
